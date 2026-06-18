@@ -303,6 +303,42 @@
             margin: 1.5rem auto;
             border-radius: 2px;
         }
+
+        .nav-tabs {
+            margin-top: 3rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .nav-tab {
+            padding: 12px 32px;
+            background: rgba(157, 78, 221, 0.15);
+            border: 1px solid rgba(157, 78, 221, 0.4);
+            border-radius: 10px;
+            color: #c77dff;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .nav-tab:hover {
+            background: rgba(157, 78, 221, 0.3);
+            border-color: #9d4edd;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(157, 78, 221, 0.3);
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(90deg, #7b2cbf, #9d4edd);
+            border-color: #9d4edd;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -373,6 +409,10 @@
             <h1>PGP Encryption</h1>
             <div class="divider"></div>
             <div class="subtitle">Secure Communication</div>
+            <nav class="nav-tabs">
+                <a href="/" class="nav-tab active">Home</a>
+                <a href="/encrypt" class="nav-tab">Encrypt / Decrypt</a>
+            </nav>
         </div>
     </div>
 
