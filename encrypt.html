@@ -169,6 +169,89 @@
         .message.success { display: block; background: rgba(76, 175, 80, 0.2); color: #81c784; border: 1px solid rgba(76, 175, 80, 0.3); }
         .message.error { display: block; background: rgba(244, 67, 54, 0.2); color: #e57373; border: 1px solid rgba(244, 67, 54, 0.3); }
 
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 360px;
+        }
+        .toast {
+            padding: 14px 18px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            color: #fff;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: toastSlideIn 0.35s ease;
+            transform-origin: top right;
+            cursor: default;
+        }
+        .toast.closing { animation: toastSlideOut 0.25s ease forwards; }
+        .toast.success { background: rgba(46, 125, 50, 0.92); border: 1px solid rgba(76, 175, 80, 0.6); }
+        .toast.error { background: rgba(183, 28, 28, 0.92); border: 1px solid rgba(244, 67, 54, 0.6); }
+        .toast.info { background: rgba(21, 101, 192, 0.92); border: 1px solid rgba(33, 150, 243, 0.6); }
+        .toast-close {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.7);
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 0 2px;
+            line-height: 1;
+        }
+        .toast-close:hover { color: #fff; }
+        @keyframes toastSlideIn {
+            from { opacity: 0; transform: translateX(100%) scale(0.95); }
+            to { opacity: 1; transform: translateX(0) scale(1); }
+        }
+        @keyframes toastSlideOut {
+            from { opacity: 1; transform: translateX(0) scale(1); }
+            to { opacity: 0; transform: translateX(100%) scale(0.95); }
+        }
+
+        /* Shake animation for input errors */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-6px); }
+            40% { transform: translateX(6px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+        .shake { animation: shake 0.4s ease; }
+        .input-error {
+            border-color: #f44336 !important;
+            background: rgba(244, 67, 54, 0.08) !important;
+        }
+
+        /* Button loading */
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
         .user-info {
             text-align: center;
             padding: 20px;
@@ -577,6 +660,8 @@
         </div>
     </div>
 
+    <div class="toast-container" id="toastContainer"></div>
+
     <script>
         // Menu Toggle (same as index)
         const menuBtn = document.getElementById('menuBtn');
@@ -601,12 +686,100 @@
             });
         });
 
+        // ================= Toast Notifications =================
+        function showToast(text, type = 'info', duration = 4000) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            const icon = type === 'success' ? '&#10003;' : type === 'error' ? '&#10007;' : '&#9432;';
+            toast.innerHTML = `<span>${icon}</span><span style="flex:1">${escapeHtml(text)}</span><button class="toast-close">&times;</button>`;
+            container.appendChild(toast);
+
+            const closeBtn = toast.querySelector('.toast-close');
+            closeBtn.addEventListener('click', () => removeToast(toast));
+
+            if (duration > 0) {
+                setTimeout(() => removeToast(toast), duration);
+            }
+        }
+
+        function removeToast(toast) {
+            if (!toast.parentNode) return;
+            toast.classList.add('closing');
+            setTimeout(() => toast.remove(), 300);
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ================= Field Validation =================
+        function clearFieldError(input) {
+            input.classList.remove('input-error', 'shake');
+        }
+
+        function setFieldError(input) {
+            input.classList.add('input-error', 'shake');
+            setTimeout(() => input.classList.remove('shake'), 400);
+        }
+
+        function validateUsername(input) {
+            clearFieldError(input);
+            const val = input.value.trim();
+            if (!val) {
+                setFieldError(input);
+                return 'Username is required.';
+            }
+            if (val.length < 3) {
+                setFieldError(input);
+                return 'Username must be at least 3 characters.';
+            }
+            if (!/^[a-zA-Z0-9_-]+$/.test(val)) {
+                setFieldError(input);
+                return 'Username can only contain letters, numbers, underscores, and hyphens.';
+            }
+            return '';
+        }
+
+        function validatePassword(input) {
+            clearFieldError(input);
+            const val = input.value;
+            if (!val) {
+                setFieldError(input);
+                return 'Password is required.';
+            }
+            if (val.length < 6) {
+                setFieldError(input);
+                return 'Password must be at least 6 characters.';
+            }
+            return '';
+        }
+
+        // ================= Button Loading =================
+        function setLoading(btn, loading) {
+            if (loading) {
+                btn.disabled = true;
+                btn.dataset.originalText = btn.innerHTML;
+                btn.innerHTML = '<span class="spinner"></span>Please wait...';
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = btn.dataset.originalText || btn.innerHTML.replace('<span class="spinner"></span>Please wait...', '');
+            }
+        }
+
+        // ================= Auth UI =================
         async function checkAuth() {
             try {
                 const res = await fetch('/api/me');
                 const data = await res.json();
-                if (data.logged_in) showLoggedIn(data.username);
-            } catch (e) { console.error('Auth check failed:', e); }
+                if (data.logged_in) {
+                    showLoggedIn(data.username);
+                }
+            } catch (e) {
+                console.error('Auth check failed:', e);
+            }
         }
 
         function showLoggedIn(username) {
@@ -614,66 +787,126 @@
             document.getElementById('userInfo').style.display = 'block';
             document.getElementById('userName').textContent = username;
         }
+
         function showLoggedOut() {
             document.getElementById('authSection').style.display = 'block';
             document.getElementById('userInfo').style.display = 'none';
         }
+
         function showMessage(elementId, text, type) {
             const el = document.getElementById(elementId);
             el.textContent = text;
             el.className = 'message ' + (type === 'success' ? 'success' : 'error');
-            setTimeout(() => { el.className = 'message'; el.textContent = ''; }, 4000);
+            setTimeout(() => {
+                el.className = 'message';
+                el.textContent = '';
+            }, 4000);
         }
 
-        // Auth Forms
+        // ================= Register =================
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const usernameInput = document.getElementById('regUsername');
+            const passwordInput = document.getElementById('regPassword');
+            const btn = e.submitter || e.target.querySelector('.submit-btn');
+
+            const uErr = validateUsername(usernameInput);
+            if (uErr) { showToast(uErr, 'error'); return; }
+            const pErr = validatePassword(passwordInput);
+            if (pErr) { showToast(pErr, 'error'); return; }
+
+            setLoading(btn, true);
             try {
                 const res = await fetch('/api/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        username: document.getElementById('regUsername').value,
-                        password: document.getElementById('regPassword').value
-                    })
+                    body: JSON.stringify({ username: usernameInput.value.trim(), password: passwordInput.value })
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    showMessage('regMessage', 'Account created! You can now log in.', 'success');
+                    showToast('Account created successfully! You can now log in.', 'success', 5000);
                     document.getElementById('registerForm').reset();
                     document.querySelector('[data-tab="login"]').click();
+                } else if (res.status === 409) {
+                    setFieldError(usernameInput);
+                    showToast(data.error || 'That username is already taken.', 'error');
+                } else if (res.status === 400) {
+                    showToast(data.error || 'Invalid registration details.', 'error');
                 } else {
-                    showMessage('regMessage', data.error || 'Registration failed', 'error');
+                    showToast(data.error || 'Registration failed. Please try again.', 'error');
                 }
-            } catch (e) { showMessage('regMessage', 'Network error', 'error'); }
+            } catch (err) {
+                showToast('Network error: unable to reach the server. Please check your connection.', 'error');
+            } finally {
+                setLoading(btn, false);
+            }
         });
 
+        // Clear field errors on input
+        document.getElementById('regUsername').addEventListener('input', function() { clearFieldError(this); });
+        document.getElementById('regPassword').addEventListener('input', function() { clearFieldError(this); });
+
+        // ================= Login =================
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const usernameInput = document.getElementById('loginUsername');
+            const passwordInput = document.getElementById('loginPassword');
+            const btn = e.submitter || e.target.querySelector('.submit-btn');
+
+            const uErr = validateUsername(usernameInput);
+            if (uErr) { showToast(uErr, 'error'); return; }
+            const pErr = validatePassword(passwordInput);
+            if (pErr) { showToast(pErr, 'error'); return; }
+
+            setLoading(btn, true);
             try {
                 const res = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        username: document.getElementById('loginUsername').value,
-                        password: document.getElementById('loginPassword').value
-                    })
+                    body: JSON.stringify({ username: usernameInput.value.trim(), password: passwordInput.value })
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    showMessage('loginMessage', 'Logged in successfully!', 'success');
+                    showToast('Welcome back, ' + data.username + '!', 'success');
                     showLoggedIn(data.username);
+                    document.getElementById('loginForm').reset();
+                } else if (res.status === 401) {
+                    setFieldError(usernameInput);
+                    setFieldError(passwordInput);
+                    showToast(data.error || 'Invalid username or password.', 'error');
                 } else {
-                    showMessage('loginMessage', data.error || 'Login failed', 'error');
+                    showToast(data.error || 'Login failed. Please try again.', 'error');
                 }
-            } catch (e) { showMessage('loginMessage', 'Network error', 'error'); }
+            } catch (err) {
+                showToast('Network error: unable to reach the server. Please check your connection.', 'error');
+            } finally {
+                setLoading(btn, false);
+            }
         });
 
+        document.getElementById('loginUsername').addEventListener('input', function() { clearFieldError(this); });
+        document.getElementById('loginPassword').addEventListener('input', function() { clearFieldError(this); });
+
+        // ================= Logout =================
         document.getElementById('logoutBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('logoutBtn');
+            const originalText = btn.textContent;
+            btn.textContent = 'Logging out...';
+            btn.disabled = true;
             try {
                 const res = await fetch('/api/logout', { method: 'POST' });
-                if (res.ok) showLoggedOut();
-            } catch (e) { console.error('Logout failed:', e); }
+                if (res.ok) {
+                    showLoggedOut();
+                    showToast('You have been logged out successfully.', 'info');
+                } else {
+                    showToast('Logout failed. Please try again.', 'error');
+                }
+            } catch (err) {
+                showToast('Network error during logout. Please try again.', 'error');
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
         });
 
         checkAuth();
