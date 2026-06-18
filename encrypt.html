@@ -489,6 +489,11 @@
         <div class="user-info" id="userInfo" style="display: none;">
             <h3>Welcome!</h3>
             <p id="userName">User</p>
+            <nav class="sidebar-nav" id="sidebarNav" style="margin: 1.5rem 0; display: flex; flex-direction: column; gap: 0.6rem;">
+                <a href="/" style="padding: 12px 16px; background: rgba(157,78,221,0.1); border: 1px solid rgba(157,78,221,0.25); border-radius: 8px; color: #c77dff; text-decoration: none; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s ease;">Home</a>
+                <a href="/encrypt.html" style="padding: 12px 16px; background: rgba(157,78,221,0.1); border: 1px solid rgba(157,78,221,0.25); border-radius: 8px; color: #c77dff; text-decoration: none; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s ease;">Encrypt / Decrypt</a>
+                <a href="/profile.html" style="padding: 12px 16px; background: rgba(157,78,221,0.1); border: 1px solid rgba(157,78,221,0.25); border-radius: 8px; color: #c77dff; text-decoration: none; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s ease;">My Profile</a>
+            </nav>
             <button class="logout-btn" id="logoutBtn">Logout</button>
         </div>
     </aside>
@@ -501,6 +506,7 @@
             <nav class="nav-tabs">
                 <a href="/" class="nav-tab">Home</a>
                 <a href="/encrypt.html" class="nav-tab active">Encrypt / Decrypt</a>
+                <a href="/profile.html" class="nav-tab">My Profile</a>
             </nav>
         </div>
 
@@ -516,9 +522,11 @@
                 <button class="btn btn-primary" id="generateKeysBtn">Generate Key Pair</button>
                 <button class="btn btn-secondary" id="copyPublicBtn" style="display:none;">Copy Public Key</button>
                 <button class="btn btn-secondary" id="copyPrivateBtn" style="display:none;">Copy Private Key</button>
+                <button class="btn btn-success" id="saveToProfileBtn" style="display:none;">Save Public Key to Profile</button>
             </div>
             <div class="key-box" id="publicKeyBox"></div>
             <div class="key-box" id="privateKeyBox"></div>
+            <div class="status-msg" id="genStatus" style="margin-top:1rem; padding:10px; border-radius:8px; font-size:0.9rem; text-align:center; display:none;"></div>
         </div>
 
         <!-- Encrypt -->
@@ -720,14 +728,46 @@
             });
         }
 
+        function showGenStatus(text, type) {
+            const el = document.getElementById('genStatus');
+            el.textContent = text;
+            el.style.display = 'block';
+            el.style.background = type === 'ok' ? 'rgba(76,175,80,0.15)' : (type === 'error' ? 'rgba(244,67,54,0.15)' : 'rgba(33,150,243,0.15)');
+            el.style.color = type === 'ok' ? '#81c784' : (type === 'error' ? '#e57373' : '#64b5f6');
+            el.style.border = '1px solid ' + (type === 'ok' ? 'rgba(76,175,80,0.3)' : (type === 'error' ? 'rgba(244,67,54,0.3)' : 'rgba(33,150,243,0.3)'));
+            setTimeout(() => { el.style.display = 'none'; el.textContent = ''; }, 6000);
+        }
+
         // Generate Keys
         let generatedPublicKey = '';
         let generatedPrivateKey = '';
+
+        async function savePublicKeyToProfile(publicKey) {
+            if (!publicKey) return;
+            try {
+                const res = await fetch('/api/update-public-key', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ public_key: publicKey })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showGenStatus('Public key saved to your profile!', 'ok');
+                } else if (res.status === 401) {
+                    showGenStatus('Log in first to save your key to your profile.', 'error');
+                } else {
+                    showGenStatus(data.error || 'Failed to save key to profile', 'error');
+                }
+            } catch (e) {
+                showGenStatus('Network error saving key to profile', 'error');
+            }
+        }
 
         document.getElementById('generateKeysBtn').addEventListener('click', async () => {
             const btn = document.getElementById('generateKeysBtn');
             btn.textContent = 'Generating...';
             btn.disabled = true;
+            showGenStatus('Generating RSA key pair, please wait...', 'info');
 
             try {
                 const res = await fetch('/api/generate-keys', {
@@ -750,14 +790,23 @@
 
                     document.getElementById('copyPublicBtn').style.display = 'inline-block';
                     document.getElementById('copyPrivateBtn').style.display = 'inline-block';
+                    document.getElementById('saveToProfileBtn').style.display = 'inline-block';
 
                     // Auto-fill encrypt public key
                     document.getElementById('encPublicKey').value = data.public_key;
+
+                    showGenStatus(`RSA-${data.key_size} key pair generated successfully!`, 'ok');
+                } else if (res.status === 503) {
+                    showGenStatus(
+                        'Encryption module is not installed on this server. ' +
+                        'The server admin needs to add "cryptography" to requirements.txt and redeploy.',
+                        'error'
+                    );
                 } else {
-                    alert(data.error || 'Key generation failed');
+                    showGenStatus(data.error || 'Key generation failed: unknown error', 'error');
                 }
             } catch (e) {
-                alert('Network error during key generation');
+                showGenStatus('Network error: could not connect to key generation server. Please refresh and try again.', 'error');
             } finally {
                 btn.textContent = 'Generate Key Pair';
                 btn.disabled = false;
@@ -766,6 +815,7 @@
 
         document.getElementById('copyPublicBtn').addEventListener('click', () => copyToClipboard(generatedPublicKey));
         document.getElementById('copyPrivateBtn').addEventListener('click', () => copyToClipboard(generatedPrivateKey));
+        document.getElementById('saveToProfileBtn').addEventListener('click', () => savePublicKeyToProfile(generatedPublicKey));
 
         // Encrypt
         document.getElementById('encryptBtn').addEventListener('click', async () => {

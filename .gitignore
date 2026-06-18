@@ -16,6 +16,7 @@ venv/
 .bash_logout
 .profile
 .sudo_as_admin_successful
+.bash_history
 .config/gh/
 .gitconfig
 .config/gh/config.yml

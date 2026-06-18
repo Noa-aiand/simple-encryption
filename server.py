@@ -30,7 +30,7 @@ except ImportError as e:
     CRYPTO_AVAILABLE = False
 
 
-# ============== DB Setup ==============
+# ============== DB Setup & Migration ==============
 
 def init_db():
     conn = sqlite3.connect(DATABASE)
@@ -43,6 +43,15 @@ def init_db():
         )
     ''')
     conn.commit()
+
+    # Migration: add public_key column if it doesn't exist
+    c.execute("PRAGMA table_info(users)")
+    columns = [row[1] for row in c.fetchall()]
+    if 'public_key' not in columns:
+        c.execute('ALTER TABLE users ADD COLUMN public_key TEXT')
+        conn.commit()
+        logger.info("Migrated DB: added public_key column")
+
     conn.close()
 
 init_db()
@@ -66,30 +75,31 @@ def index():
 def encrypt_page():
     return _html_response('encrypt.html')
 
+@app.route('/profile')
+@app.route('/profile.html')
+def profile_page():
+    return _html_response('profile.html')
+
 @app.route('/<path:filename>')
 def static_files(filename):
     """
     Serve known safe static file types from the base directory.
     This avoids accidentally serving sensitive files like .env, .db, .py, etc.
     """
-    # Only serve whitelisted file extensions
     SAFE_EXTENSIONS = {
         '.html', '.htm', '.css', '.js', '.json', '.xml',
         '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico',
         '.txt', '.md', '.pdf', '.woff', '.woff2', '.ttf', '.eot'
     }
 
-    # Reject any requests to hidden files or dangerous paths
     if filename.startswith('.') or filename.startswith('_'):
         return jsonify({'error': 'Not found'}), 404
 
-    # Check extension is in whitelist; if no extension, reject
     _, ext = os.path.splitext(filename)
     ext = ext.lower()
     if not ext or ext not in SAFE_EXTENSIONS:
         return jsonify({'error': 'Not found'}), 404
 
-    # Resolve the real path to prevent directory traversal
     requested_path = os.path.join(BASE_DIR, filename)
     real_requested = os.path.realpath(requested_path)
     real_base = os.path.realpath(BASE_DIR)
@@ -163,6 +173,45 @@ def me():
     return jsonify({'logged_in': False}), 200
 
 
+# ============== Profile Routes ==============
+
+@app.route('/api/profile', methods=['GET'])
+def get_profile():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+
+    conn = sqlite3.connect(DATABASE)
+    c = conn.cursor()
+    c.execute('SELECT username, public_key FROM users WHERE id = ?', (session['user_id'],))
+    row = c.fetchone()
+    conn.close()
+
+    if not row:
+        return jsonify({'error': 'User not found'}), 404
+
+    return jsonify({
+        'username': row[0],
+        'public_key': row[1] or ''
+    }), 200
+
+
+@app.route('/api/update-public-key', methods=['POST'])
+def update_public_key():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+
+    data = request.get_json() or {}
+    public_key = data.get('public_key', '')
+
+    conn = sqlite3.connect(DATABASE)
+    c = conn.cursor()
+    c.execute('UPDATE users SET public_key = ? WHERE id = ?', (public_key, session['user_id']))
+    conn.commit()
+    conn.close()
+
+    return jsonify({'message': 'Public key saved successfully'}), 200
+
+
 # ============== Health / Status ==============
 
 @app.route('/api/status', methods=['GET'])
@@ -173,7 +222,6 @@ def status():
 # ============== Encryption Utilities ==============
 
 def parse_pgp_block(block_text, block_type):
-    """Extract base64 content from a PGP-style armor block."""
     begin_marker = f'-----BEGIN PGP {block_type}-----'
     end_marker = f'-----END PGP {block_type}-----'
 
@@ -204,7 +252,6 @@ def parse_pgp_block(block_text, block_type):
 
 
 def make_pgp_block(block_type, base64_content, comment=''):
-    """Wrap base64 content in a PGP-style armor block."""
     header = f'-----BEGIN PGP {block_type}-----\nVersion: PGP Encryption Tool 1.0'
     if comment:
         header += f'\nComment: {comment}'
