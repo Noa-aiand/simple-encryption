@@ -1,16 +1,34 @@
-from flask import Flask, send_from_directory, request, session, jsonify
 import os
+import sys
 import sqlite3
 import base64
 import secrets
+import logging
+from flask import Flask, send_from_directory, request, session, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
-app = Flask(__name__, static_folder='.')
+# Logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Base directory (absolute, so it works regardless of working directory)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
-DATABASE = 'users.db'
+DATABASE = os.path.join(BASE_DIR, 'users.db')
+
+# Optional cryptography module (check for graceful degradation)
+try:
+    from cryptography.hazmat.primitives.asymmetric import rsa, padding
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+    CRYPTO_AVAILABLE = True
+    logger.info("cryptography module loaded successfully")
+except ImportError as e:
+    logger.warning("cryptography module not available: %s", e)
+    CRYPTO_AVAILABLE = False
+
 
 # ============== DB Setup ==============
 
@@ -29,26 +47,24 @@ def init_db():
 
 init_db()
 
+
 # ============== Static Routes ==============
 
 @app.route('/')
 def index():
-    return send_from_directory('.', 'index.html')
+    return send_from_directory(BASE_DIR, 'index.html')
 
 @app.route('/encrypt')
 def encrypt_page():
-    return send_from_directory('.', 'encrypt.html')
+    return send_from_directory(BASE_DIR, 'encrypt.html')
 
-@app.route('/<path:path>')
-def static_files(path):
-    return send_from_directory('.', path)
 
 # ============== Auth Routes ==============
 
 @app.route('/api/register', methods=['POST'])
 def register():
-    data = request.get_json()
-    username = data.get('username', '').strip()
+    data = request.get_json() or {}
+    username = (data.get('username') or '').strip()
     password = data.get('password', '')
 
     if not username or not password:
@@ -69,10 +85,11 @@ def register():
     except sqlite3.IntegrityError:
         return jsonify({'error': 'Username already exists'}), 409
 
+
 @app.route('/api/login', methods=['POST'])
 def login():
-    data = request.get_json()
-    username = data.get('username', '').strip()
+    data = request.get_json() or {}
+    username = (data.get('username') or '').strip()
     password = data.get('password', '')
 
     conn = sqlite3.connect(DATABASE)
@@ -88,16 +105,29 @@ def login():
 
     return jsonify({'error': 'Invalid username or password'}), 401
 
+
 @app.route('/api/logout', methods=['POST'])
 def logout():
     session.clear()
     return jsonify({'message': 'Logged out successfully'}), 200
+
 
 @app.route('/api/me', methods=['GET'])
 def me():
     if 'user_id' in session:
         return jsonify({'logged_in': True, 'username': session['username']}), 200
     return jsonify({'logged_in': False}), 200
+
+
+# ============== Health / Status ==============
+
+@app.route('/api/status', methods=['GET'])
+def status():
+    return jsonify({
+        'status': 'ok',
+        'crypto_available': CRYPTO_AVAILABLE
+    }), 200
+
 
 # ============== Encryption Utilities ==============
 
@@ -109,11 +139,10 @@ def parse_pgp_block(block_text, block_type):
     begin_idx = block_text.find(begin_marker)
     end_idx = block_text.find(end_marker)
 
-    if begin_idx == -1 or end_idx == -1:
-        raise ValueError(f'Invalid PGP {block_type} block: missing markers')
+    if begin_idx == -1 or end_idx == -1 or end_idx < begin_idx:
+        raise ValueError(f'Invalid PGP {block_type} block: missing or malformed markers')
 
     content = block_text[begin_idx + len(begin_marker):end_idx]
-    # Strip header lines (Version, Comment)
     lines = content.strip().split('\n')
     b64_lines = []
     in_body = False
@@ -127,14 +156,17 @@ def parse_pgp_block(block_text, block_type):
         in_body = True
         if in_body:
             b64_lines.append(stripped)
-    return '\n'.join(b64_lines)
+    result = ''.join(b64_lines)
+    if not result:
+        raise ValueError(f'Invalid PGP {block_type} block: no base64 content found')
+    return result
+
 
 def make_pgp_block(block_type, base64_content, comment=''):
     """Wrap base64 content in a PGP-style armor block."""
     header = f'-----BEGIN PGP {block_type}-----\nVersion: PGP Encryption Tool 1.0'
     if comment:
         header += f'\nComment: {comment}'
-    # Chunk base64 into 64-char lines
     lines = []
     for i in range(0, len(base64_content), 64):
         lines.append(base64_content[i:i+64])
@@ -142,10 +174,17 @@ def make_pgp_block(block_type, base64_content, comment=''):
     footer = f'-----END PGP {block_type}-----'
     return f'{header}\n\n{body}\n{footer}'
 
+
 # ============== Key Generation ==============
 
 @app.route('/api/generate-keys', methods=['POST'])
 def generate_keys():
+    if not CRYPTO_AVAILABLE:
+        return jsonify({
+            'error': 'The cryptography module is not available on this server. '
+                     'Please redeploy after ensuring "cryptography" is in requirements.txt.'
+        }), 503
+
     data = request.get_json() or {}
     key_size = data.get('key_size', 4096)
 
@@ -153,6 +192,7 @@ def generate_keys():
         return jsonify({'error': 'Key size must be 2048 or 4096'}), 400
 
     try:
+        logger.info("Generating RSA-%d key pair...", key_size)
         private_key = rsa.generate_private_key(
             public_exponent=65537,
             key_size=key_size
@@ -176,18 +216,26 @@ def generate_keys():
         public_block = make_pgp_block('PUBLIC KEY BLOCK', public_b64, f'RSA-{key_size}')
         private_block = make_pgp_block('PRIVATE KEY BLOCK', private_b64, f'RSA-{key_size}')
 
+        logger.info("RSA-%d key pair generated successfully", key_size)
         return jsonify({
             'public_key': public_block,
             'private_key': private_block,
             'key_size': key_size
         }), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        logger.exception("Key generation failed")
+        return jsonify({'error': f'Key generation failed: {str(e)}'}), 500
+
 
 # ============== Encrypt ==============
 
 @app.route('/api/encrypt', methods=['POST'])
 def encrypt_message():
+    if not CRYPTO_AVAILABLE:
+        return jsonify({
+            'error': 'The cryptography module is not available on this server.'
+        }), 503
+
     data = request.get_json() or {}
     public_key_block = data.get('public_key', '')
     message = data.get('message', '')
@@ -197,20 +245,17 @@ def encrypt_message():
         return jsonify({'error': 'Public key and message are required'}), 400
 
     try:
-        # Parse PGP public key block
+        logger.info("Encrypting message with RSA-%d...", key_size)
         b64_pem = parse_pgp_block(public_key_block, 'PUBLIC KEY BLOCK')
         pem_bytes = base64.b64decode(b64_pem)
         public_key = serialization.load_pem_public_key(pem_bytes)
 
-        # Generate random AES-256 key and nonce
         aes_key = secrets.token_bytes(32)
         nonce = secrets.token_bytes(12)
 
-        # AES-GCM encrypt
         aesgcm = AESGCM(aes_key)
         ciphertext = aesgcm.encrypt(nonce, message.encode('utf-8'), None)
 
-        # RSA encrypt AES key
         encrypted_key = public_key.encrypt(
             aes_key,
             padding.OAEP(
@@ -220,24 +265,31 @@ def encrypt_message():
             )
         )
 
-        # Package: [2-byte key len][enc key][12-byte nonce][ciphertext]
         key_len = len(encrypted_key)
         payload = key_len.to_bytes(2, 'big') + encrypted_key + nonce + ciphertext
         payload_b64 = base64.b64encode(payload).decode()
 
         encrypted_block = make_pgp_block('MESSAGE', payload_b64, f'RSA-{key_size} Encrypted')
 
+        logger.info("Message encrypted successfully")
         return jsonify({
             'encrypted': encrypted_block,
             'key_size': key_size
         }), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        logger.exception("Encryption failed")
+        return jsonify({'error': f'Encryption failed: {str(e)}'}), 500
+
 
 # ============== Decrypt ==============
 
 @app.route('/api/decrypt', methods=['POST'])
 def decrypt_message():
+    if not CRYPTO_AVAILABLE:
+        return jsonify({
+            'error': 'The cryptography module is not available on this server.'
+        }), 503
+
     data = request.get_json() or {}
     private_key_block = data.get('private_key', '')
     encrypted_block = data.get('encrypted_message', '')
@@ -246,22 +298,19 @@ def decrypt_message():
         return jsonify({'error': 'Private key and encrypted message are required'}), 400
 
     try:
-        # Parse PGP private key block
+        logger.info("Decrypting message...")
         b64_pem = parse_pgp_block(private_key_block, 'PRIVATE KEY BLOCK')
         pem_bytes = base64.b64decode(b64_pem)
         private_key = serialization.load_pem_private_key(pem_bytes, password=None)
 
-        # Parse PGP message block
         b64_payload = parse_pgp_block(encrypted_block, 'MESSAGE')
         payload = base64.b64decode(b64_payload)
 
-        # Unpack payload
         key_len = int.from_bytes(payload[:2], 'big')
         encrypted_key = payload[2:2+key_len]
         nonce = payload[2+key_len:2+key_len+12]
         ciphertext = payload[2+key_len+12:]
 
-        # RSA decrypt AES key
         aes_key = private_key.decrypt(
             encrypted_key,
             padding.OAEP(
@@ -271,13 +320,15 @@ def decrypt_message():
             )
         )
 
-        # AES-GCM decrypt
         aesgcm = AESGCM(aes_key)
         plaintext = aesgcm.decrypt(nonce, ciphertext, None).decode('utf-8')
 
+        logger.info("Message decrypted successfully")
         return jsonify({'decrypted': plaintext}), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        logger.exception("Decryption failed")
+        return jsonify({'error': f'Decryption failed: {str(e)}'}), 500
+
 
 # ============== Main ==============
 

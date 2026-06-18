@@ -412,9 +412,33 @@
             display: none;
         }
         .key-box.visible { display: block; }
+
+        .server-status {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 2000;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: none;
+        }
+        .server-status.show { display: block; }
+        .server-status.ok {
+            background: rgba(76, 175, 80, 0.2);
+            color: #81c784;
+            border-bottom: 1px solid rgba(76, 175, 80, 0.3);
+        }
+        .server-status.error {
+            background: rgba(244, 67, 54, 0.2);
+            color: #e57373;
+            border-bottom: 1px solid rgba(244, 67, 54, 0.3);
+        }
     </style>
 </head>
 <body>
+    <div class="server-status" id="serverStatus"></div>
+
     <!-- Menu Button -->
     <button class="menu-btn" id="menuBtn" aria-label="Menu">
         <span></span>
@@ -643,6 +667,28 @@
         });
 
         checkAuth();
+
+        // Server status check
+        async function checkServerStatus() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+                const banner = document.getElementById('serverStatus');
+                if (res.ok && data.crypto_available) {
+                    banner.textContent = 'Server ready — encryption enabled';
+                    banner.className = 'server-status show ok';
+                    setTimeout(() => { banner.className = 'server-status'; }, 3000);
+                } else {
+                    banner.textContent = 'Warning: encryption module not available. Please check server logs.';
+                    banner.className = 'server-status show error';
+                }
+            } catch (e) {
+                const banner = document.getElementById('serverStatus');
+                banner.textContent = 'Warning: unable to reach server. Some features may not work.';
+                banner.className = 'server-status show error';
+            }
+        }
+        checkServerStatus();
 
         // ==================== Encrypt / Decrypt Logic ====================
 
