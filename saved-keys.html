@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PGP Encryption - Profile</title>
+    <title>PGP Encryption - Saved Keys</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -110,6 +110,23 @@
             background: rgba(157,78,221,0.1);
         }
         .form-group input::placeholder { color: rgba(255,255,255,0.3); }
+        .form-group textarea {
+            width: 100%; padding: 12px 15px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(157,78,221,0.3);
+            border-radius: 8px;
+            color: #fff; font-size: 0.85rem;
+            font-family: 'Courier New', monospace;
+            outline: none;
+            transition: all 0.3s ease;
+            resize: vertical;
+            min-height: 100px;
+        }
+        .form-group textarea:focus {
+            border-color: #9d4edd;
+            background: rgba(157,78,221,0.1);
+        }
+        .form-group textarea::placeholder { color: rgba(255,255,255,0.3); }
         .submit-btn {
             width: 100%; padding: 14px;
             background: linear-gradient(90deg, #7b2cbf, #9d4edd);
@@ -157,7 +174,7 @@
         }
         .logout-btn:hover { background: rgba(244,67,54,0.3); }
 
-        /* Nav links inside sidebar */
+        /* Sidebar Nav */
         .sidebar-nav {
             margin: 1.5rem 0;
             display: flex;
@@ -189,7 +206,7 @@
 
         /* Main Content */
         .main-content {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 40px 20px;
         }
@@ -213,12 +230,12 @@
             letter-spacing: 3px;
             text-transform: uppercase;
         }
-
         .nav-tabs {
             display: flex;
             gap: 1rem;
             justify-content: center;
             margin-bottom: 2rem;
+            flex-wrap: wrap;
         }
         .nav-tab {
             padding: 12px 32px;
@@ -246,6 +263,7 @@
             color: #fff;
         }
 
+        /* Cards */
         .card {
             background: rgba(255,255,255,0.05);
             border: 1px solid rgba(255,255,255,0.1);
@@ -267,47 +285,87 @@
         }
         .card h2 .icon { font-size: 1.5rem; }
 
-        .profile-field {
-            margin-bottom: 1.5rem;
+        /* Saved Keys List */
+        .saved-key-item {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(157,78,221,0.25);
+            border-radius: 12px;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
         }
-        .profile-field label {
-            display: block;
-            color: #c77dff;
-            font-size: 0.85rem;
+        .saved-key-item:hover {
+            border-color: rgba(157,78,221,0.5);
+            box-shadow: 0 4px 15px rgba(157,78,221,0.15);
+        }
+        .saved-key-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.8rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .saved-key-name {
+            color: #9d4edd;
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .saved-key-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .key-btn {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 0.5rem;
-        }
-        .profile-field .value {
-            padding: 12px 15px;
-            background: rgba(0,0,0,0.2);
-            border: 1px solid rgba(157,78,221,0.3);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 1rem;
-            font-weight: 500;
-        }
-
-        .form-group textarea {
-            width: 100%;
-            padding: 12px 15px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(157,78,221,0.3);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 0.85rem;
-            font-family: 'Courier New', monospace;
-            outline: none;
+            cursor: pointer;
             transition: all 0.3s ease;
-            resize: vertical;
-            min-height: 200px;
         }
-        .form-group textarea:focus {
-            border-color: #9d4edd;
-            background: rgba(157,78,221,0.1);
+        .key-btn-copy {
+            background: rgba(76,175,80,0.15);
+            border: 1px solid rgba(76,175,80,0.3);
+            color: #81c784;
         }
-        .form-group textarea::placeholder { color: rgba(255,255,255,0.3); }
+        .key-btn-copy:hover { background: rgba(76,175,80,0.25); }
+        .key-btn-edit {
+            background: rgba(33,150,243,0.15);
+            border: 1px solid rgba(33,150,243,0.3);
+            color: #64b5f6;
+        }
+        .key-btn-edit:hover { background: rgba(33,150,243,0.25); }
+        .key-btn-delete {
+            background: rgba(244,67,54,0.15);
+            border: 1px solid rgba(244,67,54,0.3);
+            color: #e57373;
+        }
+        .key-btn-delete:hover { background: rgba(244,67,54,0.25); }
+        .saved-key-preview {
+            font-family: 'Courier New', monospace;
+            font-size: 0.78rem;
+            color: #c77dff;
+            background: rgba(0,0,0,0.25);
+            border-radius: 8px;
+            padding: 0.8rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 120px;
+            overflow-y: auto;
+        }
 
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: rgba(255,255,255,0.4);
+        }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
+
+        /* Action Buttons */
         .action-btns {
             display: flex;
             gap: 1rem;
@@ -344,12 +402,6 @@
             border-color: #9d4edd;
             color: #fff;
         }
-        .btn-success {
-            background: rgba(76,175,80,0.2);
-            border: 1px solid rgba(76,175,80,0.4);
-            color: #81c784;
-        }
-        .btn-success:hover { background: rgba(76,175,80,0.3); }
 
         .status-msg {
             margin-top: 1rem;
@@ -364,22 +416,40 @@
         .status-msg.error { background: rgba(244,67,54,0.15); color: #e57373; border: 1px solid rgba(244,67,54,0.3); }
         .status-msg.info { background: rgba(33,150,243,0.15); color: #64b5f6; border: 1px solid rgba(33,150,243,0.3); }
 
-        .key-display {
-            margin-top: 1rem;
-            padding: 1rem;
-            background: rgba(0,0,0,0.25);
-            border: 1px solid rgba(157,78,221,0.2);
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.78rem;
-            color: #c77dff;
-            white-space: pre-wrap;
-            word-break: break-word;
-            max-height: 300px;
-            overflow-y: auto;
+        .modal-overlay {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
             display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
-        .key-display.show { display: block; }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: rgba(22,33,62,0.98);
+            border: 1px solid rgba(157,78,221,0.4);
+            border-radius: 16px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal h3 {
+            color: #9d4edd;
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .modal-btns {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
     </style>
 </head>
 <body>
@@ -435,8 +505,8 @@
             <nav class="sidebar-nav" id="sidebarNav">
                 <a href="/">Home</a>
                 <a href="/encrypt.html">Encrypt / Decrypt</a>
-                <a href="/profile.html" class="active">My Profile</a>
-                <a href="/saved-keys.html">Saved Keys</a>
+                <a href="/profile.html">My Profile</a>
+                <a href="/saved-keys.html" class="active">Saved Keys</a>
             </nav>
             <button class="logout-btn" id="logoutBtn">Logout</button>
         </div>
@@ -446,41 +516,63 @@
     <div class="main-content">
         <div class="page-header">
             <h1>PGP Encryption</h1>
-            <div class="subtitle">User Profile</div>
+            <div class="subtitle">Saved Public Keys</div>
             <nav class="nav-tabs">
                 <a href="/" class="nav-tab">Home</a>
                 <a href="/encrypt.html" class="nav-tab">Encrypt / Decrypt</a>
-                <a href="/profile.html" class="nav-tab active">My Profile</a>
-                <a href="/saved-keys.html" class="nav-tab">Saved Keys</a>
+                <a href="/profile.html" class="nav-tab">My Profile</a>
+                <a href="/saved-keys.html" class="nav-tab active">Saved Keys</a>
             </nav>
         </div>
 
-        <!-- Profile Card -->
-        <div class="card">
-            <h2><span class="icon">&#128100;</span> Profile</h2>
-            <div class="profile-field">
-                <label>Username</label>
-                <div class="value" id="profileUsername">Loading...</div>
-            </div>
-
+        <!-- Add New Key Card -->
+        <div class="card" id="addKeyCard">
+            <h2><span class="icon">➕</span> Add New Key</h2>
             <div class="form-group">
-                <label for="profilePublicKey">Your Public Key</label>
-                <textarea id="profilePublicKey" placeholder="Paste your PGP public key here, or generate one from the Encrypt / Decrypt page..."></textarea>
+                <label for="keyName">Contact Name / Username</label>
+                <input type="text" id="keyName" placeholder="e.g. alice, bob@example.com..." required>
             </div>
-
+            <div class="form-group">
+                <label for="keyPublicKey">Public Key</label>
+                <textarea id="keyPublicKey" placeholder="Paste PGP public key block here..." required></textarea>
+            </div>
             <div class="action-btns">
-                <button class="btn btn-primary" id="saveKeyBtn">Save Public Key</button>
-                <button class="btn btn-secondary" id="copyKeyBtn">Copy Key</button>
-                <button class="btn btn-success" id="clearKeyBtn">Clear</button>
+                <button class="btn btn-primary" id="saveKeyBtn">Save Key</button>
+                <button class="btn btn-secondary" id="clearFormBtn">Clear</button>
             </div>
-
-            <div class="status-msg" id="profileStatus"></div>
+            <div class="status-msg" id="formStatus"></div>
         </div>
 
-        <!-- Saved Key Display -->
-        <div class="card" id="savedKeyCard" style="display:none;">
-            <h2><span class="icon">&#128273;</span> Current Saved Key</h2>
-            <div class="key-display show" id="savedKeyDisplay"></div>
+        <!-- Saved Keys List -->
+        <div class="card">
+            <h2><span class="icon">🔑</span> Your Saved Keys</h2>
+            <div id="savedKeysList">
+                <div class="empty-state">
+                    <div class="icon">🔍</div>
+                    <p>No saved keys yet. Add one above!</p>
+                </div>
+            </div>
+            <div class="status-msg" id="listStatus"></div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <h3>Edit Saved Key</h3>
+            <input type="hidden" id="editKeyId">
+            <div class="form-group">
+                <label for="editKeyName">Contact Name / Username</label>
+                <input type="text" id="editKeyName" required>
+            </div>
+            <div class="form-group">
+                <label for="editKeyPublicKey">Public Key</label>
+                <textarea id="editKeyPublicKey" required></textarea>
+            </div>
+            <div class="modal-btns">
+                <button class="btn btn-secondary" id="cancelEditBtn">Cancel</button>
+                <button class="btn btn-primary" id="confirmEditBtn">Update Key</button>
+            </div>
         </div>
     </div>
 
@@ -567,7 +659,7 @@
                 if (res.ok) {
                     showMessage('loginMessage', 'Logged in successfully!', 'success');
                     showLoggedIn(data.username);
-                    loadProfile();
+                    loadSavedKeys();
                 } else {
                     showMessage('loginMessage', data.error || 'Login failed', 'error');
                 }
@@ -579,97 +671,214 @@
                 const res = await fetch('/api/logout', { method: 'POST' });
                 if (res.ok) {
                     showLoggedOut();
-                    document.getElementById('profileUsername').textContent = 'Not logged in';
-                    document.getElementById('profilePublicKey').value = '';
-                    document.getElementById('savedKeyCard').style.display = 'none';
+                    document.getElementById('savedKeysList').innerHTML = `
+                        <div class="empty-state">
+                            <div class="icon">🔍</div>
+                            <p>No saved keys yet. Add one above!</p>
+                        </div>
+                    `;
                 }
             } catch (e) { console.error('Logout failed:', e); }
-        });
-
-        // Profile
-        async function loadProfile() {
-            try {
-                const res = await fetch('/api/profile');
-                if (res.status === 401) {
-                    document.getElementById('profileUsername').textContent = 'Not logged in';
-                    showStatus('profileStatus', 'Please log in to view your profile.', 'info');
-                    return;
-                }
-                const data = await res.json();
-                if (res.ok) {
-                    document.getElementById('profileUsername').textContent = data.username;
-                    if (data.public_key) {
-                        document.getElementById('profilePublicKey').value = data.public_key;
-                        document.getElementById('savedKeyDisplay').textContent = data.public_key;
-                        document.getElementById('savedKeyCard').style.display = 'block';
-                    } else {
-                        document.getElementById('savedKeyCard').style.display = 'none';
-                    }
-                } else {
-                    showStatus('profileStatus', data.error || 'Failed to load profile', 'error');
-                }
-            } catch (e) {
-                showStatus('profileStatus', 'Network error loading profile', 'error');
-            }
-        }
-
-        document.getElementById('saveKeyBtn').addEventListener('click', async () => {
-            const key = document.getElementById('profilePublicKey').value.trim();
-            try {
-                const res = await fetch('/api/update-public-key', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ public_key: key })
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    showStatus('profileStatus', 'Public key saved successfully!', 'ok');
-                    if (key) {
-                        document.getElementById('savedKeyDisplay').textContent = key;
-                        document.getElementById('savedKeyCard').style.display = 'block';
-                    } else {
-                        document.getElementById('savedKeyCard').style.display = 'none';
-                    }
-                } else if (res.status === 401) {
-                    showStatus('profileStatus', 'Please log in to save your public key.', 'error');
-                } else {
-                    showStatus('profileStatus', data.error || 'Save failed', 'error');
-                }
-            } catch (e) {
-                showStatus('profileStatus', 'Network error saving public key', 'error');
-            }
-        });
-
-        document.getElementById('copyKeyBtn').addEventListener('click', () => {
-            const key = document.getElementById('profilePublicKey').value;
-            if (!key) { showStatus('profileStatus', 'No key to copy', 'error'); return; }
-            navigator.clipboard.writeText(key).then(() => {
-                showStatus('profileStatus', 'Copied to clipboard!', 'ok');
-            }).catch(() => {
-                const ta = document.createElement('textarea');
-                ta.value = key; document.body.appendChild(ta);
-                ta.select(); document.execCommand('copy');
-                document.body.removeChild(ta);
-                showStatus('profileStatus', 'Copied to clipboard!', 'ok');
-            });
-        });
-
-        document.getElementById('clearKeyBtn').addEventListener('click', () => {
-            if (confirm('Clear your public key from this field?')) {
-                document.getElementById('profilePublicKey').value = '';
-            }
         });
 
         async function checkAuth() {
             try {
                 const res = await fetch('/api/me');
                 const data = await res.json();
-                if (data.logged_in) showLoggedIn(data.username);
+                if (data.logged_in) {
+                    showLoggedIn(data.username);
+                    loadSavedKeys();
+                }
             } catch (e) { console.error('Auth check failed:', e); }
         }
 
+        // ==================== Saved Keys Logic ====================
+
+        async function loadSavedKeys() {
+            try {
+                const res = await fetch('/api/saved-keys');
+                if (res.status === 401) {
+                    showStatus('listStatus', 'Please log in to view your saved keys.', 'info');
+                    return;
+                }
+                const data = await res.json();
+                if (res.ok) {
+                    renderSavedKeys(data.keys);
+                } else {
+                    showStatus('listStatus', data.error || 'Failed to load saved keys', 'error');
+                }
+            } catch (e) {
+                showStatus('listStatus', 'Network error loading saved keys', 'error');
+            }
+        }
+
+        function renderSavedKeys(keys) {
+            const container = document.getElementById('savedKeysList');
+            if (!keys || keys.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">🔍</div>
+                        <p>No saved keys yet. Add one above!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = keys.map(key => `
+                <div class="saved-key-item" data-id="${key.id}">
+                    <div class="saved-key-header">
+                        <div class="saved-key-name">${escapeHtml(key.name)}</div>
+                        <div class="saved-key-actions">
+                            <button class="key-btn key-btn-copy" onclick="copyKey(${key.id})">Copy</button>
+                            <button class="key-btn key-btn-edit" onclick="editKey(${key.id}, '${escapeHtml(key.name).replace(/'/g, "\\'")}', '${escapeHtml(key.public_key).replace(/'/g, "\\'")}')">Edit</button>
+                            <button class="key-btn key-btn-delete" onclick="deleteKey(${key.id})">Delete</button>
+                        </div>
+                    </div>
+                    <div class="saved-key-preview" id="keyPreview-${key.id}">${escapeHtml(key.public_key)}</div>
+                </div>
+            `).join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Save new key
+        document.getElementById('saveKeyBtn').addEventListener('click', async () => {
+            const name = document.getElementById('keyName').value.trim();
+            const publicKey = document.getElementById('keyPublicKey').value.trim();
+
+            if (!name) {
+                showStatus('formStatus', 'Please enter a contact name.', 'error');
+                return;
+            }
+            if (!publicKey) {
+                showStatus('formStatus', 'Please paste a public key.', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/saved-keys', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, public_key: publicKey })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    showStatus('formStatus', 'Key saved successfully!', 'ok');
+                    document.getElementById('keyName').value = '';
+                    document.getElementById('keyPublicKey').value = '';
+                    loadSavedKeys();
+                } else if (res.status === 401) {
+                    showStatus('formStatus', 'Please log in to save keys.', 'error');
+                } else {
+                    showStatus('formStatus', data.error || 'Failed to save key', 'error');
+                }
+            } catch (e) {
+                showStatus('formStatus', 'Network error saving key', 'error');
+            }
+        });
+
+        document.getElementById('clearFormBtn').addEventListener('click', () => {
+            document.getElementById('keyName').value = '';
+            document.getElementById('keyPublicKey').value = '';
+        });
+
+        // Copy key
+        window.copyKey = function(id) {
+            const keyText = document.getElementById(`keyPreview-${id}`).textContent;
+            navigator.clipboard.writeText(keyText).then(() => {
+                showStatus('listStatus', 'Key copied to clipboard!', 'ok');
+            }).catch(() => {
+                const ta = document.createElement('textarea');
+                ta.value = keyText;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                showStatus('listStatus', 'Key copied to clipboard!', 'ok');
+            });
+        };
+
+        // Edit key
+        window.editKey = function(id, name, publicKey) {
+            document.getElementById('editKeyId').value = id;
+            document.getElementById('editKeyName').value = name;
+            document.getElementById('editKeyPublicKey').value = publicKey;
+            document.getElementById('editModal').classList.add('active');
+        };
+
+        document.getElementById('cancelEditBtn').addEventListener('click', () => {
+            document.getElementById('editModal').classList.remove('active');
+        });
+
+        document.getElementById('editModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('editModal')) {
+                document.getElementById('editModal').classList.remove('active');
+            }
+        });
+
+        document.getElementById('confirmEditBtn').addEventListener('click', async () => {
+            const id = document.getElementById('editKeyId').value;
+            const name = document.getElementById('editKeyName').value.trim();
+            const publicKey = document.getElementById('editKeyPublicKey').value.trim();
+
+            if (!name) {
+                showStatus('listStatus', 'Name is required.', 'error');
+                return;
+            }
+            if (!publicKey) {
+                showStatus('listStatus', 'Public key is required.', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/saved-keys/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, public_key: publicKey })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    document.getElementById('editModal').classList.remove('active');
+                    showStatus('listStatus', 'Key updated successfully!', 'ok');
+                    loadSavedKeys();
+                } else if (res.status === 401) {
+                    showStatus('listStatus', 'Please log in to edit keys.', 'error');
+                } else {
+                    showStatus('listStatus', data.error || 'Failed to update key', 'error');
+                }
+            } catch (e) {
+                showStatus('listStatus', 'Network error updating key', 'error');
+            }
+        });
+
+        // Delete key
+        window.deleteKey = async function(id) {
+            if (!confirm('Are you sure you want to delete this saved key?')) return;
+
+            try {
+                const res = await fetch(`/api/saved-keys/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+
+                if (res.ok) {
+                    showStatus('listStatus', 'Key deleted successfully!', 'ok');
+                    loadSavedKeys();
+                } else if (res.status === 401) {
+                    showStatus('listStatus', 'Please log in to delete keys.', 'error');
+                } else {
+                    showStatus('listStatus', data.error || 'Failed to delete key', 'error');
+                }
+            } catch (e) {
+                showStatus('listStatus', 'Network error deleting key', 'error');
+            }
+        };
+
         checkAuth();
-        loadProfile();
     </script>
 </body>
 </html>

@@ -52,6 +52,19 @@ def init_db():
         conn.commit()
         logger.info("Migrated DB: added public_key column")
 
+    # Create saved_keys table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS saved_keys (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            owner_id INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            public_key TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+    ''')
+    conn.commit()
+
     conn.close()
 
 init_db()
@@ -79,6 +92,11 @@ def encrypt_page():
 @app.route('/profile.html')
 def profile_page():
     return _html_response('profile.html')
+
+@app.route('/saved-keys')
+@app.route('/saved-keys.html')
+def saved_keys_page():
+    return _html_response('saved-keys.html')
 
 @app.route('/<path:filename>')
 def static_files(filename):
@@ -210,6 +228,102 @@ def update_public_key():
     conn.close()
 
     return jsonify({'message': 'Public key saved successfully'}), 200
+
+
+# ============== Saved Keys Routes ==============
+
+@app.route('/api/saved-keys', methods=['GET'])
+def get_saved_keys():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+
+    conn = sqlite3.connect(DATABASE)
+    c = conn.cursor()
+    c.execute('SELECT id, name, public_key, created_at FROM saved_keys WHERE owner_id = ? ORDER BY created_at DESC', (session['user_id'],))
+    rows = c.fetchall()
+    conn.close()
+
+    keys = []
+    for row in rows:
+        keys.append({
+            'id': row[0],
+            'name': row[1],
+            'public_key': row[2],
+            'created_at': row[3]
+        })
+
+    return jsonify({'keys': keys}), 200
+
+
+@app.route('/api/saved-keys', methods=['POST'])
+def create_saved_key():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+
+    data = request.get_json() or {}
+    name = (data.get('name') or '').strip()
+    public_key = (data.get('public_key') or '').strip()
+
+    if not name:
+        return jsonify({'error': 'Name is required'}), 400
+    if not public_key:
+        return jsonify({'error': 'Public key is required'}), 400
+
+    conn = sqlite3.connect(DATABASE)
+    c = conn.cursor()
+    c.execute('INSERT INTO saved_keys (owner_id, name, public_key) VALUES (?, ?, ?)',
+              (session['user_id'], name, public_key))
+    conn.commit()
+    key_id = c.lastrowid
+    conn.close()
+
+    return jsonify({'message': 'Key saved successfully', 'id': key_id}), 201
+
+
+@app.route('/api/saved-keys/<int:key_id>', methods=['PUT'])
+def update_saved_key(key_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+
+    data = request.get_json() or {}
+    name = (data.get('name') or '').strip()
+    public_key = (data.get('public_key') or '').strip()
+
+    if not name:
+        return jsonify({'error': 'Name is required'}), 400
+    if not public_key:
+        return jsonify({'error': 'Public key is required'}), 400
+
+    conn = sqlite3.connect(DATABASE)
+    c = conn.cursor()
+    c.execute('UPDATE saved_keys SET name = ?, public_key = ? WHERE id = ? AND owner_id = ?',
+              (name, public_key, key_id, session['user_id']))
+    conn.commit()
+    updated = c.rowcount
+    conn.close()
+
+    if updated == 0:
+        return jsonify({'error': 'Key not found'}), 404
+
+    return jsonify({'message': 'Key updated successfully'}), 200
+
+
+@app.route('/api/saved-keys/<int:key_id>', methods=['DELETE'])
+def delete_saved_key(key_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+
+    conn = sqlite3.connect(DATABASE)
+    c = conn.cursor()
+    c.execute('DELETE FROM saved_keys WHERE id = ? AND owner_id = ?', (key_id, session['user_id']))
+    conn.commit()
+    deleted = c.rowcount
+    conn.close()
+
+    if deleted == 0:
+        return jsonify({'error': 'Key not found'}), 404
+
+    return jsonify({'message': 'Key deleted successfully'}), 200
 
 
 # ============== Health / Status ==============
