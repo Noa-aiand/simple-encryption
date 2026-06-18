@@ -21,3 +21,7 @@ venv/
 .gitconfig
 .config/gh/config.yml
 .config/gh/hosts.yml
+.netrc
+.homebrew/
+noa-todo/
+
