@@ -3,24 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Noa</title>
+    <title>PGP Encryption</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
         }
+        
+        .container {
+            text-align: center;
+            padding: 3rem 5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .lock-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.9;
+        }
+        
         h1 {
-            font-size: 5rem;
-            color: #333;
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: #9d4edd;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        
+        .subtitle {
+            margin-top: 1rem;
+            font-size: 1.1rem;
+            color: #c77dff;
+            font-weight: 300;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+        
+        .divider {
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #7b2cbf, #c77dff);
+            margin: 1.5rem auto;
+            border-radius: 2px;
         }
     </style>
 </head>
 <body>
-    <h1>Noa</h1>
+    <div class="container">
+        <div class="lock-icon">&#128274;</div>
+        <h1>PGP Encryption</h1>
+        <div class="divider"></div>
+        <div class="subtitle">Secure Communication</div>
+    </div>
 </body>
 </html>
