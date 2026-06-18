@@ -1,10 +1,10 @@
+from flask import Flask, send_from_directory, request, session, jsonify, make_response
 import os
 import sys
 import sqlite3
 import base64
 import secrets
 import logging
-from flask import Flask, send_from_directory, request, session, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # Logging
@@ -50,13 +50,57 @@ init_db()
 
 # ============== Static Routes ==============
 
+def _html_response(filepath):
+    resp = make_response(send_from_directory(BASE_DIR, filepath))
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    resp.headers['Pragma'] = 'no-cache'
+    return resp
+
 @app.route('/')
+@app.route('/index.html')
 def index():
-    return send_from_directory(BASE_DIR, 'index.html')
+    return _html_response('index.html')
 
 @app.route('/encrypt')
+@app.route('/encrypt.html')
 def encrypt_page():
-    return send_from_directory(BASE_DIR, 'encrypt.html')
+    return _html_response('encrypt.html')
+
+@app.route('/<path:filename>')
+def static_files(filename):
+    """
+    Serve known safe static file types from the base directory.
+    This avoids accidentally serving sensitive files like .env, .db, .py, etc.
+    """
+    # Only serve whitelisted file extensions
+    SAFE_EXTENSIONS = {
+        '.html', '.htm', '.css', '.js', '.json', '.xml',
+        '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico',
+        '.txt', '.md', '.pdf', '.woff', '.woff2', '.ttf', '.eot'
+    }
+
+    # Reject any requests to hidden files or dangerous paths
+    if filename.startswith('.') or filename.startswith('_'):
+        return jsonify({'error': 'Not found'}), 404
+
+    # Check extension is in whitelist; if no extension, reject
+    _, ext = os.path.splitext(filename)
+    ext = ext.lower()
+    if not ext or ext not in SAFE_EXTENSIONS:
+        return jsonify({'error': 'Not found'}), 404
+
+    # Resolve the real path to prevent directory traversal
+    requested_path = os.path.join(BASE_DIR, filename)
+    real_requested = os.path.realpath(requested_path)
+    real_base = os.path.realpath(BASE_DIR)
+
+    if not real_requested.startswith(real_base + os.sep) and real_requested != real_base:
+        return jsonify({'error': 'Not found'}), 404
+
+    if not os.path.isfile(real_requested):
+        return jsonify({'error': 'Not found'}), 404
+
+    return send_from_directory(BASE_DIR, filename)
 
 
 # ============== Auth Routes ==============
@@ -123,10 +167,7 @@ def me():
 
 @app.route('/api/status', methods=['GET'])
 def status():
-    return jsonify({
-        'status': 'ok',
-        'crypto_available': CRYPTO_AVAILABLE
-    }), 200
+    return jsonify({'status': 'ok', 'crypto_available': CRYPTO_AVAILABLE}), 200
 
 
 # ============== Encryption Utilities ==============
