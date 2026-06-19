@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PGP Encryption - Profile</title>
+    <title>PGP Encryption - Practice Challenge</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -15,8 +15,7 @@
 
         /* Menu Button */
         .menu-btn {
-            position: fixed;
-            top: 20px; left: 20px;
+            position: fixed; top: 20px; left: 20px;
             z-index: 1001;
             background: rgba(255,255,255,0.1);
             border: 1px solid rgba(255,255,255,0.2);
@@ -162,9 +161,9 @@
             cursor: default;
         }
         .toast.closing { animation: toastSlideOut 0.25s ease forwards; }
-        .toast.success { background: rgba(46, 125, 50, 0.92); border: 1px solid rgba(76, 175, 80, 0.6); }
-        .toast.error { background: rgba(183, 28, 28, 0.92); border: 1px solid rgba(244, 67, 54, 0.6); }
-        .toast.info { background: rgba(21, 101, 192, 0.92); border: 1px solid rgba(33, 150, 243, 0.6); }
+        .toast.success { background: rgba(46,125,50,0.92); border: 1px solid rgba(76,175,80,0.6); }
+        .toast.error { background: rgba(183,28,28,0.92); border: 1px solid rgba(244,67,54,0.6); }
+        .toast.info { background: rgba(21,101,192,0.92); border: 1px solid rgba(33,150,243,0.6); }
         .toast-close {
             margin-left: auto;
             background: none;
@@ -196,7 +195,7 @@
         .shake { animation: shake 0.4s ease; }
         .input-error {
             border-color: #f44336 !important;
-            background: rgba(244, 67, 54, 0.08) !important;
+            background: rgba(244,67,54,0.08) !important;
         }
 
         /* Button loading */
@@ -240,7 +239,6 @@
         }
         .logout-btn:hover { background: rgba(244,67,54,0.3); }
 
-        /* Nav links inside sidebar */
         .sidebar-nav {
             margin: 1.5rem 0;
             display: flex;
@@ -302,6 +300,7 @@
             gap: 1rem;
             justify-content: center;
             margin-bottom: 2rem;
+            flex-wrap: wrap;
         }
         .nav-tab {
             padding: 12px 32px;
@@ -350,25 +349,63 @@
         }
         .card h2 .icon { font-size: 1.5rem; }
 
-        .profile-field {
+        .instructions {
+            background: rgba(157,78,221,0.08);
+            border: 1px solid rgba(157,78,221,0.25);
+            border-radius: 12px;
+            padding: 1.5rem;
             margin-bottom: 1.5rem;
         }
-        .profile-field label {
-            display: block;
+        .instructions h3 {
             color: #c77dff;
-            font-size: 0.85rem;
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 0.5rem;
         }
-        .profile-field .value {
-            padding: 12px 15px;
-            background: rgba(0,0,0,0.2);
+        .instructions ol {
+            color: #ccc;
+            font-size: 0.92rem;
+            line-height: 1.7;
+            padding-left: 1.2rem;
+        }
+        .instructions ol li { margin-bottom: 0.4rem; }
+        .instructions .highlight {
+            color: #9d4edd;
+            font-weight: 600;
+        }
+
+        .key-display-box {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(0,0,0,0.25);
             border: 1px solid rgba(157,78,221,0.3);
             border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.78rem;
+            color: #c77dff;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+            position: relative;
+        }
+        .key-display-box .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(157,78,221,0.2);
+            border: 1px solid rgba(157,78,221,0.4);
+            color: #c77dff;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .key-display-box .copy-btn:hover {
+            background: rgba(157,78,221,0.4);
             color: #fff;
-            font-size: 1rem;
-            font-weight: 500;
         }
 
         .form-group textarea {
@@ -427,12 +464,6 @@
             border-color: #9d4edd;
             color: #fff;
         }
-        .btn-success {
-            background: rgba(76,175,80,0.2);
-            border: 1px solid rgba(76,175,80,0.4);
-            color: #81c784;
-        }
-        .btn-success:hover { background: rgba(76,175,80,0.3); }
 
         .status-msg {
             margin-top: 1rem;
@@ -446,23 +477,63 @@
         .status-msg.ok { background: rgba(76,175,80,0.15); color: #81c784; border: 1px solid rgba(76,175,80,0.3); }
         .status-msg.error { background: rgba(244,67,54,0.15); color: #e57373; border: 1px solid rgba(244,67,54,0.3); }
         .status-msg.info { background: rgba(33,150,243,0.15); color: #64b5f6; border: 1px solid rgba(33,150,243,0.3); }
+        .status-msg.warning { background: rgba(255,152,0,0.15); color: #ffb74d; border: 1px solid rgba(255,152,0,0.3); }
 
-        .key-display {
+        .response-card {
+            background: rgba(0, 200, 83, 0.05);
+            border: 1px solid rgba(76, 175, 80, 0.25);
+            border-radius: 12px;
+            padding: 1.5rem;
             margin-top: 1rem;
-            padding: 1rem;
-            background: rgba(0,0,0,0.25);
-            border: 1px solid rgba(157,78,221,0.2);
+        }
+        .response-card h3 {
+            color: #81c784;
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .response-card .plaintext {
+            color: #eee;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            white-space: pre-wrap;
+        }
+        .response-card .encrypted-output {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(76,175,80,0.3);
             border-radius: 8px;
+            padding: 1rem;
             font-family: 'Courier New', monospace;
             font-size: 0.78rem;
-            color: #c77dff;
+            color: #81c784;
             white-space: pre-wrap;
             word-break: break-word;
             max-height: 300px;
             overflow-y: auto;
-            display: none;
         }
-        .key-display.show { display: block; }
+
+        .fail-card {
+            background: rgba(244, 67, 54, 0.05);
+            border: 1px solid rgba(244, 67, 54, 0.25);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+        .fail-card h3 {
+            color: #e57373;
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .fail-card .fail-msg {
+            color: #eee;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
     </style>
 </head>
 <body>
@@ -518,9 +589,9 @@
             <nav class="sidebar-nav" id="sidebarNav">
                 <a href="/">Home</a>
                 <a href="/encrypt.html">Encrypt / Decrypt</a>
-                <a href="/profile.html" class="active">My Profile</a>
+                <a href="/profile.html">My Profile</a>
                 <a href="/saved-keys.html">Saved Keys</a>
-                <a href="/practice.html">Practice</a>
+                <a href="/practice.html" class="active">Practice</a>
             </nav>
             <button class="logout-btn" id="logoutBtn">Logout</button>
         </div>
@@ -530,42 +601,58 @@
     <div class="main-content">
         <div class="page-header">
             <h1>PGP Encryption</h1>
-            <div class="subtitle">User Profile</div>
+            <div class="subtitle">Practice Challenge</div>
             <nav class="nav-tabs">
                 <a href="/" class="nav-tab">Home</a>
                 <a href="/encrypt.html" class="nav-tab">Encrypt / Decrypt</a>
-                <a href="/profile.html" class="nav-tab active">My Profile</a>
+                <a href="/profile.html" class="nav-tab">My Profile</a>
                 <a href="/saved-keys.html" class="nav-tab">Saved Keys</a>
-                <a href="/practice.html" class="nav-tab">Practice</a>
+                <a href="/practice.html" class="nav-tab active">Practice</a>
             </nav>
         </div>
 
-        <!-- Profile Card -->
+        <!-- Instructions Card -->
         <div class="card">
-            <h2><span class="icon">&#128100;</span> Profile</h2>
-            <div class="profile-field">
-                <label>Username</label>
-                <div class="value" id="profileUsername">Loading...</div>
+            <h2><span class="icon">&#127919;</span> How It Works</h2>
+            <div class="instructions">
+                <h3>The PGP Practice Challenge</h3>
+                <ol>
+                    <li>Your goal: <span class="highlight">send me an encrypted message</span> and prove you understand PGP.</li>
+                    <li>Copy my practice public key from the box below.</li>
+                    <li>Go to the <a href="/encrypt.html" style="color:#9d4edd;">Encrypt / Decrypt</a> page and encrypt a message using my public key.</li>
+                    <li>Paste the resulting <span class="highlight">PGP MESSAGE block</span> into the message box below and hit Send.</li>
+                    <li>I will decrypt it, read what you wrote, and <span class="highlight">encrypt my reply back to you</span> (if you saved your public key in your profile).</li>
+                    <li><span class="highlight">WARNING:</span> If you send plaintext instead of a PGP-encrypted message, you will <strong>FAIL</strong> the challenge!</li>
+                </ol>
             </div>
 
             <div class="form-group">
-                <label for="profilePublicKey">Your Public Key</label>
-                <textarea id="profilePublicKey" placeholder="Paste your PGP public key here, or generate one from the Encrypt / Decrypt page..."></textarea>
+                <label>Practice Partner's Public Key (copy this!)</label>
+                <div class="key-display-box" id="practiceKeyBox">
+                    <button class="copy-btn" id="copyPracticeKey">Copy</button>
+                    <span id="practiceKeyText">Loading key...</span>
+                </div>
             </div>
-
-            <div class="action-btns">
-                <button class="btn btn-primary" id="saveKeyBtn">Save Public Key</button>
-                <button class="btn btn-secondary" id="copyKeyBtn">Copy Key</button>
-                <button class="btn btn-success" id="clearKeyBtn">Clear</button>
-            </div>
-
-            <div class="status-msg" id="profileStatus"></div>
         </div>
 
-        <!-- Saved Key Display -->
-        <div class="card" id="savedKeyCard" style="display:none;">
-            <h2><span class="icon">&#128273;</span> Current Saved Key</h2>
-            <div class="key-display show" id="savedKeyDisplay"></div>
+        <!-- Send Message Card -->
+        <div class="card">
+            <h2><span class="icon">&#9993;</span> Send Encrypted Message</h2>
+            <div class="form-group">
+                <label for="practiceMessage">Paste your PGP-encrypted message here</label>
+                <textarea id="practiceMessage" placeholder="-----BEGIN PGP MESSAGE-----&#10;Paste the full PGP MESSAGE block you generated using the practice key...&#10;-----END PGP MESSAGE-----"></textarea>
+            </div>
+            <div class="action-btns">
+                <button class="btn btn-primary" id="sendBtn">Send to Practice Partner</button>
+                <button class="btn btn-secondary" id="clearBtn">Clear</button>
+            </div>
+            <div class="status-msg" id="sendStatus"></div>
+        </div>
+
+        <!-- Response Area -->
+        <div class="card" id="responseCard" style="display:none;">
+            <h2><span class="icon">&#128172;</span> Practice Partner's Response</h2>
+            <div id="responseContent"></div>
         </div>
     </div>
 
@@ -595,6 +682,71 @@
             });
         });
 
+        // ================= Toast Notifications =================
+        function showToast(text, type = 'info', duration = 4000) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            const icon = type === 'success' ? '&#10003;' : type === 'error' ? '&#10007;' : '&#9432;';
+            toast.innerHTML = '<span>' + icon + '</span><span style="flex:1">' + escapeHtml(text) + '</span><button class="toast-close">&times;</button>';
+            container.appendChild(toast);
+
+            toast.querySelector('.toast-close').addEventListener('click', () => removeToast(toast));
+            if (duration > 0) setTimeout(() => removeToast(toast), duration);
+        }
+        function removeToast(toast) {
+            if (!toast.parentNode) return;
+            toast.classList.add('closing');
+            setTimeout(() => toast.remove(), 300);
+        }
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ================= Field Validation =================
+        function clearFieldError(input) { input.classList.remove('input-error', 'shake'); }
+        function setFieldError(input) {
+            input.classList.add('input-error', 'shake');
+            setTimeout(() => input.classList.remove('shake'), 400);
+        }
+        function validateUsername(input) {
+            clearFieldError(input);
+            const val = input.value.trim();
+            if (!val) { setFieldError(input); return 'Username is required.'; }
+            if (val.length < 3) { setFieldError(input); return 'Username must be at least 3 characters.'; }
+            if (!/^[a-zA-Z0-9_-]+$/.test(val)) { setFieldError(input); return 'Username can only contain letters, numbers, underscores, and hyphens.'; }
+            return '';
+        }
+        function validatePassword(input) {
+            clearFieldError(input);
+            const val = input.value;
+            if (!val) { setFieldError(input); return 'Password is required.'; }
+            if (val.length < 6) { setFieldError(input); return 'Password must be at least 6 characters.'; }
+            return '';
+        }
+
+        // ================= Button Loading =================
+        function setLoading(btn, loading) {
+            if (loading) {
+                btn.disabled = true;
+                btn.dataset.originalText = btn.innerHTML;
+                btn.innerHTML = '<span class="spinner"></span>Please wait...';
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = btn.dataset.originalText || btn.innerHTML.replace('<span class="spinner"></span>Please wait...', '');
+            }
+        }
+
+        // ================= Auth UI =================
+        async function checkAuth() {
+            try {
+                const res = await fetch('/api/me');
+                const data = await res.json();
+                if (data.logged_in) showLoggedIn(data.username);
+            } catch (err) { console.error('Auth check failed:', err); }
+        }
         function showLoggedIn(username) {
             document.getElementById('authSection').style.display = 'none';
             document.getElementById('userInfo').style.display = 'block';
@@ -611,118 +763,30 @@
             setTimeout(() => { el.className = 'message'; el.textContent = ''; }, 4000);
         }
 
-        function showToast(text, type = 'info', duration = 4000) {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = 'toast ' + type;
-            const icon = type === 'success' ? '&#10003;' : type === 'error' ? '&#10007;' : '&#9432;';
-            toast.innerHTML = `<span>${icon}</span><span style="flex:1">${escapeHtml(text)}</span><button class="toast-close">&times;</button>`;
-            container.appendChild(toast);
-
-            const closeBtn = toast.querySelector('.toast-close');
-            closeBtn.addEventListener('click', () => removeToast(toast));
-
-            if (duration > 0) {
-                setTimeout(() => removeToast(toast), duration);
-            }
-        }
-
-        function removeToast(toast) {
-            if (!toast.parentNode) return;
-            toast.classList.add('closing');
-            setTimeout(() => toast.remove(), 300);
-        }
-
-        function escapeHtml(str) {
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        }
-
-        function clearFieldError(input) {
-            input.classList.remove('input-error', 'shake');
-        }
-
-        function setFieldError(input) {
-            input.classList.add('input-error', 'shake');
-            setTimeout(() => input.classList.remove('shake'), 400);
-        }
-
-        function validateUsername(input) {
-            clearFieldError(input);
-            const val = input.value.trim();
-            if (!val) {
-                setFieldError(input);
-                return 'Username is required.';
-            }
-            if (val.length < 3) {
-                setFieldError(input);
-                return 'Username must be at least 3 characters.';
-            }
-            if (!/^[a-zA-Z0-9_-]+$/.test(val)) {
-                setFieldError(input);
-                return 'Username can only contain letters, numbers, underscores, and hyphens.';
-            }
-            return '';
-        }
-
-        function validatePassword(input) {
-            clearFieldError(input);
-            const val = input.value;
-            if (!val) {
-                setFieldError(input);
-                return 'Password is required.';
-            }
-            if (val.length < 6) {
-                setFieldError(input);
-                return 'Password must be at least 6 characters.';
-            }
-            return '';
-        }
-
-        function setLoading(btn, loading) {
-            if (loading) {
-                btn.disabled = true;
-                btn.dataset.originalText = btn.innerHTML;
-                btn.innerHTML = '<span class="spinner"></span>Please wait...';
-            } else {
-                btn.disabled = false;
-                btn.innerHTML = btn.dataset.originalText || btn.innerHTML.replace('<span class="spinner"></span>Please wait...', '');
-            }
-        }
-        function showStatus(elementId, text, type) {
-            const el = document.getElementById(elementId);
-            el.textContent = text;
-            el.className = 'status-msg show ' + type;
-            setTimeout(() => { el.className = 'status-msg'; el.textContent = ''; }, 5000);
-        }
-
-        // Auth Forms
+        // Register
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const usernameInput = document.getElementById('regUsername');
-            const passwordInput = document.getElementById('regPassword');
+            const uInp = document.getElementById('regUsername');
+            const pInp = document.getElementById('regPassword');
             const btn = e.submitter || e.target.querySelector('.submit-btn');
-
-            const uErr = validateUsername(usernameInput);
+            const uErr = validateUsername(uInp);
             if (uErr) { showToast(uErr, 'error'); return; }
-            const pErr = validatePassword(passwordInput);
+            const pErr = validatePassword(pInp);
             if (pErr) { showToast(pErr, 'error'); return; }
-
             setLoading(btn, true);
             try {
                 const res = await fetch('/api/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: usernameInput.value.trim(), password: passwordInput.value })
+                    body: JSON.stringify({ username: uInp.value.trim(), password: pInp.value })
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    showToast('Account created successfully! You can now log in.', 'success', 5000);
+                    showToast('Account created! You can now log in.', 'success', 5000);
                     document.getElementById('registerForm').reset();
                     document.querySelector('[data-tab="login"]').click();
                 } else if (res.status === 409) {
-                    setFieldError(usernameInput);
+                    setFieldError(uInp);
                     showToast(data.error || 'That username is already taken.', 'error');
                 } else if (res.status === 400) {
                     showToast(data.error || 'Invalid registration details.', 'error');
@@ -735,37 +799,33 @@
                 setLoading(btn, false);
             }
         });
-
         document.getElementById('regUsername').addEventListener('input', function() { clearFieldError(this); });
         document.getElementById('regPassword').addEventListener('input', function() { clearFieldError(this); });
 
+        // Login
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const usernameInput = document.getElementById('loginUsername');
-            const passwordInput = document.getElementById('loginPassword');
+            const uInp = document.getElementById('loginUsername');
+            const pInp = document.getElementById('loginPassword');
             const btn = e.submitter || e.target.querySelector('.submit-btn');
-
-            const uErr = validateUsername(usernameInput);
+            const uErr = validateUsername(uInp);
             if (uErr) { showToast(uErr, 'error'); return; }
-            const pErr = validatePassword(passwordInput);
+            const pErr = validatePassword(pInp);
             if (pErr) { showToast(pErr, 'error'); return; }
-
             setLoading(btn, true);
             try {
                 const res = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: usernameInput.value.trim(), password: passwordInput.value })
+                    body: JSON.stringify({ username: uInp.value.trim(), password: pInp.value })
                 });
                 const data = await res.json();
                 if (res.ok) {
                     showToast('Welcome back, ' + data.username + '!', 'success');
                     showLoggedIn(data.username);
                     document.getElementById('loginForm').reset();
-                    loadProfile();
                 } else if (res.status === 401) {
-                    setFieldError(usernameInput);
-                    setFieldError(passwordInput);
+                    setFieldError(uInp); setFieldError(pInp);
                     showToast(data.error || 'Invalid username or password.', 'error');
                 } else {
                     showToast(data.error || 'Login failed. Please try again.', 'error');
@@ -776,122 +836,139 @@
                 setLoading(btn, false);
             }
         });
-
         document.getElementById('loginUsername').addEventListener('input', function() { clearFieldError(this); });
         document.getElementById('loginPassword').addEventListener('input', function() { clearFieldError(this); });
 
+        // Logout
         document.getElementById('logoutBtn').addEventListener('click', async () => {
             const btn = document.getElementById('logoutBtn');
-            const originalText = btn.textContent;
-            btn.textContent = 'Logging out...';
-            btn.disabled = true;
+            const orig = btn.textContent;
+            btn.textContent = 'Logging out...'; btn.disabled = true;
             try {
                 const res = await fetch('/api/logout', { method: 'POST' });
                 if (res.ok) {
                     showLoggedOut();
-                    document.getElementById('profileUsername').textContent = 'Not logged in';
-                    document.getElementById('profilePublicKey').value = '';
-                    document.getElementById('savedKeyCard').style.display = 'none';
                     showToast('You have been logged out successfully.', 'info');
                 } else {
                     showToast('Logout failed. Please try again.', 'error');
                 }
             } catch (err) {
-                showToast('Network error during logout. Please try again.', 'error');
+                showToast('Network error during logout.', 'error');
             } finally {
-                btn.textContent = originalText;
-                btn.disabled = false;
+                btn.textContent = orig; btn.disabled = false;
             }
         });
 
-        // Profile
-        async function loadProfile() {
+        // ================= Practice Challenge =================
+        let practiceKey = '';
+
+        async function loadPracticeKey() {
             try {
-                const res = await fetch('/api/profile');
-                if (res.status === 401) {
-                    document.getElementById('profileUsername').textContent = 'Not logged in';
-                    showStatus('profileStatus', 'Please log in to view your profile.', 'info');
-                    return;
-                }
+                const res = await fetch('/api/practice/key');
                 const data = await res.json();
                 if (res.ok) {
-                    document.getElementById('profileUsername').textContent = data.username;
-                    if (data.public_key) {
-                        document.getElementById('profilePublicKey').value = data.public_key;
-                        document.getElementById('savedKeyDisplay').textContent = data.public_key;
-                        document.getElementById('savedKeyCard').style.display = 'block';
-                    } else {
-                        document.getElementById('savedKeyCard').style.display = 'none';
-                    }
+                    practiceKey = data.public_key;
+                    document.getElementById('practiceKeyText').textContent = practiceKey;
                 } else {
-                    showStatus('profileStatus', data.error || 'Failed to load profile', 'error');
+                    document.getElementById('practiceKeyText').textContent = 'Error loading key: ' + (data.error || 'Unknown error');
                 }
-            } catch (e) {
-                showStatus('profileStatus', 'Network error loading profile', 'error');
+            } catch (err) {
+                document.getElementById('practiceKeyText').textContent = 'Error loading key: Network error';
             }
         }
 
-        document.getElementById('saveKeyBtn').addEventListener('click', async () => {
-            const key = document.getElementById('profilePublicKey').value.trim();
-            try {
-                const res = await fetch('/api/update-public-key', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ public_key: key })
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    showStatus('profileStatus', 'Public key saved successfully!', 'ok');
-                    if (key) {
-                        document.getElementById('savedKeyDisplay').textContent = key;
-                        document.getElementById('savedKeyCard').style.display = 'block';
-                    } else {
-                        document.getElementById('savedKeyCard').style.display = 'none';
-                    }
-                } else if (res.status === 401) {
-                    showStatus('profileStatus', 'Please log in to save your public key.', 'error');
-                } else {
-                    showStatus('profileStatus', data.error || 'Save failed', 'error');
-                }
-            } catch (e) {
-                showStatus('profileStatus', 'Network error saving public key', 'error');
-            }
-        });
-
-        document.getElementById('copyKeyBtn').addEventListener('click', () => {
-            const key = document.getElementById('profilePublicKey').value;
-            if (!key) { showStatus('profileStatus', 'No key to copy', 'error'); return; }
-            navigator.clipboard.writeText(key).then(() => {
-                showStatus('profileStatus', 'Copied to clipboard!', 'ok');
+        document.getElementById('copyPracticeKey').addEventListener('click', () => {
+            if (!practiceKey) { showToast('No key to copy', 'error'); return; }
+            navigator.clipboard.writeText(practiceKey).then(() => {
+                showToast('Practice key copied!', 'info');
             }).catch(() => {
                 const ta = document.createElement('textarea');
-                ta.value = key; document.body.appendChild(ta);
+                ta.value = practiceKey; document.body.appendChild(ta);
                 ta.select(); document.execCommand('copy');
                 document.body.removeChild(ta);
-                showStatus('profileStatus', 'Copied to clipboard!', 'ok');
+                showToast('Practice key copied!', 'info');
             });
         });
 
-        document.getElementById('clearKeyBtn').addEventListener('click', () => {
-            if (confirm('Clear your public key from this field?')) {
-                document.getElementById('profilePublicKey').value = '';
+        function showStatus(elementId, text, type) {
+            const el = document.getElementById(elementId);
+            el.textContent = text;
+            el.className = 'status-msg show ' + type;
+            setTimeout(() => { el.className = 'status-msg'; el.textContent = ''; }, 8000);
+        }
+
+        document.getElementById('sendBtn').addEventListener('click', async () => {
+            const msgInput = document.getElementById('practiceMessage');
+            const msg = msgInput.value.trim();
+            const btn = document.getElementById('sendBtn');
+
+            if (!msg) {
+                showToast('Please paste your PGP-encrypted message first.', 'error');
+                setFieldError(msgInput);
+                return;
+            }
+            clearFieldError(msgInput);
+            setLoading(btn, true);
+
+            try {
+                const res = await fetch('/api/practice/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: msg })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.status === 'success') {
+                    showStatus('sendStatus', 'Challenge passed! Encrypted message received and decrypted successfully.', 'ok');
+                    const card = document.getElementById('responseCard');
+                    const content = document.getElementById('responseContent');
+                    card.style.display = 'block';
+
+                    let html = '<div class="response-card">';
+                    html += '<h3>I decrypted your message:</h3>';
+                    html += '<div class="plaintext">' + escapeHtml(data.decrypted) + '</div>';
+                    html += '<h3>Here is my response:</h3>';
+                    html += '<div class="plaintext">' + escapeHtml(data.response) + '</div>';
+
+                    if (data.encrypted_response) {
+                        html += '<h3>Your encrypted reply (decrypt this!):</h3>';
+                        html += '<div class="encrypted-output">' + escapeHtml(data.encrypted_response) + '</div>';
+                    }
+                    if (data.tip) {
+                        html += '<div style="margin-top:1rem;font-size:0.85rem;color:#ffb74d;">' + escapeHtml(data.tip) + '</div>';
+                    }
+                    html += '</div>';
+                    content.innerHTML = html;
+                    msgInput.value = '';
+                } else {
+                    // Failure states
+                    const card = document.getElementById('responseCard');
+                    const content = document.getElementById('responseContent');
+                    card.style.display = 'block';
+                    showStatus('sendStatus', 'Challenge failed!', 'error');
+
+                    let html = '<div class="fail-card">';
+                    html += '<h3>Challenge Failed!</h3>';
+                    html += '<div class="fail-msg">' + escapeHtml(data.message || data.error || 'Unknown error') + '</div>';
+                    html += '</div>';
+                    content.innerHTML = html;
+                }
+            } catch (err) {
+                showToast('Network error: unable to send message.', 'error');
+            } finally {
+                setLoading(btn, false);
             }
         });
 
-        async function checkAuth() {
-            try {
-                const res = await fetch('/api/me');
-                const data = await res.json();
-                if (data.logged_in) {
-                    showLoggedIn(data.username);
-                }
-            } catch (err) {
-                console.error('Auth check failed:', err);
-            }
-        }
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            document.getElementById('practiceMessage').value = '';
+            document.getElementById('responseCard').style.display = 'none';
+            document.getElementById('sendStatus').className = 'status-msg';
+            document.getElementById('sendStatus').textContent = '';
+        });
 
         checkAuth();
-        loadProfile();
+        loadPracticeKey();
     </script>
 </body>
 </html>

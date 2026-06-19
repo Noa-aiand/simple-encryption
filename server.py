@@ -5,6 +5,7 @@ import sqlite3
 import base64
 import secrets
 import logging
+import random
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # Logging
@@ -54,7 +55,6 @@ def db_connect():
 def db_execute(cursor, sql, params=()):
     """Execute SQL, translating ? placeholders to %s for PostgreSQL."""
     if USE_POSTGRES:
-        # Convert sqlite-style ? placeholders to psycopg2 %s
         sql = sql.replace('?', '%s')
     cursor.execute(sql, params)
 
@@ -81,7 +81,6 @@ def init_db():
     c = conn.cursor()
 
     if USE_POSTGRES:
-        # PostgreSQL: enable UUID extension if needed and use SERIAL
         c.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
@@ -99,18 +98,13 @@ def init_db():
         """)
     conn.commit()
 
-    # Migration: add public_key column if missing.
-    # PostgreSQL: try to add and ignore "already exists" errors.
-    # SQLite: same approach works via PRAGMA, but try/except is simpler.
     try:
         c.execute("ALTER TABLE users ADD COLUMN public_key TEXT")
         conn.commit()
         logger.info("Migrated DB: added public_key column")
     except Exception:
-        # Column likely already exists or table wasn't created yet
         conn.rollback()
 
-    # Create saved_keys table
     if USE_POSTGRES:
         c.execute("""
             CREATE TABLE IF NOT EXISTS saved_keys (
@@ -139,6 +133,74 @@ def init_db():
 
 
 init_db()
+
+
+# ============== Practice Partner Keypair ==============
+
+def init_practice_keys():
+    """Generate or load the server's practice RSA keypair stored in the database."""
+    conn = db_connect()
+    c = conn.cursor()
+    db_execute(c, """
+        CREATE TABLE IF NOT EXISTS server_config (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        )
+    """)
+    conn.commit()
+
+    db_execute(c, "SELECT value FROM server_config WHERE key = ?", ('practice_private_key',))
+    row = c.fetchone()
+    if row:
+        conn.close()
+        return
+
+    if not CRYPTO_AVAILABLE:
+        logger.warning("Cannot generate practice keys: cryptography not available")
+        conn.close()
+        return
+
+    logger.info("Generating practice partner RSA-4096 keypair...")
+    private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=4096
+    )
+    public_key = private_key.public_key()
+
+    public_pem = public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    ).decode('utf-8')
+
+    private_pem = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
+    ).decode('utf-8')
+
+    public_b64 = base64.b64encode(public_pem.encode()).decode()
+    private_b64 = base64.b64encode(private_pem.encode()).decode()
+
+    public_block = make_pgp_block('PUBLIC KEY BLOCK', public_b64, 'Practice Partner RSA-4096')
+    private_block = make_pgp_block('PRIVATE KEY BLOCK', private_b64, 'Practice Partner RSA-4096')
+
+    db_execute(c, "INSERT INTO server_config (key, value) VALUES (?, ?), (?, ?)",
+               ('practice_private_key', private_block, 'practice_public_key', public_block))
+    conn.commit()
+    conn.close()
+    logger.info("Practice partner keypair generated and stored")
+
+
+def get_practice_keys():
+    """Return (public_key_block, private_key_block) for the practice partner."""
+    conn = db_connect()
+    c = conn.cursor()
+    db_execute(c, "SELECT value FROM server_config WHERE key = ?", ('practice_public_key',))
+    pub_row = c.fetchone()
+    db_execute(c, "SELECT value FROM server_config WHERE key = ?", ('practice_private_key',))
+    priv_row = c.fetchone()
+    conn.close()
+    return (pub_row[0] if pub_row else None, priv_row[0] if priv_row else None)
 
 
 # ============== Static Routes ==============
@@ -172,6 +234,12 @@ def profile_page():
 @app.route('/saved-keys.html')
 def saved_keys_page():
     return _html_response('saved-keys.html')
+
+
+@app.route('/practice')
+@app.route('/practice.html')
+def practice_page():
+    return _html_response('practice.html')
 
 
 @app.route('/<path:filename>')
@@ -410,6 +478,207 @@ def delete_saved_key(key_id):
     return jsonify({'message': 'Key deleted successfully'}), 200
 
 
+# ============== Practice Challenge Routes ==============
+
+@app.route('/api/practice/key', methods=['GET'])
+def practice_key():
+    """Return the practice partner's public key so users can encrypt messages to it."""
+    if not CRYPTO_AVAILABLE:
+        return jsonify({'error': 'Cryptography not available'}), 503
+    pub, _priv = get_practice_keys()
+    if not pub:
+        return jsonify({'error': 'Practice keypair not initialized'}), 500
+    return jsonify({'public_key': pub}), 200
+
+
+def generate_ai_response(user_text):
+    """Generate a contextual response based on the decrypted user message."""
+    text = user_text.lower().strip()
+
+    if any(k in text for k in ['hello', 'hi', 'hey', 'greetings']):
+        responses = [
+            "Hello! Your encryption looks perfect. This response is encrypted just for you. Welcome to the PGP practice challenge!",
+            "Hi there! I successfully decrypted your message. Can you decrypt my reply? That's the whole point of end-to-end encryption!",
+            "Greetings! Your PGP message arrived safely. Only someone with your private key can read what I'm saying right now."
+        ]
+        return random.choice(responses)
+
+    if any(k in text for k in ['how', 'what', 'why', 'when', 'where', 'who']):
+        responses = [
+            "Great question! Since you encrypted this, only you can read my answer. That's the power of asymmetric cryptography!",
+            "You asked something interesting. Notice how this entire conversation is protected? No eavesdropper can read what either of us wrote.",
+            "Excellent curiosity! PGP encrypts a random AES key with RSA, then uses AES-GCM for the message body. Pretty clever, right?"
+        ]
+        return random.choice(responses)
+
+    if any(k in text for k in ['test', 'challenge', 'try', 'practice', 'demo']):
+        responses = [
+            "Challenge accepted! Your message was properly encrypted and decrypted. You've passed this round of the PGP practice challenge!",
+            "Test received loud and clear. If you can read this, it means you successfully decrypted my response. Well done!",
+            "Practice makes perfect! You clearly understand how to use PGP. Keep encrypting everything you send."
+        ]
+        return random.choice(responses)
+
+    if any(k in text for k in ['pgp', 'encrypt', 'crypto', 'rsa', 'security', 'cipher', 'decrypt']):
+        responses = [
+            "Absolutely! Cryptographic security ensures only the intended recipient can read a message. You're proving you understand that now.",
+            "Security through encryption is the foundation of private communication. Every encrypted message is a win for digital privacy.",
+            "PGP remains one of the most trusted encryption standards. Practicing with it builds skills that protect real-world communications."
+        ]
+        return random.choice(responses)
+
+    if any(k in text for k in ['nice', 'good', 'great', 'cool', 'awesome', 'thanks', 'thank you', 'amazing']):
+        responses = [
+            "Thanks! I'm glad you're enjoying the practice. Always remember to verify public keys before trusting them in real scenarios.",
+            "Appreciate the kind words! Keep practicing with different key sizes to build real confidence with PGP tools.",
+            "You're very welcome! The fact that you're taking time to practice PGP means you're serious about secure communication."
+        ]
+        return random.choice(responses)
+
+    short = user_text[:40] + ('...' if len(user_text) > 40 else '')
+    responses = [
+        f"Message received: '{short}'\n\nYour encryption worked perfectly. If you can read this, you've completed a full encrypt-send-decrypt cycle. That's exactly how secure messaging works!",
+        "I received your encrypted message and this is my encrypted reply. Notice how the entire conversation is protected? Neither of us had to share a secret key.",
+        "Your message arrived safely through the encrypted channel. This practice session is a great way to build confidence before handling sensitive data."
+    ]
+    return random.choice(responses)
+
+
+@app.route('/api/practice/send', methods=['POST'])
+def practice_send():
+    """
+    Receive an encrypted message from the user, decrypt it, generate an AI response,
+    and optionally encrypt the reply back to the user's saved public key.
+    """
+    if not CRYPTO_AVAILABLE:
+        return jsonify({'error': 'Cryptography not available on this server'}), 503
+
+    data = request.get_json() or {}
+    message_block = data.get('message', '').strip()
+
+    if not message_block:
+        return jsonify({'error': 'Message is required'}), 400
+
+    # ---- CHALLENGE FAILED: plaintext detected ----
+    if '-----BEGIN PGP' not in message_block:
+        return jsonify({
+            'status': 'failed',
+            'reason': 'plaintext',
+            'message': (
+                'CHALLENGE FAILED!\n\n'
+                'You sent unencrypted text. The practice challenge requires you to encrypt your message '
+                'with the practice partner\'s public key before sending.\n\n'
+                'Steps to pass:\n'
+                '1. Copy the practice public key displayed on this page\n'
+                '2. Go to the Encrypt / Decrypt page\n'
+                '3. Paste the practice key, type your message, and encrypt it\n'
+                '4. Paste the resulting PGP MESSAGE block here and try again'
+            )
+        }), 400
+
+    _pub, priv_block = get_practice_keys()
+    if not priv_block:
+        return jsonify({'error': 'Practice keypair not initialized'}), 500
+
+    # ---- Decrypt the user's message ----
+    try:
+        b64_pem = parse_pgp_block(priv_block, 'PRIVATE KEY BLOCK')
+        pem_bytes = base64.b64decode(b64_pem)
+        private_key = serialization.load_pem_private_key(pem_bytes, password=None)
+
+        b64_payload = parse_pgp_block(message_block, 'MESSAGE')
+        payload = base64.b64decode(b64_payload)
+
+        key_len = int.from_bytes(payload[:2], 'big')
+        encrypted_key = payload[2:2+key_len]
+        nonce = payload[2+key_len:2+key_len+12]
+        ciphertext = payload[2+key_len+12:]
+
+        aes_key = private_key.decrypt(
+            encrypted_key,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        )
+
+        aesgcm = AESGCM(aes_key)
+        plaintext = aesgcm.decrypt(nonce, ciphertext, None).decode('utf-8')
+    except Exception as e:
+        logger.exception("Practice decryption failed")
+        return jsonify({
+            'status': 'failed',
+            'reason': 'decrypt_error',
+            'message': (
+                'Could not decrypt your message.\n\n'
+                'Make sure you:\n'
+                '1. Used the correct practice partner public key to encrypt\n'
+                '2. Copied the entire PGP MESSAGE block (including -----BEGIN/END markers)\n'
+                '3. The message format is valid'
+            )
+        }), 400
+
+    # ---- Generate contextual AI response ----
+    ai_response = generate_ai_response(plaintext)
+
+    # ---- Try to encrypt response back to user's public key ----
+    user_encrypted = None
+    user_has_key = False
+    if 'user_id' in session:
+        conn = db_connect()
+        c = conn.cursor()
+        db_execute(c, 'SELECT public_key FROM users WHERE id = ?', (session['user_id'],))
+        row = c.fetchone()
+        conn.close()
+        if row and row[0]:
+            user_has_key = True
+            user_public_key = row[0]
+            try:
+                b64_pem_user = parse_pgp_block(user_public_key, 'PUBLIC KEY BLOCK')
+                pem_bytes_user = base64.b64decode(b64_pem_user)
+                user_pubkey = serialization.load_pem_public_key(pem_bytes_user)
+
+                aes_key = secrets.token_bytes(32)
+                nonce = secrets.token_bytes(12)
+                aesgcm = AESGCM(aes_key)
+                ciphertext = aesgcm.encrypt(nonce, ai_response.encode('utf-8'), None)
+
+                encrypted_key = user_pubkey.encrypt(
+                    aes_key,
+                    padding.OAEP(
+                        mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                        algorithm=hashes.SHA256(),
+                        label=None
+                    )
+                )
+
+                key_len = len(encrypted_key)
+                payload = key_len.to_bytes(2, 'big') + encrypted_key + nonce + ciphertext
+                payload_b64 = base64.b64encode(payload).decode()
+
+                user_encrypted = make_pgp_block('MESSAGE', payload_b64, 'Practice Partner Encrypted Reply')
+            except Exception as e:
+                logger.warning("Could not encrypt reply to user's key: %s", e)
+
+    tip = None
+    if user_encrypted is None and 'user_id' in session:
+        if user_has_key:
+            tip = "I couldn't encrypt my reply back to your saved key (the format may be unsupported). But here's the plaintext response:"
+        else:
+            tip = "Tip: Save your public key in your Profile page so I can encrypt my replies back to you!"
+    elif 'user_id' not in session:
+        tip = "Tip: Log in and save your public key in your Profile so I can encrypt my replies back to you!"
+
+    return jsonify({
+        'status': 'success',
+        'decrypted': plaintext,
+        'response': ai_response,
+        'encrypted_response': user_encrypted,
+        'tip': tip
+    }), 200
+
+
 # ============== Health / Status ==============
 
 @app.route('/api/status', methods=['GET'])
@@ -614,6 +883,8 @@ def decrypt_message():
     except Exception as e:
         logger.exception("Decryption failed")
         return jsonify({'error': f'Decryption failed: {str(e)}'}), 500
+
+init_practice_keys()
 
 
 # ============== Main ==============
