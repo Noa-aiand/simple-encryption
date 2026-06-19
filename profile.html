@@ -825,12 +825,6 @@
     </div>
 
     <!-- Right Sidebar Toggle -->
-    <button class="right-menu-btn" id="rightMenuBtn" aria-label="Notes &amp; Saved Keys">&#128203;</button>
-
-    <!-- Right Sidebar Overlay -->
-<!-- Right Sidebar -->
-    <!-- Right Sidebar Toggle -->
-        <!-- Right Sidebar Toggle -->
     <button class="right-sidebar-toggle" id="rightSidebarToggle" aria-label="Tools">&#128295; Tools</button>
 
     <!-- Right Sidebar Overlay -->
@@ -1173,18 +1167,6 @@
             }
         });
 
-        // Right Sidebar Toggle
-        const rightMenuBtn = document.getElementById('rightMenuBtn');
-        const rightSidebar = document.getElementById('rightSidebar');
-        const rightOverlay = document.getElementById('rightOverlay');
-        function toggleRightSidebar() {
-            rightMenuBtn.classList.toggle('active');
-            rightSidebar.classList.toggle('active');
-            rightOverlay.classList.toggle('active');
-        }
-        rightMenuBtn.addEventListener('click', toggleRightSidebar);
-        rightOverlay.addEventListener('click', toggleRightSidebar);
-
         async function checkAuth() {
             try {
                 const res = await fetch('/api/me');
@@ -1196,9 +1178,6 @@
                 console.error('Auth check failed:', err);
             }
         }
-
-                // Right Sidebar Toggle
-        
 
         // Right Sidebar Toggle
         const rightToggle = document.getElementById('rightSidebarToggle');
@@ -1375,7 +1354,7 @@
         }
         loadSavedKeysList();
 
-checkAuth();
+        checkAuth();
         loadProfile();
     </script>
 </body>
