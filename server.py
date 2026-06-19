@@ -364,6 +364,13 @@ def logout():
 @app.route('/api/me', methods=['GET'])
 def me():
     if 'user_id' in session:
+        conn = db_connect()
+        c = conn.cursor()
+        db_execute(c, 'SELECT username, public_key FROM users WHERE id = ?', (session['user_id'],))
+        row = c.fetchone()
+        conn.close()
+        if row:
+            return jsonify({'logged_in': True, 'username': row[0], 'public_key': row[1] or ''}), 200
         return jsonify({'logged_in': True, 'username': session['username']}), 200
     return jsonify({'logged_in': False}), 200
 
