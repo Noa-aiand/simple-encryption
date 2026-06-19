@@ -3,531 +3,1394 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Encryption - Encrypt/Decrypt Messages</title>
+    <title>PGP Encryption - Encrypt / Decrypt</title>
     <style>
-        *, *::before, *::after { box-sizing: border-box; }
-        :root { --vanilla: #DBCB98; --dark: #111111; --white: #FFFFFF; }
-        body {
-            font-family: 'Trebuchet MS', sans-serif;
+        * {
             margin: 0;
-            background-color: var(--dark);
-            color: var(--white);
-            min-height: 100vh;
-            overflow-x: hidden;
+            padding: 0;
+            box-sizing: border-box;
         }
-        
-        /* Navigation */
-        nav.main-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 18px 32px;
-            background-color: rgba(0,0,0,0.7);
-            backdrop-filter: blur(12px);
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        /* Menu Button */
+        .menu-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 12px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .menu-btn:hover {
+            background: rgba(157, 78, 221, 0.3);
+            border-color: #9d4edd;
+        }
+
+        .menu-btn span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: #fff;
+            margin: 5px 0;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-btn.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+        .menu-btn.active span:nth-child(2) { opacity: 0; }
+        .menu-btn.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+        /* Sidebar */
+        .sidebar {
             position: fixed;
             top: 0;
             left: 0;
-            right: 0;
+            width: 350px;
+            height: 100vh;
+            background: rgba(22, 33, 62, 0.98);
+            border-right: 1px solid rgba(157, 78, 221, 0.3);
+            padding: 80px 30px 30px 30px;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
             z-index: 1000;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            overflow-y: auto;
         }
-        .nav-brand {
+        .sidebar.active { transform: translateX(0); }
+        .sidebar-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .sidebar-overlay.active { opacity: 1; visibility: visible; }
+
+        .sidebar h2 {
+            color: #9d4edd;
             font-size: 1.5rem;
-            font-weight: 800;
-            color: var(--vanilla);
-            letter-spacing: -0.03em;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
-        .nav-links {
+
+        .tabs {
             display: flex;
-            gap: 10px;
-            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(157, 78, 221, 0.3);
         }
-        .nav-links a {
-            padding: 8px 16px;
-            border-radius: 8px;
-            text-decoration: none;
-            color: var(--white);
-            font-weight: 500;
-            transition: 0.3s;
-            font-size: 0.9rem;
-        }
-        .nav-links a:hover, .nav-links a.active {
-            background-color: rgba(255,255,255,0.1);
-            color: var(--vanilla);
-        }
-        .nav-links .action-btn {
-            background-color: var(--vanilla);
-            color: var(--dark);
-            font-weight: 700;
-            letter-spacing: 0.02em;
-            padding: 8px 20px;
-        }
-        .nav-links .action-btn:hover {
-            background-color: #CAB879;
-            color: var(--dark);
-        }
-        .nav-links .login-btn {
-            background-color: transparent;
-            border: 1px solid rgba(255,255,255,0.2);
-            padding: 8px 24px;
-            font-weight: 600;
-        }
-        .nav-links .login-btn:hover {
-            border-color: var(--vanilla);
-            color: var(--vanilla);
-            background: transparent;
-        }
-        .nav-auth-status { font-size: 0.9rem; font-weight: 600; padding: 8px 16px; }
-        .nav-auth-status.logged-in { color: var(--vanilla); }
-        .nav-links .user-label { font-weight: 700; }
-        
-        /* Mobile Nav */
-        .mobile-menu-btn {
-            display: none;
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
             background: none;
             border: none;
-            color: var(--white);
-            font-size: 1.6rem;
+            color: #c77dff;
             cursor: pointer;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
         }
-        
-        /* ===== Right Sidebar ===== */
-        .right-sidebar-toggle {
-            position: fixed;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            background: var(--vanilla);
-            color: var(--dark);
-            border: none;
-            cursor: pointer;
-            padding: 14px 12px;
-            border-radius: 12px 0 0 12px;
-            z-index: 1001;
-            font-weight: 700;
+        .tab-btn.active { color: #9d4edd; border-bottom-color: #9d4edd; }
+        .tab-btn:hover { color: #9d4edd; }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .form-group { margin-bottom: 1.2rem; }
+        .form-group label {
+            display: block;
+            color: #c77dff;
+            margin-bottom: 0.5rem;
             font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: 0.3s;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .right-sidebar-toggle:hover { transform: translateY(-50%) translateX(-4px); }
-        .right-sidebar-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 1005;
-            opacity: 0;
-            pointer-events: none;
-            transition: 0.3s;
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(157, 78, 221, 0.3);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
         }
-        .right-sidebar-overlay.active { opacity: 1; pointer-events: auto; }
-        .right-sidebar {
+        .form-group input:focus {
+            border-color: #9d4edd;
+            background: rgba(157, 78, 221, 0.1);
+        }
+        .form-group input::placeholder { color: rgba(255, 255, 255, 0.3); }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(90deg, #7b2cbf, #9d4edd);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .submit-btn:hover {
+            background: linear-gradient(90deg, #9d4edd, #c77dff);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(157, 78, 221, 0.4);
+        }
+
+        .message {
+            margin-top: 1rem;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            text-align: center;
+            display: none;
+        }
+        .message.success { display: block; background: rgba(76, 175, 80, 0.2); color: #81c784; border: 1px solid rgba(76, 175, 80, 0.3); }
+        .message.error { display: block; background: rgba(244, 67, 54, 0.2); color: #e57373; border: 1px solid rgba(244, 67, 54, 0.3); }
+
+        /* Toast Notifications */
+        .toast-container {
             position: fixed;
-            top: 0;
-            right: -440px;
-            width: 420px;
-            max-width: 90vw;
-            height: 100%;
-            background: rgba(20,20,20,0.97);
-            backdrop-filter: blur(20px);
-            z-index: 1010;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
             display: flex;
             flex-direction: column;
-            transition: right 0.3s ease;
-            border-left: 1px solid rgba(255,255,255,0.08);
+            gap: 10px;
+            max-width: 360px;
         }
-        .right-sidebar.active { right: 0; }
-        .right-sidebar-header {
+        .toast {
+            padding: 14px 18px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            color: #fff;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 16px 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            gap: 10px;
+            animation: toastSlideIn 0.35s ease;
+            transform-origin: top right;
+            cursor: default;
         }
-        .right-sidebar-title { font-size: 1.1rem; font-weight: 700; margin: 0; }
-        .right-sidebar-close {
+        .toast.closing { animation: toastSlideOut 0.25s ease forwards; }
+        .toast.success { background: rgba(46, 125, 50, 0.92); border: 1px solid rgba(76, 175, 80, 0.6); }
+        .toast.error { background: rgba(183, 28, 28, 0.92); border: 1px solid rgba(244, 67, 54, 0.6); }
+        .toast.info { background: rgba(21, 101, 192, 0.92); border: 1px solid rgba(33, 150, 243, 0.6); }
+        .toast-close {
+            margin-left: auto;
             background: none;
             border: none;
-            color: var(--white);
-            font-size: 1.4rem;
+            color: rgba(255,255,255,0.7);
+            font-size: 1.1rem;
             cursor: pointer;
-            padding: 4px;
+            padding: 0 2px;
             line-height: 1;
         }
-        .right-sidebar-close:hover { color: var(--vanilla); }
-        .right-sidebar-tabs {
-            display: flex;
-            padding: 0 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+        .toast-close:hover { color: #fff; }
+        @keyframes toastSlideIn {
+            from { opacity: 0; transform: translateX(100%) scale(0.95); }
+            to { opacity: 1; transform: translateX(0) scale(1); }
         }
-        .right-tab-btn {
-            background: none;
-            border: none;
-            color: rgba(255,255,255,0.5);
-            padding: 12px 0;
-            margin-right: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            transition: 0.2s;
+        @keyframes toastSlideOut {
+            from { opacity: 1; transform: translateX(0) scale(1); }
+            to { opacity: 0; transform: translateX(100%) scale(0.95); }
         }
-        .right-tab-btn:hover { color: rgba(255,255,255,0.8); }
-        .right-tab-btn.active { color: var(--vanilla); border-bottom-color: var(--vanilla); }
-        .right-tab-content {
-            flex: 1;
+
+        /* Shake animation for input errors */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-6px); }
+            40% { transform: translateX(6px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+        .shake { animation: shake 0.4s ease; }
+        .input-error {
+            border-color: #f44336 !important;
+            background: rgba(244, 67, 54, 0.08) !important;
+        }
+
+        /* Button loading */
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .user-info {
+            text-align: center;
             padding: 20px;
+            background: rgba(157, 78, 221, 0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(157, 78, 221, 0.3);
+        }
+        .user-info h3 { color: #9d4edd; margin-bottom: 0.5rem; }
+        .user-info p { color: #c77dff; font-size: 0.9rem; margin-bottom: 1.5rem; }
+        .logout-btn {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid rgba(244, 67, 54, 0.4);
+            color: #e57373;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        .logout-btn:hover { background: rgba(244, 67, 54, 0.3); }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .page-header {
+            text-align: center;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        .page-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #9d4edd;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .page-header .subtitle {
+            margin-top: 0.5rem;
+            font-size: 1rem;
+            color: #c77dff;
+            font-weight: 300;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+        .nav-tab {
+            padding: 12px 32px;
+            background: rgba(157, 78, 221, 0.15);
+            border: 1px solid rgba(157, 78, 221, 0.4);
+            border-radius: 10px;
+            color: #c77dff;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+        .nav-tab:hover {
+            background: rgba(157, 78, 221, 0.3);
+            border-color: #9d4edd;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(157, 78, 221, 0.3);
+        }
+        .nav-tab.active {
+            background: linear-gradient(90deg, #7b2cbf, #9d4edd);
+            border-color: #9d4edd;
+            color: #fff;
+        }
+
+        /* Encrypt Page Cards */
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .card h2 {
+            color: #9d4edd;
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h2 .icon {
+            font-size: 1.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .form-row { grid-template-columns: 1fr; }
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(157, 78, 221, 0.3);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.9rem;
+            font-family: 'Courier New', monospace;
+            outline: none;
+            transition: all 0.3s ease;
+            resize: vertical;
+            min-height: 120px;
+        }
+        .form-group textarea:focus {
+            border-color: #9d4edd;
+            background: rgba(157, 78, 221, 0.1);
+        }
+        .form-group textarea::placeholder { color: rgba(255, 255, 255, 0.3); }
+
+        .key-size-select {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(157, 78, 221, 0.4);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.95rem;
+            outline: none;
+            cursor: pointer;
+            margin-bottom: 1.5rem;
+        }
+        .key-size-select option {
+            background: #16213e;
+            color: #fff;
+        }
+        .key-size-select:focus { border-color: #9d4edd; }
+
+        .action-btns {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #7b2cbf, #9d4edd);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(90deg, #9d4edd, #c77dff);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(157, 78, 221, 0.4);
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(157, 78, 221, 0.3);
+            color: #c77dff;
+        }
+        .btn-secondary:hover {
+            background: rgba(157, 78, 221, 0.2);
+            border-color: #9d4edd;
+            color: #fff;
+        }
+        .btn-success {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid rgba(76, 175, 80, 0.4);
+            color: #81c784;
+        }
+        .btn-success:hover {
+            background: rgba(76, 175, 80, 0.3);
+        }
+
+        .result-box {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(157, 78, 221, 0.3);
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #c77dff;
+            white-space: pre-wrap;
+            word-break: break-word;
+            min-height: 100px;
+            display: none;
+        }
+        .result-box.visible { display: block; }
+        .result-box.error { border-color: rgba(244, 67, 54, 0.4); color: #e57373; }
+        .result-box.success { border-color: rgba(76, 175, 80, 0.4); color: #81c784; }
+
+        .result-label {
+            color: #9d4edd;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
+            display: none;
+        }
+        .result-label.visible { display: block; }
+
+        .key-box {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(157, 78, 221, 0.2);
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            color: #c77dff;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 200px;
             overflow-y: auto;
             display: none;
         }
-        .right-tab-content.active { display: block; }
-        #notesTab h3 { margin-top: 0; }
-        .notes-list { list-style: none; padding: 0; margin: 0 0 12px; max-height: 180px; overflow-y: auto; border-radius: 8px; background: rgba(255,255,255,0.03); }
-        .notes-list li {
-            padding: 8px 12px;
+        .key-box.visible { display: block; }
+
+        .server-status {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 2000;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: none;
+        }
+        .server-status.show { display: block; }
+        .server-status.ok {
+            background: rgba(76, 175, 80, 0.2);
+            color: #81c784;
+            border-bottom: 1px solid rgba(76, 175, 80, 0.3);
+        }
+        .server-status.error {
+            background: rgba(244, 67, 54, 0.2);
+            color: #e57373;
+            border-bottom: 1px solid rgba(244, 67, 54, 0.3);
+        }
+
+                /* Right Sidebar */
+        .right-sidebar-toggle {
+            position: fixed;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+            z-index: 1001;
+            background: linear-gradient(90deg, #7b2cbf, #9d4edd);
+            border: none;
+            border-radius: 10px 0 0 10px;
+            padding: 14px 10px;
             cursor: pointer;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
+            color: #fff;
+            font-size: 1.2rem;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 600;
+            box-shadow: -4px 0 15px rgba(157,78,221,0.3);
+            transition: all 0.3s ease;
+        }
+        .right-sidebar-toggle:hover {
+            background: linear-gradient(90deg, #9d4edd, #c77dff);
+            padding-right: 16px;
+        }
+        .right-sidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 400px;
+            height: 100vh;
+            background: rgba(22,33,62,0.98);
+            border-left: 1px solid rgba(157,78,221,0.3);
+            padding: 80px 24px 24px 24px;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .right-sidebar.active { transform: translateX(0); }
+        .right-sidebar-overlay {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            opacity: 0; visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .right-sidebar-overlay.active { opacity: 1; visibility: visible; }
+        .right-sidebar h2 {
+            color: #9d4edd;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .right-tabs {
+            display: flex;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid rgba(157,78,221,0.3);
+        }
+        .right-tab-btn {
+            flex: 1; padding: 10px;
+            background: none; border: none;
+            color: #c77dff;
+            cursor: pointer;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .right-tab-btn.active { color: #9d4edd; border-bottom-color: #9d4edd; }
+        .right-tab-btn:hover { color: #9d4edd; }
+        .right-tab-content { display: none; flex: 1; }
+        .right-tab-content.active { display: flex; flex-direction: column; }
+        .notes-toolbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 8px;
-            font-size: 0.85rem;
-            transition: 0.2s;
+            margin-bottom: 0.6rem;
         }
-        .notes-list li:last-child { border: none; }
-        .notes-list li:hover { background: rgba(255,255,255,0.05); }
-        .notes-list li.active { background: rgba(219,203,152,0.15); }
-        .note-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .note-del { background: none; border: none; color: rgba(255,255,255,0.4); cursor: pointer; font-size: 1.2rem; line-height: 1; padding: 0 4px; visibility: hidden; }
-        .notes-list li:hover .note-del { visibility: visible; }
-        .note-del:hover { color: #ff6b6b; }
-        .notes-empty { color: rgba(255,255,255,0.3); font-style: italic; text-align: center; padding: 24px 0 !important; cursor: default !important; }
-        .notes-empty:hover { background: none !important; }
-        .notes-toolbar { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
-        #noteTitleInput {
-            flex: 1;
-            padding: 8px 12px;
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 6px;
-            background: rgba(255,255,255,0.05);
-            color: var(--white);
-            font-size: 0.85rem;
-        }
-        .btn-new-note, .btn-save-keys {
-            background: var(--vanilla);
-            color: var(--dark);
-            border: none;
-            border-radius: 6px;
-            padding: 8px 12px;
-            font-weight: 600;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: 0.2s;
-            white-space: nowrap;
-        }
-        .btn-new-note:hover { background: #CAB879; }
-        #notesTextarea {
-            width: 100%;
-            min-height: 120px;
-            padding: 12px;
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 6px;
-            background: rgba(255,255,255,0.05);
-            color: var(--white);
-            font-size: 0.85rem;
-            resize: vertical;
-            margin-bottom: 8px;
-        }
-        .notes-status { font-size: 0.8rem; color: rgba(255,255,255,0.5); text-align: right; min-height: 18px; }
-        .login-hint { color: var(--vanilla); font-size: 0.8rem; display: block; margin-top: 4px; }
-        #savedKeysList { list-style: none; padding: 0; margin: 12px 0; }
-        .saved-keys-empty { color: rgba(255,255,255,0.4); font-size: 0.9rem; padding: 12px 0; }
-        .saved-keys-list { list-style: none; padding: 0; margin: 12px 0; }
-        .saved-keys-list li { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 0.9rem; }
-        .saved-keys-list .key-icon { font-size: 1.2rem; }
-        
-        /* Main Layout */
-        main.main {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 110px 24px 80px;
-        }
-        .page-title {
-            font-size: 2.2rem;
-            font-weight: 800;
-            margin-bottom: 12px;
-            letter-spacing: -0.03em;
-            text-align: center;
-        }
-        .page-subtitle { text-align: center; color: rgba(255,255,255,0.6); margin-bottom: 40px; font-size: 1.1rem; }
-        
-        /* Mode Toggle */
-        .mode-toggle {
-            display: flex;
-            gap: 4px;
-            background: rgba(255,255,255,0.06);
-            padding: 4px;
-            border-radius: 10px;
-            margin-bottom: 28px;
-            max-width: 420px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .mode-btn {
-            flex: 1;
-            background: none;
-            border: none;
-            color: rgba(255,255,255,0.5);
-            font-size: 0.95rem;
-            font-weight: 600;
-            padding: 10px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.2s;
-            font-family: inherit;
-        }
-        .mode-btn.active { background: var(--vanilla); color: var(--dark); }
-        
-        .card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 28px;
-            margin-bottom: 20px;
-        }
-        .card-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: rgba(255,255,255,0.8);
-        }
-        textarea, input[type="text"], input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 6px;
-            background: rgba(255,255,255,0.05);
-            color: var(--white);
-            font-size: 0.95rem;
-            font-family: 'Courier New', monospace;
-            resize: vertical;
-        }
-        textarea { min-height: 100px; }
-        .output-box {
-            background: rgba(219,203,152,0.08);
-            border: 1px solid rgba(219,203,152,0.3);
-            color: var(--vanilla);
-            padding: 14px;
-            border-radius: 6px;
-            word-break: break-all;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-            min-height: 60px;
-            white-space: pre-wrap;
-        }
-        .actions-row {
-            display: flex;
-            gap: 12px;
-            margin-top: 16px;
-            flex-wrap: wrap;
-        }
-        .btn-primary {
-            background-color: var(--vanilla);
-            color: var(--dark);
-            border: none;
-            padding: 10px 24px;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            font-weight: 700;
-            cursor: pointer;
-            font-family: inherit;
-            transition: 0.2s;
-            white-space: nowrap;
-        }
-        .btn-primary:hover { filter: brightness(0.9); }
-        .btn-secondary {
-            background: transparent;
-            color: var(--vanilla);
-            border: 1px solid rgba(219,203,152,0.4);
-            padding: 10px 24px;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            font-family: inherit;
-            transition: 0.2s;
-            white-space: nowrap;
-        }
-        .btn-secondary:hover {
-            background: rgba(219,203,152,0.1);
-            border-color: var(--vanilla);
-        }
-        .copy-btn {
-            background: none;
-            border: none;
-            color: rgba(255,255,255,0.5);
-            cursor: pointer;
+        .notes-toolbar h3 {
+            color: #9d4edd;
             font-size: 1rem;
-            padding: 4px;
-            margin-left: auto;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .copy-btn:hover { color: var(--vanilla); }
-        
-        .alert {
-            padding: 14px 18px;
+        .notes-toolbar .btn-sm {
+            padding: 6px 14px;
+            background: linear-gradient(90deg, #7b2cbf, #9d4edd);
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .notes-toolbar .btn-sm:hover {
+            background: linear-gradient(90deg, #9d4edd, #c77dff);
+            transform: translateY(-1px);
+        }
+        .notes-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 0.8rem 0;
+            max-height: 140px;
+            overflow-y: auto;
+            border: 1px solid rgba(157,78,221,0.2);
             border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
+            background: rgba(0,0,0,0.15);
+        }
+        .notes-list li {
+            padding: 8px 12px;
+            cursor: pointer;
+            color: #c77dff;
+            font-size: 0.88rem;
+            border-bottom: 1px solid rgba(157,78,221,0.1);
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 10px;
+            transition: all 0.2s ease;
         }
-        .alert.show { display: flex; }
-        .alert-info {
-            background: rgba(59,130,246,0.15);
-            border: 1px solid rgba(59,130,246,0.3);
-            color: #93c5fd;
+        .notes-list li:last-child { border-bottom: none; }
+        .notes-list li:hover { background: rgba(157,78,221,0.12); color: #fff; }
+        .notes-list li.active {
+            background: rgba(157,78,221,0.25);
+            color: #fff;
+            border-left: 3px solid #9d4edd;
         }
-        .alert-success {
-            background: rgba(34,197,94,0.15);
-            border: 1px solid rgba(34,197,94,0.3);
-            color: #86efac;
+        .notes-list li .note-title {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
-        .alert-error {
-            background: rgba(239,68,68,0.15);
-            border: 1px solid rgba(239,68,68,0.3);
-            color: #fca5a5;
+        .notes-list li .note-del {
+            opacity: 0;
+            background: none;
+            border: none;
+            color: #e57373;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 0 4px;
+            transition: opacity 0.2s ease;
         }
-    </style>
+        .notes-list li:hover .note-del { opacity: 1; }
+        .notes-list li .note-del:hover { color: #ff5252; transform: scale(1.2); }
+        .notes-empty {
+            text-align: center;
+            padding: 1.5rem;
+            color: rgba(255,255,255,0.35);
+            font-size: 0.85rem;
+        }
+        .note-title-input {
+            width: 100%;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(157,78,221,0.3);
+            border-radius: 6px;
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 600;
+            outline: none;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .note-title-input:focus { border-color: #9d4edd; background: rgba(157,78,221,0.08); }
+        .notes-textarea {
+            width: 100%;
+            flex: 1;
+            min-height: 220px;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(157,78,221,0.3);
+            border-radius: 8px;
+            color: #fff;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 0.9rem;
+            outline: none;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+        .notes-textarea:focus {
+            border-color: #9d4edd;
+            background: rgba(157,78,221,0.08);
+        }
+        .notes-status {
+            margin-top: 0.4rem;
+            font-size: 0.8rem;
+            color: #81c784;
+            text-align: right;
+            min-height: 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .notes-status .login-hint {
+            color: #ffb74d;
+            font-size: 0.78rem;
+        }
+        .saved-keys-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .saved-keys-list li {
+            padding: 10px 14px;
+            background: rgba(157,78,221,0.08);
+            border: 1px solid rgba(157,78,221,0.2);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            color: #c77dff;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        .saved-keys-list li:hover {
+            background: rgba(157,78,221,0.2);
+            border-color: rgba(157,78,221,0.4);
+            color: #fff;
+        }
+        .saved-keys-list .key-icon { font-size: 1.1rem; }
+        .saved-keys-empty {
+            color: rgba(255,255,255,0.4);
+            font-size: 0.9rem;
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+</style>
 </head>
 <body>
-    <nav class="main-nav">
-        <div class="nav-brand">Simple Encryption</div>
-        <button class="mobile-menu-btn" aria-label="Menu" onclick="toggleMenu()">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        </button>
-        <div class="nav-links" id="navLinks">
-            <a href="index.html">Home</a>
-            <a href="encrypt.html" class="active">Encrypt/Decrypt</a>
-            <a href="saved-keys.html">Saved Keys</a>
-            <a href="practice.html">Practice</a>
-            <a href="profile.html">Profile</a>
-            <a href="encrypt.html" class="action-btn">Try It Free</a>
-            <span class="nav-auth-status" id="navAuthStatus"><a href="index.html#auth-section" class="login-btn">Log In</a></span>
-        </div>
-    </nav>
-    
-    <button class="right-sidebar-toggle" id="rightSidebarToggle" aria-label="Tools">&#128295; Tools</button>
-    <div class="right-sidebar-overlay" id="rightSidebarOverlay"></div>
-    <aside class="right-sidebar" id="rightSidebar">
-        <div class="right-sidebar-header">
-            <h2 class="right-sidebar-title">Tools</h2>
-            <button class="right-sidebar-close" id="rightSidebarClose" aria-label="Close">&times;</button>
-        </div>
-        <div class="right-sidebar-tabs">
-            <button class="right-tab-btn active" data-right-tab="notesTab">&#128203; Notes</button>
-            <button class="right-tab-btn" data-right-tab="keysTab">&#128273; Saved Keys</button>
-        </div>
-        <div class="right-tab-content active" id="notesTab">
-            <div class="notes-toolbar">
-                <button class="btn-new-note" id="newNoteBtn">+ New</button>
+    <div class="server-status" id="serverStatus"></div>
+
+    <!-- Menu Button -->
+    <button class="menu-btn" id="menuBtn" aria-label="Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="overlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div id="authSection">
+            <h2>Account</h2>
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="register">Register</button>
+                <button class="tab-btn" data-tab="login">Login</button>
             </div>
-            <ul class="notes-list" id="notesList"><li class="notes-empty">Log in to create and save notes.</li></ul>
-            <input type="text" id="noteTitleInput" placeholder="Note title..." style="display:none">
-            <textarea id="notesTextarea" placeholder="Click + New to create a note..." style="display:none"></textarea>
-            <div class="notes-status" id="notesStatus"></div>
+            <div class="tab-content active" id="register">
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="regUsername">Username</label>
+                        <input type="text" id="regUsername" placeholder="Enter username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regPassword">Password</label>
+                        <input type="password" id="regPassword" placeholder="Enter password" required minlength="6">
+                    </div>
+                    <button type="submit" class="submit-btn">Create Account</button>
+                    <div class="message" id="regMessage"></div>
+                </form>
+            </div>
+            <div class="tab-content" id="login">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginUsername">Username</label>
+                        <input type="text" id="loginUsername" placeholder="Enter username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" placeholder="Enter password" required>
+                    </div>
+                    <button type="submit" class="submit-btn">Login</button>
+                    <div class="message" id="loginMessage"></div>
+                </form>
+            </div>
         </div>
-        <div class="right-tab-content" id="keysTab">
-            <p style="margin:0 0 8px;color:rgba(255,255,255,0.6);">Your saved public keys from the <a href="saved-keys.html" style="color:var(--vanilla)">Saved Keys</a> page.</p>
-            <ul class="saved-keys-list" id="savedKeysListItems"><li class="saved-keys-empty">Log in to see your saved keys.</li></ul>
+        <div class="user-info" id="userInfo" style="display: none;">
+            <h3>Welcome!</h3>
+            <p id="userName">User</p>
+            <nav class="sidebar-nav" id="sidebarNav" style="margin: 1.5rem 0; display: flex; flex-direction: column; gap: 0.6rem;">
+                <a href="/" style="padding: 12px 16px; background: rgba(157,78,221,0.1); border: 1px solid rgba(157,78,221,0.25); border-radius: 8px; color: #c77dff; text-decoration: none; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s ease;">Home</a>
+                <a href="/encrypt.html" style="padding: 12px 16px; background: rgba(157,78,221,0.1); border: 1px solid rgba(157,78,221,0.25); border-radius: 8px; color: #c77dff; text-decoration: none; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s ease;">Encrypt / Decrypt</a>
+                <a href="/profile.html" style="padding: 12px 16px; background: rgba(157,78,221,0.1); border: 1px solid rgba(157,78,221,0.25); border-radius: 8px; color: #c77dff; text-decoration: none; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s ease;">My Profile</a>
+                <a href="/saved-keys.html" style="padding: 12px 16px; background: rgba(157,78,221,0.1); border: 1px solid rgba(157,78,221,0.25); border-radius: 8px; color: #c77dff; text-decoration: none; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s ease;">Saved Keys</a>
+                <a href="/practice.html" style="padding: 12px 16px; background: rgba(157,78,221,0.1); border: 1px solid rgba(157,78,221,0.25); border-radius: 8px; color: #c77dff; text-decoration: none; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s ease;">Practice</a>
+            </nav>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
         </div>
     </aside>
-    
-    <main class="main">
-        <h1 class="page-title">Encrypt &amp; Decrypt</h1>
-        <p class="page-subtitle">Use PGP-style encryption with your saved keys <br> or just paste a plain message.</p>
-        
-        <div class="alert alert-info show" id="authAlert">
-            <span>&#128275; Log in to encrypt with your profile key.</span>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="page-header">
+            <h1>PGP Encryption</h1>
+            <div class="subtitle">Encrypt / Decrypt Messages</div>
+            <nav class="nav-tabs">
+                <a href="/" class="nav-tab">Home</a>
+                <a href="/encrypt.html" class="nav-tab active">Encrypt / Decrypt</a>
+                <a href="/profile.html" class="nav-tab">My Profile</a>
+                <a href="/saved-keys.html" class="nav-tab">Saved Keys</a>
+                <a href="/practice.html" class="nav-tab">Practice</a>
+            </nav>
         </div>
-        
-        <div class="mode-toggle" id="modeToggle">
-            <button class="mode-btn active" data-mode="encrypt">Encrypt Message</button>
-            <button class="mode-btn" data-mode="decrypt">Decrypt Message</button>
-        </div>
-        
-        <div id="encryptSection">
-            <div class="card">
-                <div class="card-title">&#128274; Encrypt Message</div>
-                <label for="messageInput">Message</label>
-                <textarea id="messageInput" placeholder="Type your secret message..."></textarea>
-                <label for="publicKeyInput">Public Key (leave blank to use your saved key)</label>
-                <textarea id="publicKeyInput" placeholder="-----BEGIN PGP PUBLIC KEY BLOCK-----
-...
------END PGP PUBLIC KEY BLOCK-----"></textarea>
-                <div class="actions-row">
-                    <button class="btn-primary" id="encryptBtn">Encrypt</button>
-                    <button class="btn-secondary" id="useMyKeyBtn">Use My Key</button>
-                    <button class="btn-secondary" id="clearKeyBtn">Clear</button>
-                </div>
-                <div id="encryptOutput" style="margin-top:16px;display:none">
-                    <label>Encrypted Output</label>
-                    <div class="output-box" id="encryptResult" style="position:relative">
-                        <span id="encryptText"></span>
-                        <button class="copy-btn" id="copyEncryptedBtn" title="Copy to clipboard">&#128203;</button>
-                    </div>
-                </div>
+
+        <!-- Key Generator -->
+        <div class="card">
+            <h2><span class="icon">&#128273;</span> Key Generator</h2>
+            <label style="color: #c77dff; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">RSA Key Size</label>
+            <select class="key-size-select" id="genKeySize">
+                <option value="4096" selected>RSA 4096 (Recommended)</option>
+                <option value="2048">RSA 2048</option>
+            </select>
+            <div class="action-btns">
+                <button class="btn btn-primary" id="generateKeysBtn">Generate Key Pair</button>
+                <button class="btn btn-secondary" id="copyPublicBtn" style="display:none;">Copy Public Key</button>
+                <button class="btn btn-secondary" id="copyPrivateBtn" style="display:none;">Copy Private Key</button>
+                <button class="btn btn-success" id="saveToProfileBtn" style="display:none;">Save Public Key to Profile</button>
             </div>
+            <div class="key-box" id="publicKeyBox"></div>
+            <div class="key-box" id="privateKeyBox"></div>
+            <div class="status-msg" id="genStatus" style="margin-top:1rem; padding:10px; border-radius:8px; font-size:0.9rem; text-align:center; display:none;"></div>
         </div>
-        
-        <div id="decryptSection" style="display:none">
-            <div class="card">
-                <div class="card-title">&#128275; Decrypt Message</div>
-                <label for="encryptedInput">Encrypted Text</label>
-                <textarea id="encryptedInput" placeholder="Paste encrypted text here..."></textarea>
-                <label for="privateKeyInput">Private Key</label>
-                <textarea id="privateKeyInput" placeholder="-----BEGIN PGP PRIVATE KEY BLOCK-----
-...
------END PGP PRIVATE KEY BLOCK-----"></textarea>
-                <div class="actions-row">
-                    <button class="btn-primary" id="decryptBtn">Decrypt</button>
-                    <button class="btn-secondary" id="useMyPrivateKeyBtn">Use My Private Key</button>
-                </div>
-                <div id="decryptOutput" style="margin-top:16px;display:none">
-                    <label>Decrypted Message</label>
-                    <div class="output-box" id="decryptResult">
-                        <span id="decryptText"></span>
-                        <button class="copy-btn" id="copyDecryptedBtn" title="Copy to clipboard">&#128203;</button>
-                    </div>
-                </div>
+
+        <!-- Encrypt -->
+        <div class="card">
+            <h2><span class="icon">&#128274;</span> Encrypt Message</h2>
+            <label style="color: #c77dff; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">RSA Key Size</label>
+            <select class="key-size-select" id="encKeySize">
+                <option value="4096" selected>RSA 4096</option>
+                <option value="2048">RSA 2048</option>
+            </select>
+            <div class="form-group">
+                <label>Recipient Public Key</label>
+                <textarea id="encPublicKey" placeholder="Paste PGP public key block here..."></textarea>
             </div>
+            <div class="form-group">
+                <label>Message</label>
+                <textarea id="encMessage" placeholder="Type your secret message here..."></textarea>
+            </div>
+            <div class="action-btns">
+                <button class="btn btn-primary" id="encryptBtn">Encrypt</button>
+                <button class="btn btn-secondary" id="copyEncryptedBtn" style="display:none;">Copy Result</button>
+                <button class="btn btn-success" id="clearEncBtn">Clear</button>
+            </div>
+            <div class="result-label" id="encResultLabel">Encrypted Message</div>
+            <div class="result-box" id="encResult"></div>
         </div>
-    </main>
 
-    <footer style="text-align: center; padding: 20px 16px 40px; color: rgba(255,255,255,0.5); font-size: 0.8rem;">
-        Simple Encryption &middot; Built for Building on
-    </footer>
+        <!-- Decrypt -->
+        <div class="card">
+            <h2><span class="icon">&#128275;</span> Decrypt Message</h2>
+            <div class="form-group">
+                <label>Your Private Key</label>
+                <textarea id="decPrivateKey" placeholder="Paste PGP private key block here..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Encrypted Message</label>
+                <textarea id="decMessage" placeholder="Paste PGP encrypted message block here..."></textarea>
+            </div>
+            <div class="action-btns">
+                <button class="btn btn-primary" id="decryptBtn">Decrypt</button>
+                <button class="btn btn-secondary" id="copyDecryptedBtn" style="display:none;">Copy Result</button>
+                <button class="btn btn-success" id="clearDecBtn">Clear</button>
+            </div>
+            <div class="result-label" id="decResultLabel">Decrypted Message</div>
+            <div class="result-box" id="decResult"></div>
+        </div>
+    </div>
 
-    <div id="toastContainer" style="position: fixed; top: 80px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; align-items: flex-end; pointer-events: none;"></div>
+    <!-- Right Sidebar Toggle -->
+        <div class="toast-container" id="toastContainer"></div>
 
-    <script src="https://cdn.jsdelivr.net/npm/openpgp@5.11.1/dist/openpgp.min.js"></script>
     <script>
-        // Mobile Nav
+        // Menu Toggle (same as index)
+        const menuBtn = document.getElementById('menuBtn');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+
         function toggleMenu() {
-            document.getElementById('navLinks').classList.toggle('nav-open');
+            menuBtn.classList.toggle('active');
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+        menuBtn.addEventListener('click', toggleMenu);
+        overlay.addEventListener('click', toggleMenu);
+
+        // Sidebar Tabs
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        // ================= Toast Notifications =================
+        function showToast(text, type = 'info', duration = 4000) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            const icon = type === 'success' ? '&#10003;' : type === 'error' ? '&#10007;' : '&#9432;';
+            toast.innerHTML = `<span>${icon}</span><span style="flex:1">${escapeHtml(text)}</span><button class="toast-close">&times;</button>`;
+            container.appendChild(toast);
+
+            const closeBtn = toast.querySelector('.toast-close');
+            closeBtn.addEventListener('click', () => removeToast(toast));
+
+            if (duration > 0) {
+                setTimeout(() => removeToast(toast), duration);
+            }
         }
 
-        // ========= RIGHT SIDEBAR =========
+        function removeToast(toast) {
+            if (!toast.parentNode) return;
+            toast.classList.add('closing');
+            setTimeout(() => toast.remove(), 300);
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ================= Field Validation =================
+        function clearFieldError(input) {
+            input.classList.remove('input-error', 'shake');
+        }
+
+        function setFieldError(input) {
+            input.classList.add('input-error', 'shake');
+            setTimeout(() => input.classList.remove('shake'), 400);
+        }
+
+        function validateUsername(input) {
+            clearFieldError(input);
+            const val = input.value.trim();
+            if (!val) {
+                setFieldError(input);
+                return 'Username is required.';
+            }
+            if (val.length < 3) {
+                setFieldError(input);
+                return 'Username must be at least 3 characters.';
+            }
+            if (!/^[a-zA-Z0-9_-]+$/.test(val)) {
+                setFieldError(input);
+                return 'Username can only contain letters, numbers, underscores, and hyphens.';
+            }
+            return '';
+        }
+
+        function validatePassword(input) {
+            clearFieldError(input);
+            const val = input.value;
+            if (!val) {
+                setFieldError(input);
+                return 'Password is required.';
+            }
+            if (val.length < 6) {
+                setFieldError(input);
+                return 'Password must be at least 6 characters.';
+            }
+            return '';
+        }
+
+        // ================= Button Loading =================
+        function setLoading(btn, loading) {
+            if (loading) {
+                btn.disabled = true;
+                btn.dataset.originalText = btn.innerHTML;
+                btn.innerHTML = '<span class="spinner"></span>Please wait...';
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = btn.dataset.originalText || btn.innerHTML.replace('<span class="spinner"></span>Please wait...', '');
+            }
+        }
+
+        // ================= Auth UI =================
+        async function checkAuth() {
+            try {
+                const res = await fetch('/api/me');
+                const data = await res.json();
+                if (data.logged_in) {
+                    showLoggedIn(data.username);
+                }
+            } catch (e) {
+                console.error('Auth check failed:', e);
+            }
+        }
+
+        function showLoggedIn(username) {
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('userInfo').style.display = 'block';
+            document.getElementById('userName').textContent = username;
+        }
+
+        function showLoggedOut() {
+            document.getElementById('authSection').style.display = 'block';
+            document.getElementById('userInfo').style.display = 'none';
+        }
+
+        function showMessage(elementId, text, type) {
+            const el = document.getElementById(elementId);
+            el.textContent = text;
+            el.className = 'message ' + (type === 'success' ? 'success' : 'error');
+            setTimeout(() => {
+                el.className = 'message';
+                el.textContent = '';
+            }, 4000);
+        }
+
+        // ================= Register =================
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const usernameInput = document.getElementById('regUsername');
+            const passwordInput = document.getElementById('regPassword');
+            const btn = e.submitter || e.target.querySelector('.submit-btn');
+
+            const uErr = validateUsername(usernameInput);
+            if (uErr) { showToast(uErr, 'error'); return; }
+            const pErr = validatePassword(passwordInput);
+            if (pErr) { showToast(pErr, 'error'); return; }
+
+            setLoading(btn, true);
+            try {
+                const res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: usernameInput.value.trim(), password: passwordInput.value })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast('Account created successfully! You can now log in.', 'success', 5000);
+                    document.getElementById('registerForm').reset();
+                    document.querySelector('[data-tab="login"]').click();
+                } else if (res.status === 409) {
+                    setFieldError(usernameInput);
+                    showToast(data.error || 'That username is already taken.', 'error');
+                } else if (res.status === 400) {
+                    showToast(data.error || 'Invalid registration details.', 'error');
+                } else {
+                    showToast(data.error || 'Registration failed. Please try again.', 'error');
+                }
+            } catch (err) {
+                showToast('Network error: unable to reach the server. Please check your connection.', 'error');
+            } finally {
+                setLoading(btn, false);
+            }
+        });
+
+        // Clear field errors on input
+        document.getElementById('regUsername').addEventListener('input', function() { clearFieldError(this); });
+        document.getElementById('regPassword').addEventListener('input', function() { clearFieldError(this); });
+
+        // ================= Login =================
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const usernameInput = document.getElementById('loginUsername');
+            const passwordInput = document.getElementById('loginPassword');
+            const btn = e.submitter || e.target.querySelector('.submit-btn');
+
+            const uErr = validateUsername(usernameInput);
+            if (uErr) { showToast(uErr, 'error'); return; }
+            const pErr = validatePassword(passwordInput);
+            if (pErr) { showToast(pErr, 'error'); return; }
+
+            setLoading(btn, true);
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: usernameInput.value.trim(), password: passwordInput.value })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast('Welcome back, ' + data.username + '!', 'success');
+                    showLoggedIn(data.username);
+                    document.getElementById('loginForm').reset();
+                } else if (res.status === 401) {
+                    setFieldError(usernameInput);
+                    setFieldError(passwordInput);
+                    showToast(data.error || 'Invalid username or password.', 'error');
+                } else {
+                    showToast(data.error || 'Login failed. Please try again.', 'error');
+                }
+            } catch (err) {
+                showToast('Network error: unable to reach the server. Please check your connection.', 'error');
+            } finally {
+                setLoading(btn, false);
+            }
+        });
+
+        document.getElementById('loginUsername').addEventListener('input', function() { clearFieldError(this); });
+        document.getElementById('loginPassword').addEventListener('input', function() { clearFieldError(this); });
+
+        // ================= Logout =================
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('logoutBtn');
+            const originalText = btn.textContent;
+            btn.textContent = 'Logging out...';
+            btn.disabled = true;
+            try {
+                const res = await fetch('/api/logout', { method: 'POST' });
+                if (res.ok) {
+                    showLoggedOut();
+                    showToast('You have been logged out successfully.', 'info');
+                } else {
+                    showToast('Logout failed. Please try again.', 'error');
+                }
+            } catch (err) {
+                showToast('Network error during logout. Please try again.', 'error');
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        // Right Sidebar Toggle
+        
+
+        checkAuth();
+
+        // Server status check
+        async function checkServerStatus() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+                const banner = document.getElementById('serverStatus');
+                if (res.ok && data.crypto_available) {
+                    banner.textContent = 'Server ready — encryption enabled';
+                    banner.className = 'server-status show ok';
+                    setTimeout(() => { banner.className = 'server-status'; }, 3000);
+                } else {
+                    banner.textContent = 'Warning: encryption module not available. Please check server logs.';
+                    banner.className = 'server-status show error';
+                }
+            } catch (e) {
+                const banner = document.getElementById('serverStatus');
+                banner.textContent = 'Warning: unable to reach server. Some features may not work.';
+                banner.className = 'server-status show error';
+            }
+        }
+        checkServerStatus();
+
+        // ==================== Encrypt / Decrypt Logic ====================
+
+        function showResult(elementId, labelId, text, type) {
+            const el = document.getElementById(elementId);
+            const label = document.getElementById(labelId);
+            el.textContent = text;
+            el.className = 'result-box visible ' + type;
+            label.className = 'result-label visible';
+        }
+
+        function hideResult(elementId, labelId) {
+            document.getElementById(elementId).className = 'result-box';
+            document.getElementById(labelId).className = 'result-label';
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied to clipboard!');
+            }).catch(() => {
+                // Fallback
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                alert('Copied to clipboard!');
+            });
+        }
+
+        function showGenStatus(text, type) {
+            const el = document.getElementById('genStatus');
+            el.textContent = text;
+            el.style.display = 'block';
+            el.style.background = type === 'ok' ? 'rgba(76,175,80,0.15)' : (type === 'error' ? 'rgba(244,67,54,0.15)' : 'rgba(33,150,243,0.15)');
+            el.style.color = type === 'ok' ? '#81c784' : (type === 'error' ? '#e57373' : '#64b5f6');
+            el.style.border = '1px solid ' + (type === 'ok' ? 'rgba(76,175,80,0.3)' : (type === 'error' ? 'rgba(244,67,54,0.3)' : 'rgba(33,150,243,0.3)'));
+            setTimeout(() => { el.style.display = 'none'; el.textContent = ''; }, 6000);
+        }
+
+        // Generate Keys
+        let generatedPublicKey = '';
+        let generatedPrivateKey = '';
+
+        async function savePublicKeyToProfile(publicKey) {
+            if (!publicKey) return;
+            try {
+                const res = await fetch('/api/update-public-key', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ public_key: publicKey })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showGenStatus('Public key saved to your profile!', 'ok');
+                } else if (res.status === 401) {
+                    showGenStatus('Log in first to save your key to your profile.', 'error');
+                } else {
+                    showGenStatus(data.error || 'Failed to save key to profile', 'error');
+                }
+            } catch (e) {
+                showGenStatus('Network error saving key to profile', 'error');
+            }
+        }
+
+        document.getElementById('generateKeysBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('generateKeysBtn');
+            btn.textContent = 'Generating...';
+            btn.disabled = true;
+            showGenStatus('Generating RSA key pair, please wait...', 'info');
+
+            try {
+                const res = await fetch('/api/generate-keys', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key_size: parseInt(document.getElementById('genKeySize').value) })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    generatedPublicKey = data.public_key;
+                    generatedPrivateKey = data.private_key;
+
+                    const pubBox = document.getElementById('publicKeyBox');
+                    const privBox = document.getElementById('privateKeyBox');
+                    pubBox.textContent = data.public_key;
+                    privBox.textContent = data.private_key;
+                    pubBox.classList.add('visible');
+                    privBox.classList.add('visible');
+
+                    document.getElementById('copyPublicBtn').style.display = 'inline-block';
+                    document.getElementById('copyPrivateBtn').style.display = 'inline-block';
+                    document.getElementById('saveToProfileBtn').style.display = 'inline-block';
+
+                    // Auto-fill encrypt public key
+                    document.getElementById('encPublicKey').value = data.public_key;
+
+                    showGenStatus(`RSA-${data.key_size} key pair generated successfully!`, 'ok');
+                } else if (res.status === 503) {
+                    showGenStatus(
+                        'Encryption module is not installed on this server. ' +
+                        'The server admin needs to add "cryptography" to requirements.txt and redeploy.',
+                        'error'
+                    );
+                } else {
+                    showGenStatus(data.error || 'Key generation failed: unknown error', 'error');
+                }
+            } catch (e) {
+                showGenStatus('Network error: could not connect to key generation server. Please refresh and try again.', 'error');
+            } finally {
+                btn.textContent = 'Generate Key Pair';
+                btn.disabled = false;
+            }
+        });
+
+        document.getElementById('copyPublicBtn').addEventListener('click', () => copyToClipboard(generatedPublicKey));
+        document.getElementById('copyPrivateBtn').addEventListener('click', () => copyToClipboard(generatedPrivateKey));
+        document.getElementById('saveToProfileBtn').addEventListener('click', () => savePublicKeyToProfile(generatedPublicKey));
+
+        // Encrypt
+        document.getElementById('encryptBtn').addEventListener('click', async () => {
+            const publicKey = document.getElementById('encPublicKey').value.trim();
+            const message = document.getElementById('encMessage').value;
+            const keySize = parseInt(document.getElementById('encKeySize').value);
+
+            if (!publicKey || !message) {
+                showResult('encResult', 'encResultLabel', 'Please provide both a public key and a message to encrypt.', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('encryptBtn');
+            btn.textContent = 'Encrypting...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/encrypt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ public_key: publicKey, message: message, key_size: keySize })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    showResult('encResult', 'encResultLabel', data.encrypted, 'success');
+                    document.getElementById('copyEncryptedBtn').style.display = 'inline-block';
+                } else {
+                    showResult('encResult', 'encResultLabel', data.error || 'Encryption failed', 'error');
+                }
+            } catch (e) {
+                showResult('encResult', 'encResultLabel', 'Network error during encryption', 'error');
+            } finally {
+                btn.textContent = 'Encrypt';
+                btn.disabled = false;
+            }
+        });
+
+        document.getElementById('copyEncryptedBtn').addEventListener('click', () => {
+            copyToClipboard(document.getElementById('encResult').textContent);
+        });
+
+        document.getElementById('clearEncBtn').addEventListener('click', () => {
+            document.getElementById('encPublicKey').value = '';
+            document.getElementById('encMessage').value = '';
+            hideResult('encResult', 'encResultLabel');
+            document.getElementById('copyEncryptedBtn').style.display = 'none';
+        });
+
+        // Decrypt
+        document.getElementById('decryptBtn').addEventListener('click', async () => {
+            const privateKey = document.getElementById('decPrivateKey').value.trim();
+            const encryptedMessage = document.getElementById('decMessage').value.trim();
+
+            if (!privateKey || !encryptedMessage) {
+                showResult('decResult', 'decResultLabel', 'Please provide both a private key and an encrypted message.', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('decryptBtn');
+            btn.textContent = 'Decrypting...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/decrypt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ private_key: privateKey, encrypted_message: encryptedMessage })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    showResult('decResult', 'decResultLabel', data.decrypted, 'success');
+                    document.getElementById('copyDecryptedBtn').style.display = 'inline-block';
+                } else {
+                    showResult('decResult', 'decResultLabel', data.error || 'Decryption failed', 'error');
+                }
+            } catch (e) {
+                showResult('decResult', 'decResultLabel', 'Network error during decryption', 'error');
+            } finally {
+                btn.textContent = 'Decrypt';
+                btn.disabled = false;
+            }
+        });
+
+        document.getElementById('copyDecryptedBtn').addEventListener('click', () => {
+            copyToClipboard(document.getElementById('decResult').textContent);
+        });
+
+        document.getElementById('clearDecBtn').addEventListener('click', () => {
+            document.getElementById('decPrivateKey').value = '';
+            document.getElementById('decMessage').value = '';
+            hideResult('decResult', 'decResultLabel');
+            document.getElementById('copyDecryptedBtn').style.display = 'none';
+        });
+
+        // Right Sidebar Toggle
         const rightToggle = document.getElementById('rightSidebarToggle');
         const rightSidebar = document.getElementById('rightSidebar');
         const rightOverlay = document.getElementById('rightSidebarOverlay');
@@ -551,7 +1414,7 @@
             });
         });
 
-        // Notes
+        // Notes Manager
         let notes = [];
         let currentNoteId = null;
         let notesSaveTimeout;
@@ -594,9 +1457,7 @@
         function selectNote(id) {
             currentNoteId = id; const note = notes.find(n => n.id === id); if (!note) return;
             noteTitleInput.value = note.title || ''; notesTextarea.value = note.content || '';
-            noteTitleInput.disabled = false; notesTextarea.disabled = false;
-            noteTitleInput.style.display = '';
-            notesTextarea.style.display = '';
+            noteTitleInput.disabled = false; notesTextarea.disabled = false; noteTitleInput.style.display = ''; notesTextarea.style.display = '';
             renderNotesList(); notesStatus.textContent = '';
         }
         async function saveCurrentNote() {
@@ -643,7 +1504,7 @@
         notesTextarea.addEventListener('input', saveCurrentNote);
         loadNotes();
 
-        // Saved Keys List
+        // Saved Keys List (toolbar)
         async function loadSavedKeysList() {
             const list = document.getElementById('savedKeysListItems');
             try {
@@ -658,111 +1519,41 @@
         }
         loadSavedKeysList();
 
-        // ========= ENCRYPT/DECRYPT =========
-        let userPublicKey = null;
-        let userPrivateKey = null;
-
-        // Auth
-        async function checkAuth() {
-            try {
-                const res = await fetch('/api/me');
-                const data = await res.json();
-                if (data.logged_in) {
-                    showLoggedIn(data.username);
-                    if (data.public_key) userPublicKey = data.public_key;
-                } else { showLoggedOut(); }
-            } catch (err) { showLoggedOut(); }
-        }
-        function showLoggedIn(username) {
-            document.getElementById('navAuthStatus').innerHTML = '<span class="logged-in">&#128100; <span class="user-label">' + username + '</span></span>';
-            document.getElementById('authAlert').classList.remove('show');
-        }
-        function showLoggedOut() {
-            document.getElementById('navAuthStatus').innerHTML = '<a href="index.html#auth-section" class="login-btn">Log In</a>';
-        }
-
-        // Mode Toggle
-        document.querySelectorAll('.mode-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                if (btn.dataset.mode === 'encrypt') {
-                    document.getElementById('encryptSection').style.display = 'block';
-                    document.getElementById('decryptSection').style.display = 'none';
-                } else {
-                    document.getElementById('encryptSection').style.display = 'none';
-                    document.getElementById('decryptSection').style.display = 'block';
-                }
-            });
-        });
-
-        // Toast
-        function showToast(message, type) {
-            const c = document.getElementById('toastContainer');
-            const t = document.createElement('div');
-            const colors = { success: 'rgba(34,197,94,0.95)', error: 'rgba(239,68,68,0.95)', info: 'rgba(59,130,246,0.95)' };
-            t.style = 'background:' + colors[type] + '; color:#fff; padding:10px 18px; border-radius:8px; font-size:0.9rem; font-weight:600; box-shadow:0 4px 12px rgba(0,0,0,0.3); animation: slideIn 0.3s ease; pointer-events: auto;';
-            t.textContent = message;
-            c.appendChild(t);
-            setTimeout(() => { t.style.animation = 'fadeOut 0.3s ease'; setTimeout(() => t.remove(), 300); }, 3000);
-        }
-
-        document.getElementById('encryptBtn').addEventListener('click', async () => {
-            const message = document.getElementById('messageInput').value;
-            let keyText = document.getElementById('publicKeyInput').value.trim();
-            if (!keyText && userPublicKey) keyText = userPublicKey;
-            if (!message) { showToast('Please enter a message.', 'error'); return; }
-            if (!keyText) { showToast('Please provide a public key or log in.', 'error'); return; }
-            try {
-                const publicKey = await openpgp.readKey({ armoredKey: keyText });
-                const encrypted = await openpgp.encrypt({ message: await openpgp.createMessage({ text: message }), encryptionKeys: publicKey });
-                document.getElementById('encryptText').textContent = encrypted;
-                document.getElementById('encryptOutput').style.display = 'block';
-                showToast('Message encrypted!', 'success');
-            } catch (e) { showToast('Encryption failed: ' + e.message, 'error'); }
-        });
-
-        document.getElementById('decryptBtn').addEventListener('click', async () => {
-            const encrypted = document.getElementById('encryptedInput').value;
-            let keyText = document.getElementById('privateKeyInput').value.trim();
-            if (!encrypted) { showToast('Please paste encrypted text.', 'error'); return; }
-            if (!keyText) { showToast('Please provide a private key.', 'error'); return; }
-            try {
-                const privateKey = await openpgp.decryptKey({ privateKey: await openpgp.readPrivateKey({ armoredKey: keyText }), passphrase: '' });
-                const message = await openpgp.readMessage({ armoredMessage: encrypted });
-                const { data: decrypted } = await openpgp.decrypt({ message, decryptionKeys: privateKey });
-                document.getElementById('decryptText').textContent = decrypted;
-                document.getElementById('decryptOutput').style.display = 'block';
-                showToast('Message decrypted!', 'success');
-            } catch (e) { showToast('Decryption failed: ' + e.message, 'error'); }
-        });
-
-        document.getElementById('useMyKeyBtn').addEventListener('click', async () => {
-            if (!userPublicKey) { showToast('Log in to use your saved public key.', 'error'); return; }
-            document.getElementById('publicKeyInput').value = userPublicKey;
-            showToast('Loaded your public key.', 'info');
-        });
-        document.getElementById('clearKeyBtn').addEventListener('click', () => {
-            document.getElementById('publicKeyInput').value = '';
-            showToast('Cleared key input.', 'info');
-        });
-        document.getElementById('useMyPrivateKeyBtn').addEventListener('click', async () => {
-            if (!userPrivateKey) { showToast('No saved private key available.', 'error'); return; }
-            document.getElementById('privateKeyInput').value = userPrivateKey;
-            showToast('Loaded your private key.', 'info');
-        });
-
-        // Copy handlers
-        document.getElementById('copyEncryptedBtn').addEventListener('click', async () => {
-            const text = document.getElementById('encryptText').textContent;
-            try { await navigator.clipboard.writeText(text); showToast('Copied encrypted text!', 'success'); } catch(e) { showToast('Copy failed.', 'error'); }
-        });
-        document.getElementById('copyDecryptedBtn').addEventListener('click', async () => {
-            const text = document.getElementById('decryptText').textContent;
-            try { await navigator.clipboard.writeText(text); showToast('Copied decrypted text!', 'success'); } catch(e) { showToast('Copy failed.', 'error'); }
-        });
-
         checkAuth();
     </script>
+    <!-- Right Sidebar Toggle -->
+    <button class="right-sidebar-toggle" id="rightSidebarToggle" aria-label="Tools">&#128295; Tools</button>
+
+    <!-- Right Sidebar Overlay -->
+    <div class="right-sidebar-overlay" id="rightSidebarOverlay"></div>
+
+    <!-- Right Sidebar -->
+    <aside class="right-sidebar" id="rightSidebar">
+        <h2>Tools</h2>
+        <div class="right-tabs">
+            <button class="right-tab-btn active" data-right-tab="notes">&#9998; Notes</button>
+            <button class="right-tab-btn" data-right-tab="savedKeysList">&#128273; Saved Keys</button>
+        </div>
+
+        <div class="right-tab-content active" id="notes">
+            <div class="notes-toolbar">
+                <h3>&#128221; My Notes</h3>
+                <button class="btn-sm" id="newNoteBtn">+ New</button>
+            </div>
+            <ul class="notes-list" id="notesList">
+                <li class="notes-empty">Log in to create and save notes.</li>
+            </ul>
+            <input type="text" class="note-title-input" id="noteTitleInput" placeholder="Note title..." disabled>
+            <textarea class="notes-textarea" id="notesTextarea" placeholder="Select or create a note to start writing..." disabled></textarea>
+            <div class="notes-status" id="notesStatus"></div>
+        </div>
+
+        <div class="right-tab-content" id="savedKeysList">
+            <ul class="saved-keys-list" id="savedKeysListItems">
+                <li class="saved-keys-empty">Log in to see your saved keys.</li>
+            </ul>
+        </div>
+    </aside>
+
 </body>
 </html>
