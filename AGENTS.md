@@ -66,8 +66,19 @@ Multi-page PGP encryption web app with user accounts, persistent keys, practice 
 - **Dyno**: Standard-1X, process `web: gunicorn server:app`
 - **App URL**: https://simple-encryption-06d36746.onbld.com
 
+## Version Convention
+> **Every user request that changes the project MUST bump the version badge.**
+> - The badge lives in the bottom-right corner of **all 5 HTML pages**.
+> - On each change, increment the patch number (`V1.0` → `V1.1` → `V1.2`, etc.).
+> - After updating the version, commit, push, and deploy.
+> - Also update this `AGENTS.md` Version History section.
+
+## Current Version
+**V1.1**
+
 ## Version History
-- **V1.0**: Current. Multi-page Flask app with auth, profile, PQML storage, saved keys, practice partner, server-side note encryption, right sidebar with Notes + Saved Keys, version badge.
+- **V1.1**: Fixed toolbar on Encrypt page (sidebar HTML moved before `<script>`, removed null `rightClose`). Removed private key storage entirely. Fixed copy keys with toast + fallback. Sidebar note encrypt/decrypt uses server API. 
+- **V1.0**: Multi-page Flask app with auth, profile, PQML storage, saved keys, practice partner, server-side note encryption, right sidebar with Notes + Saved Keys, version badge.
 - V1.0 includes: correct /api/encrypt response field (`encrypted`, not `encrypted_message`)
 
 ## Known Constraints / Gotchas
