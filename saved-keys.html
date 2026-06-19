@@ -878,7 +878,7 @@
         <!-- Saved Keys List -->
         <div class="card">
             <h2><span class="icon">🔑</span> Your Saved Keys</h2>
-            <div id="savedKeysList">
+            <div id="mainSavedKeysList">
                 <div class="empty-state">
                     <div class="icon">🔍</div>
                     <p>No saved keys yet. Add one above!</p>
@@ -1194,7 +1194,7 @@
                 if (res.ok) {
                     showLoggedOut();
                     showToast('You have been logged out successfully.', 'info');
-                    document.getElementById('savedKeysList').innerHTML = `
+                    document.getElementById('mainSavedKeysList').innerHTML = `
                         <div class="empty-state">
                             <div class="icon">🔍</div>
                             <p>No saved keys yet. Add one above!</p>
@@ -1232,7 +1232,7 @@
         }
 
         function renderSavedKeys(keys) {
-            const container = document.getElementById('savedKeysList');
+            const container = document.getElementById('mainSavedKeysList');
             if (!keys || keys.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
