@@ -798,7 +798,15 @@
             <button class="right-tab-btn" data-right-tab="savedKeysList">&#128273; Saved Keys</button>
         </div>
         <div class="right-tab-content active" id="notes">
-            <textarea class="notes-textarea" id="notesTextarea" placeholder="Type your notes here... They are saved automatically to your browser."></textarea>
+            <div class="notes-toolbar">
+                <h3>&#128221; My Notes</h3>
+                <button class="btn-sm" id="newNoteBtn">+ New</button>
+            </div>
+            <ul class="notes-list" id="notesList">
+                <li class="notes-empty">Log in to create and save notes.</li>
+            </ul>
+            <input type="text" class="note-title-input" id="noteTitleInput" placeholder="Note title..." disabled>
+            <textarea class="notes-textarea" id="notesTextarea" placeholder="Select or create a note to start writing..." disabled></textarea>
             <div class="notes-status" id="notesStatus"></div>
         </div>
         <div class="right-tab-content" id="savedKeysList">
@@ -1185,26 +1193,161 @@
             });
         });
 
-        // Notes (localStorage)
+        // Notes Manager
+        let notes = [];
+        let currentNoteId = null;
+        let notesSaveTimeout;
+        const notesList = document.getElementById('notesList');
+        const noteTitleInput = document.getElementById('noteTitleInput');
         const notesTextarea = document.getElementById('notesTextarea');
         const notesStatus = document.getElementById('notesStatus');
-        const NOTES_KEY = 'pgp_tool_notes_' + (document.title || 'default');
-        let notesSaveTimeout;
-        try {
-            const saved = localStorage.getItem(NOTES_KEY);
-            if (saved) notesTextarea.value = saved;
-        } catch (e) {}
-        notesTextarea.addEventListener('input', () => {
+        const newNoteBtn = document.getElementById('newNoteBtn');
+
+        async function loadNotes() {
+            try {
+                const res = await fetch('/api/notes', { cache: 'no-store' });
+                const data = await res.json();
+                if (res.ok && data.notes) {
+                    notes = data.notes;
+                    renderNotesList();
+                    if (notes.length > 0 && !currentNoteId) {
+                        selectNote(notes[0].id);
+                    }
+                } else if (res.status === 401) {
+                    notes = [];
+                    notesList.innerHTML = '<li class="notes-empty">Log in to create and save notes.</li>';
+                    noteTitleInput.disabled = true;
+                    notesTextarea.disabled = true;
+                    newNoteBtn.disabled = true;
+                    notesStatus.innerHTML = '<span class="login-hint">&#9432; Login required for persistent notes</span>';
+                } else {
+                    notesStatus.textContent = 'Could not load notes.';
+                }
+            } catch (e) {
+                notesStatus.textContent = 'Network error loading notes.';
+            }
+        }
+
+        function renderNotesList() {
+            if (notes.length === 0) {
+                notesList.innerHTML = '<li class="notes-empty">No notes yet. Click + New to create one.</li>';
+                noteTitleInput.value = '';
+                notesTextarea.value = '';
+                noteTitleInput.disabled = true;
+                notesTextarea.disabled = true;
+                currentNoteId = null;
+                return;
+            }
+            notesList.innerHTML = notes.map(n => {
+                const isActive = n.id === currentNoteId ? 'active' : '';
+                const title = (n.title || 'Untitled').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                return '<li class="' + isActive + '" data-id="' + n.id + '"><span class="note-title">' + title + '</span><button class="note-del" title="Delete">&times;</button></li>';
+            }).join('');
+            notesList.querySelectorAll('li[data-id]').forEach(li => {
+                li.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('note-del')) return;
+                    selectNote(parseInt(li.dataset.id));
+                });
+                const delBtn = li.querySelector('.note-del');
+                if (delBtn) {
+                    delBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deleteNote(parseInt(li.dataset.id));
+                    });
+                }
+            });
+        }
+
+        function selectNote(id) {
+            currentNoteId = id;
+            const note = notes.find(n => n.id === id);
+            if (!note) return;
+            noteTitleInput.value = note.title || '';
+            notesTextarea.value = note.content || '';
+            noteTitleInput.disabled = false;
+            notesTextarea.disabled = false;
+            renderNotesList();
+            notesStatus.textContent = '';
+        }
+
+        async function saveCurrentNote() {
+            if (!currentNoteId) return;
             notesStatus.textContent = 'Saving...';
             clearTimeout(notesSaveTimeout);
-            notesSaveTimeout = setTimeout(() => {
+            notesSaveTimeout = setTimeout(async () => {
                 try {
-                    localStorage.setItem(NOTES_KEY, notesTextarea.value);
-                    notesStatus.textContent = 'Saved.';
+                    const title = noteTitleInput.value.trim();
+                    const content = notesTextarea.value;
+                    const res = await fetch('/api/notes/' + currentNoteId, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ title, content })
+                    });
+                    if (res.ok) {
+                        const note = notes.find(n => n.id === currentNoteId);
+                        if (note) { note.title = title; note.content = content; }
+                        renderNotesList();
+                        notesStatus.textContent = 'Saved.';
+                        setTimeout(() => { if (notesStatus.textContent === 'Saved.') notesStatus.textContent = ''; }, 2000);
+                    } else {
+                        notesStatus.textContent = 'Save failed.';
+                    }
+                } catch (e) {
+                    notesStatus.textContent = 'Network error saving.';
+                }
+            }, 800);
+        }
+
+        async function createNewNote() {
+            notesStatus.textContent = 'Creating...';
+            try {
+                const res = await fetch('/api/notes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title: 'New Note', content: '' })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    notes.unshift({ id: data.id, title: data.title, content: '', updated_at: new Date().toISOString() });
+                    renderNotesList();
+                    selectNote(data.id);
+                    notesStatus.textContent = 'Created.';
                     setTimeout(() => notesStatus.textContent = '', 2000);
-                } catch (e) { notesStatus.textContent = 'Auto-save disabled (storage full).'; }
-            }, 500);
-        });
+                } else {
+                    notesStatus.textContent = 'Failed to create note.';
+                }
+            } catch (e) {
+                notesStatus.textContent = 'Network error.';
+            }
+        }
+
+        async function deleteNote(id) {
+            if (!confirm('Delete this note?')) return;
+            try {
+                const res = await fetch('/api/notes/' + id, { method: 'DELETE' });
+                if (res.ok) {
+                    notes = notes.filter(n => n.id !== id);
+                    if (currentNoteId === id) {
+                        currentNoteId = null;
+                        noteTitleInput.value = '';
+                        notesTextarea.value = '';
+                    }
+                    renderNotesList();
+                    if (notes.length > 0 && !currentNoteId) selectNote(notes[0].id);
+                    notesStatus.textContent = 'Deleted.';
+                    setTimeout(() => notesStatus.textContent = '', 2000);
+                } else {
+                    notesStatus.textContent = 'Delete failed.';
+                }
+            } catch (e) {
+                notesStatus.textContent = 'Network error.';
+            }
+        }
+
+        newNoteBtn.addEventListener('click', createNewNote);
+        noteTitleInput.addEventListener('input', saveCurrentNote);
+        notesTextarea.addEventListener('input', saveCurrentNote);
+        loadNotes();
 
         // Saved Keys List
         async function loadSavedKeysList() {

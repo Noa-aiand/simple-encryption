@@ -129,6 +129,31 @@ def init_db():
         """)
     conn.commit()
 
+    # Create notes table
+    if USE_POSTGRES:
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS notes (
+                id SERIAL PRIMARY KEY,
+                owner_id INTEGER NOT NULL,
+                title TEXT NOT NULL DEFAULT 'Untitled Note',
+                content TEXT NOT NULL DEFAULT '',
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        """)
+    else:
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS notes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                owner_id INTEGER NOT NULL,
+                title TEXT NOT NULL DEFAULT 'Untitled Note',
+                content TEXT NOT NULL DEFAULT '',
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        """)
+    conn.commit()
+
     conn.close()
 
 
@@ -476,6 +501,109 @@ def delete_saved_key(key_id):
         return jsonify({'error': 'Key not found'}), 404
 
     return jsonify({'message': 'Key deleted successfully'}), 200
+
+
+# ============== Notes Routes ==============
+
+@app.route('/api/notes', methods=['GET'])
+def get_notes():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+
+    conn = db_connect()
+    c = conn.cursor()
+    db_execute(c, 'SELECT id, title, content, updated_at FROM notes WHERE owner_id = ? ORDER BY updated_at DESC', (session['user_id'],))
+    rows = c.fetchall()
+    conn.close()
+
+    notes = []
+    for row in rows:
+        notes.append({
+            'id': row[0],
+            'title': row[1],
+            'content': row[2],
+            'updated_at': row[3]
+        })
+
+    return jsonify({'notes': notes}), 200
+
+
+@app.route('/api/notes', methods=['POST'])
+def create_note():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+
+    data = request.get_json() or {}
+    title = (data.get('title') or 'Untitled Note').strip() or 'Untitled Note'
+    content = data.get('content', '')
+
+    conn = db_connect()
+    c = conn.cursor()
+    if USE_POSTGRES:
+        c.execute(
+            'INSERT INTO notes (owner_id, title, content) VALUES (%s, %s, %s) RETURNING id',
+            (session['user_id'], title, content)
+        )
+        note_id = c.fetchone()[0]
+    else:
+        db_execute(c, 'INSERT INTO notes (owner_id, title, content) VALUES (?, ?, ?)',
+                   (session['user_id'], title, content))
+        note_id = get_lastrowid(c)
+    conn.commit()
+    conn.close()
+
+    return jsonify({'message': 'Note created', 'id': note_id, 'title': title}), 201
+
+
+@app.route('/api/notes/<int:note_id>', methods=['PUT'])
+def update_note(note_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+
+    data = request.get_json() or {}
+    title = data.get('title')
+    content = data.get('content')
+
+    if title is None and content is None:
+        return jsonify({'error': 'Nothing to update'}), 400
+
+    conn = db_connect()
+    c = conn.cursor()
+    if title is not None and content is not None:
+        db_execute(c, 'UPDATE notes SET title = ?, content = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND owner_id = ?',
+                   (title.strip() or 'Untitled Note', content, note_id, session['user_id']))
+    elif title is not None:
+        db_execute(c, 'UPDATE notes SET title = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND owner_id = ?',
+                   (title.strip() or 'Untitled Note', note_id, session['user_id']))
+    else:
+        db_execute(c, 'UPDATE notes SET content = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND owner_id = ?',
+                   (content, note_id, session['user_id']))
+    conn.commit()
+    updated = c.rowcount
+    conn.close()
+
+    if updated == 0:
+        return jsonify({'error': 'Note not found'}), 404
+
+    return jsonify({'message': 'Note updated'}), 200
+
+
+@app.route('/api/notes/<int:note_id>', methods=['DELETE'])
+def delete_note(note_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+
+    conn = db_connect()
+    c = conn.cursor()
+    db_execute(c, 'DELETE FROM notes WHERE id = ? AND owner_id = ?', (note_id, session['user_id']))
+    conn.commit()
+    deleted = c.rowcount
+    conn.close()
+
+    if deleted == 0:
+        return jsonify({'error': 'Note not found'}), 404
+
+    return jsonify({'message': 'Note deleted'}), 200
 
 
 # ============== Practice Challenge Routes ==============
