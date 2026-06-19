@@ -154,13 +154,6 @@ def init_db():
         """)
     conn.commit()
 
-    try:
-        c.execute("ALTER TABLE users ADD COLUMN encrypted_private_key TEXT")
-        conn.commit()
-        logger.info("Migrated DB: added encrypted_private_key column")
-    except Exception:
-        conn.rollback()
-
     conn.close()
 
 
@@ -1030,61 +1023,7 @@ def decrypt_message():
         return jsonify({'error': f'Decryption failed: {str(e)}'}), 500
 
 
-# ============== Private Key Routes ==============
 
-@app.route('/api/private-key', methods=['GET'])
-def get_private_key():
-    """Return the user's stored encrypted private key payload (opaque blob)."""
-    if 'user_id' not in session:
-        return jsonify({'error': 'Not authenticated'}), 401
-
-    conn = db_connect()
-    c = conn.cursor()
-    db_execute(c, 'SELECT encrypted_private_key FROM users WHERE id = ?', (session['user_id'],))
-    row = c.fetchone()
-    conn.close()
-
-    if not row or not row[0]:
-        return jsonify({'encrypted_private_key': None}), 200
-
-    return jsonify({'encrypted_private_key': row[0]}), 200
-
-
-@app.route('/api/private-key', methods=['POST'])
-def save_private_key():
-    """Save an encrypted private key payload (opaque JSON blob) for the user."""
-    if 'user_id' not in session:
-        return jsonify({'error': 'Not authenticated'}), 401
-
-    data = request.get_json() or {}
-    payload = data.get('encrypted_private_key')
-    if payload is None:
-        return jsonify({'error': 'encrypted_private_key is required'}), 400
-
-    conn = db_connect()
-    c = conn.cursor()
-    db_execute(c, 'UPDATE users SET encrypted_private_key = ? WHERE id = ?',
-               (payload, session['user_id']))
-    conn.commit()
-    conn.close()
-
-    return jsonify({'message': 'Private key saved'}), 200
-
-
-@app.route('/api/private-key', methods=['DELETE'])
-def delete_private_key():
-    """Remove the stored encrypted private key for the user."""
-    if 'user_id' not in session:
-        return jsonify({'error': 'Not authenticated'}), 401
-
-    conn = db_connect()
-    c = conn.cursor()
-    db_execute(c, 'UPDATE users SET encrypted_private_key = NULL WHERE id = ?',
-               (session['user_id'],))
-    conn.commit()
-    conn.close()
-
-    return jsonify({'message': 'Private key removed'}), 200
 
 
 init_practice_keys()

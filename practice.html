@@ -794,6 +794,18 @@
             font-size: 0.7rem;
             padding: 6px 10px;
         }
+
+        .version-badge {
+            position: fixed;
+            bottom: 12px;
+            right: 16px;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.35);
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.05em;
+            pointer-events: none;
+            z-index: 500;
+        }
 </style>
 </head>
 <body>
@@ -939,7 +951,7 @@
                 <h3>&#128221; My Notes</h3>
                 <div class="note-actions">
                     <button class="btn-sm" id="encryptNoteBtn" title="Encrypt note with your public key">&#128274; Encrypt</button>
-                    <button class="btn-sm" id="decryptNoteBtn" title="Decrypt note with your private key">&#128275; Decrypt</button>
+                    
                     <button class="btn-sm" id="newNoteBtn">+ New</button>
                 </div>
             </div>
@@ -1535,19 +1547,7 @@
             } catch (e) {}
             return null;
         }
-        async function ensureOpenPgp() {
-            if (typeof openpgp !== 'undefined') return;
-            showToast('Loading crypto library...', 'info');
-            await new Promise((resolve, reject) => {
-                const s = document.createElement('script');
-                s.src = 'https://cdn.jsdelivr.net/npm/openpgp@5.11.1/dist/openpgp.min.js';
-                s.onload = resolve;
-                s.onerror = () => reject(new Error('Failed to load OpenPGP.js'));
-                document.head.appendChild(s);
-            });
-        }
         async function encryptNoteContent() {
-            await ensureOpenPgp();
             if (!currentNoteId) { showToast('Select a note first', 'error'); return; }
             const content = notesTextarea.value.trim();
             if (!content) { showToast('Note is empty', 'error'); return; }
@@ -1556,57 +1556,54 @@
             if (!pubKeyText) { showToast('Save a public key in your profile first', 'error'); return; }
             showToast('Encrypting...', 'info');
             try {
-                const publicKey = await openpgp.readKey({ armoredKey: pubKeyText });
-                const message = await openpgp.createMessage({ text: content });
-                const encrypted = await openpgp.encrypt({ message, encryptionKeys: publicKey });
-                notesTextarea.value = encrypted;
-                saveCurrentNote();
-                showToast('Note encrypted!', 'success');
+                const res = await fetch('/api/encrypt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: content, public_key: pubKeyText })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    notesTextarea.value = data.encrypted_message;
+                    saveCurrentNote();
+                    showToast('Note encrypted!', 'success');
+                } else {
+                    showToast(data.error || 'Encryption failed', 'error');
+                }
             } catch (e) { showToast('Encryption failed: ' + e.message, 'error'); }
-        }
-        let cachedDecryptedPrivateKey = null;
+
         async function decryptNoteContent() {
-            await ensureOpenPgp();
             if (!currentNoteId) { showToast('Select a note first', 'error'); return; }
             const content = notesTextarea.value.trim();
             if (!content) { showToast('Note is empty', 'error'); return; }
             if (!isPgpEncrypted(content)) { showToast('Note does not appear to be encrypted', 'error'); return; }
-            notesStatus.textContent = 'Decrypting...';
+            const privateKey = prompt('Paste your private key to decrypt:');
+            if (!privateKey) return;
+            const pubKeyText = await getUserPublicKey();
+            if (!pubKeyText) { showToast('No public key saved to profile', 'error'); return; }
+            showToast('Decrypting...', 'info');
             try {
-                let privKeyArmored = cachedDecryptedPrivateKey;
-                if (!privKeyArmored) {
-                    const res = await fetch('/api/private-key');
-                    const data = await res.json();
-                    if (!data.encrypted_private_key) {
-                        showToast('Save an encrypted private key in your profile first', 'error');
-                        notesStatus.textContent = '';
-                        return;
-                    }
-                    const password = prompt('Enter your private key storage password:');
-                    if (!password) { notesStatus.textContent = ''; return; }
-                    const encryptedData = typeof data.encrypted_private_key === 'string'
-                        ? JSON.parse(data.encrypted_private_key)
-                        : data.encrypted_private_key;
-                    privKeyArmored = await decryptPrivateKey(encryptedData, password);
-                    cachedDecryptedPrivateKey = privKeyArmored;
+                const res = await fetch('/api/decrypt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: content, public_key: pubKeyText, private_key: privateKey })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    notesTextarea.value = data.decrypted;
+                    saveCurrentNote();
+                    showToast('Note decrypted!', 'success');
+                } else {
+                    showToast(data.error || 'Decryption failed', 'error');
                 }
-                const privateKey = await openpgp.readPrivateKey({ armoredKey: privKeyArmored });
-                const message = await openpgp.readMessage({ armoredMessage: content });
-                const { data: decrypted } = await openpgp.decrypt({ message, decryptionKeys: privateKey });
-                notesTextarea.value = decrypted;
-                saveCurrentNote();
-                showToast('Note decrypted!', 'success');
-            } catch (e) {
-                showToast('Decryption failed: ' + e.message, 'error');
-            }
-            notesStatus.textContent = '';
+            } catch (e) { showToast('Decryption failed: ' + e.message, 'error'); }
+        }
+
         }
 
         newNoteBtn.addEventListener('click', createNewNote);
         noteTitleInput.addEventListener('input', saveCurrentNote);
         notesTextarea.addEventListener('input', saveCurrentNote);
         document.getElementById('encryptNoteBtn').addEventListener('click', encryptNoteContent);
-        document.getElementById('decryptNoteBtn').addEventListener('click', decryptNoteContent);
         loadNotes();
 
         // Saved Keys List
@@ -1627,5 +1624,6 @@
 checkAuth();
         loadPracticeKey();
     </script>
+    <div class="version-badge">V1.0</div>
 </body>
 </html>
