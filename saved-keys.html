@@ -1413,14 +1413,12 @@
         const rightToggle = document.getElementById('rightSidebarToggle');
         const rightSidebar = document.getElementById('rightSidebar');
         const rightOverlay = document.getElementById('rightSidebarOverlay');
-        const rightClose = document.getElementById('rightSidebarClose');
         function toggleRightSidebar() {
             rightToggle.classList.toggle('active');
             rightSidebar.classList.toggle('active');
             rightOverlay.classList.toggle('active');
         }
         rightToggle.addEventListener('click', toggleRightSidebar);
-        rightClose.addEventListener('click', toggleRightSidebar);
         rightOverlay.addEventListener('click', toggleRightSidebar);
 
         // Right Sidebar Tabs

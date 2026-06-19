@@ -922,8 +922,45 @@
         </div>
     </div>
 
+    <div class="toast-container" id="toastContainer"></div>
+
     <!-- Right Sidebar Toggle -->
-        <div class="toast-container" id="toastContainer"></div>
+    <button class="right-sidebar-toggle" id="rightSidebarToggle" aria-label="Tools">&#128295; Tools</button>
+
+    <!-- Right Sidebar Overlay -->
+    <div class="right-sidebar-overlay" id="rightSidebarOverlay"></div>
+
+    <!-- Right Sidebar -->
+    <aside class="right-sidebar" id="rightSidebar">
+        <h2>Tools</h2>
+        <div class="right-tabs">
+            <button class="right-tab-btn active" data-right-tab="notes">&#9998; Notes</button>
+            <button class="right-tab-btn" data-right-tab="savedKeysList">&#128273; Saved Keys</button>
+        </div>
+
+        <div class="right-tab-content active" id="notes">
+            <div class="notes-toolbar">
+                <h3>&#128221; My Notes</h3>
+                <div class="note-actions">
+                    <button class="btn-sm" id="encryptNoteBtn" title="Encrypt note with your public key">&#128274; Encrypt</button>
+                    
+                    <button class="btn-sm" id="newNoteBtn">+ New</button>
+                </div>
+            </div>
+            <ul class="notes-list" id="notesList">
+                <li class="notes-empty">Log in to create and save notes.</li>
+            </ul>
+            <input type="text" class="note-title-input" id="noteTitleInput" placeholder="Note title..." disabled>
+            <textarea class="notes-textarea" id="notesTextarea" placeholder="Select or create a note to start writing..." disabled></textarea>
+            <div class="notes-status" id="notesStatus"></div>
+        </div>
+
+        <div class="right-tab-content" id="savedKeysList">
+            <ul class="saved-keys-list" id="savedKeysListItems">
+                <li class="saved-keys-empty">Log in to see your saved keys.</li>
+            </ul>
+        </div>
+    </aside>
 
     <script>
         // Menu Toggle (same as index)
@@ -1424,14 +1461,12 @@
         const rightToggle = document.getElementById('rightSidebarToggle');
         const rightSidebar = document.getElementById('rightSidebar');
         const rightOverlay = document.getElementById('rightSidebarOverlay');
-        const rightClose = document.getElementById('rightSidebarClose');
         function toggleRightSidebar() {
             rightToggle.classList.toggle('active');
             rightSidebar.classList.toggle('active');
             rightOverlay.classList.toggle('active');
         }
         rightToggle.addEventListener('click', toggleRightSidebar);
-        rightClose.addEventListener('click', toggleRightSidebar);
         rightOverlay.addEventListener('click', toggleRightSidebar);
 
         // Right Sidebar Tabs
@@ -1697,43 +1732,6 @@
 
         checkAuth();
     </script>
-    <!-- Right Sidebar Toggle -->
-    <button class="right-sidebar-toggle" id="rightSidebarToggle" aria-label="Tools">&#128295; Tools</button>
-
-    <!-- Right Sidebar Overlay -->
-    <div class="right-sidebar-overlay" id="rightSidebarOverlay"></div>
-
-    <!-- Right Sidebar -->
-    <aside class="right-sidebar" id="rightSidebar">
-        <h2>Tools</h2>
-        <div class="right-tabs">
-            <button class="right-tab-btn active" data-right-tab="notes">&#9998; Notes</button>
-            <button class="right-tab-btn" data-right-tab="savedKeysList">&#128273; Saved Keys</button>
-        </div>
-
-        <div class="right-tab-content active" id="notes">
-            <div class="notes-toolbar">
-                <h3>&#128221; My Notes</h3>
-                <div class="note-actions">
-                    <button class="btn-sm" id="encryptNoteBtn" title="Encrypt note with your public key">&#128274; Encrypt</button>
-                    
-                    <button class="btn-sm" id="newNoteBtn">+ New</button>
-                </div>
-            </div>
-            <ul class="notes-list" id="notesList">
-                <li class="notes-empty">Log in to create and save notes.</li>
-            </ul>
-            <input type="text" class="note-title-input" id="noteTitleInput" placeholder="Note title..." disabled>
-            <textarea class="notes-textarea" id="notesTextarea" placeholder="Select or create a note to start writing..." disabled></textarea>
-            <div class="notes-status" id="notesStatus"></div>
-        </div>
-
-        <div class="right-tab-content" id="savedKeysList">
-            <ul class="saved-keys-list" id="savedKeysListItems">
-                <li class="saved-keys-empty">Log in to see your saved keys.</li>
-            </ul>
-        </div>
-    </aside>
 
     <div class="version-badge">V1.0</div>
 </body>
