@@ -29,43 +29,114 @@ except ImportError as e:
     logger.warning("cryptography module not available: %s", e)
     CRYPTO_AVAILABLE = False
 
+# Database backend setup
+try:
+    import psycopg2
+    from psycopg2 import sql as psycopg2_sql
+    PSYCOPG2_AVAILABLE = True
+    logger.info("psycopg2 available")
+except ImportError:
+    PSYCOPG2_AVAILABLE = False
+    logger.info("psycopg2 not available, using sqlite3")
+
+# Build.io sets SCHEMA_TO_GO_URL; also support standard DATABASE_URL
+DATABASE_URL = os.environ.get('SCHEMA_TO_GO_URL') or os.environ.get('DATABASE_URL')
+USE_POSTGRES = bool(DATABASE_URL) and PSYCOPG2_AVAILABLE
+
+
+def db_connect():
+    """Open a database connection (PostgreSQL if configured, else SQLite)."""
+    if USE_POSTGRES:
+        return psycopg2.connect(DATABASE_URL)
+    return sqlite3.connect(DATABASE)
+
+
+def db_execute(cursor, sql, params=()):
+    """Execute SQL, translating ? placeholders to %s for PostgreSQL."""
+    if USE_POSTGRES:
+        # Convert sqlite-style ? placeholders to psycopg2 %s
+        sql = sql.replace('?', '%s')
+    cursor.execute(sql, params)
+
+
+def get_lastrowid(cursor):
+    """Return the id of the last inserted row."""
+    if USE_POSTGRES:
+        cursor.execute("SELECT lastval()")
+        return cursor.fetchone()[0]
+    return cursor.lastrowid
+
+
+def integrity_error():
+    """Return the IntegrityError class for the active backend."""
+    if USE_POSTGRES:
+        return psycopg2.IntegrityError
+    return sqlite3.IntegrityError
+
 
 # ============== DB Setup & Migration ==============
 
 def init_db():
-    conn = sqlite3.connect(DATABASE)
+    conn = db_connect()
     c = conn.cursor()
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL
-        )
-    ''')
+
+    if USE_POSTGRES:
+        # PostgreSQL: enable UUID extension if needed and use SERIAL
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL
+            )
+        """)
+    else:
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL
+            )
+        """)
     conn.commit()
 
-    # Migration: add public_key column if it doesn't exist
-    c.execute("PRAGMA table_info(users)")
-    columns = [row[1] for row in c.fetchall()]
-    if 'public_key' not in columns:
-        c.execute('ALTER TABLE users ADD COLUMN public_key TEXT')
+    # Migration: add public_key column if missing.
+    # PostgreSQL: try to add and ignore "already exists" errors.
+    # SQLite: same approach works via PRAGMA, but try/except is simpler.
+    try:
+        c.execute("ALTER TABLE users ADD COLUMN public_key TEXT")
         conn.commit()
         logger.info("Migrated DB: added public_key column")
+    except Exception:
+        # Column likely already exists or table wasn't created yet
+        conn.rollback()
 
     # Create saved_keys table
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS saved_keys (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            owner_id INTEGER NOT NULL,
-            name TEXT NOT NULL,
-            public_key TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
-        )
-    ''')
+    if USE_POSTGRES:
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS saved_keys (
+                id SERIAL PRIMARY KEY,
+                owner_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                public_key TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        """)
+    else:
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS saved_keys (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                owner_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                public_key TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        """)
     conn.commit()
 
     conn.close()
+
 
 init_db()
 
@@ -78,25 +149,30 @@ def _html_response(filepath):
     resp.headers['Pragma'] = 'no-cache'
     return resp
 
+
 @app.route('/')
 @app.route('/index.html')
 def index():
     return _html_response('index.html')
+
 
 @app.route('/encrypt')
 @app.route('/encrypt.html')
 def encrypt_page():
     return _html_response('encrypt.html')
 
+
 @app.route('/profile')
 @app.route('/profile.html')
 def profile_page():
     return _html_response('profile.html')
 
+
 @app.route('/saved-keys')
 @app.route('/saved-keys.html')
 def saved_keys_page():
     return _html_response('saved-keys.html')
+
 
 @app.route('/<path:filename>')
 def static_files(filename):
@@ -147,15 +223,16 @@ def register():
 
     password_hash = generate_password_hash(password)
 
+    conn = db_connect()
+    c = conn.cursor()
     try:
-        conn = sqlite3.connect(DATABASE)
-        c = conn.cursor()
-        c.execute('INSERT INTO users (username, password_hash) VALUES (?, ?)', (username, password_hash))
+        db_execute(c, 'INSERT INTO users (username, password_hash) VALUES (?, ?)', (username, password_hash))
         conn.commit()
-        conn.close()
         return jsonify({'message': 'Account created successfully'}), 201
-    except sqlite3.IntegrityError:
+    except integrity_error():
         return jsonify({'error': 'Username already exists'}), 409
+    finally:
+        conn.close()
 
 
 @app.route('/api/login', methods=['POST'])
@@ -164,9 +241,9 @@ def login():
     username = (data.get('username') or '').strip()
     password = data.get('password', '')
 
-    conn = sqlite3.connect(DATABASE)
+    conn = db_connect()
     c = conn.cursor()
-    c.execute('SELECT id, username, password_hash FROM users WHERE username = ?', (username,))
+    db_execute(c, 'SELECT id, username, password_hash FROM users WHERE username = ?', (username,))
     user = c.fetchone()
     conn.close()
 
@@ -198,9 +275,9 @@ def get_profile():
     if 'user_id' not in session:
         return jsonify({'error': 'Not authenticated'}), 401
 
-    conn = sqlite3.connect(DATABASE)
+    conn = db_connect()
     c = conn.cursor()
-    c.execute('SELECT username, public_key FROM users WHERE id = ?', (session['user_id'],))
+    db_execute(c, 'SELECT username, public_key FROM users WHERE id = ?', (session['user_id'],))
     row = c.fetchone()
     conn.close()
 
@@ -221,9 +298,9 @@ def update_public_key():
     data = request.get_json() or {}
     public_key = data.get('public_key', '')
 
-    conn = sqlite3.connect(DATABASE)
+    conn = db_connect()
     c = conn.cursor()
-    c.execute('UPDATE users SET public_key = ? WHERE id = ?', (public_key, session['user_id']))
+    db_execute(c, 'UPDATE users SET public_key = ? WHERE id = ?', (public_key, session['user_id']))
     conn.commit()
     conn.close()
 
@@ -237,9 +314,9 @@ def get_saved_keys():
     if 'user_id' not in session:
         return jsonify({'error': 'Not authenticated'}), 401
 
-    conn = sqlite3.connect(DATABASE)
+    conn = db_connect()
     c = conn.cursor()
-    c.execute('SELECT id, name, public_key, created_at FROM saved_keys WHERE owner_id = ? ORDER BY created_at DESC', (session['user_id'],))
+    db_execute(c, 'SELECT id, name, public_key, created_at FROM saved_keys WHERE owner_id = ? ORDER BY created_at DESC', (session['user_id'],))
     rows = c.fetchall()
     conn.close()
 
@@ -269,12 +346,19 @@ def create_saved_key():
     if not public_key:
         return jsonify({'error': 'Public key is required'}), 400
 
-    conn = sqlite3.connect(DATABASE)
+    conn = db_connect()
     c = conn.cursor()
-    c.execute('INSERT INTO saved_keys (owner_id, name, public_key) VALUES (?, ?, ?)',
-              (session['user_id'], name, public_key))
+    if USE_POSTGRES:
+        c.execute(
+            'INSERT INTO saved_keys (owner_id, name, public_key) VALUES (%s, %s, %s) RETURNING id',
+            (session['user_id'], name, public_key)
+        )
+        key_id = c.fetchone()[0]
+    else:
+        db_execute(c, 'INSERT INTO saved_keys (owner_id, name, public_key) VALUES (?, ?, ?)',
+                   (session['user_id'], name, public_key))
+        key_id = get_lastrowid(c)
     conn.commit()
-    key_id = c.lastrowid
     conn.close()
 
     return jsonify({'message': 'Key saved successfully', 'id': key_id}), 201
@@ -294,10 +378,10 @@ def update_saved_key(key_id):
     if not public_key:
         return jsonify({'error': 'Public key is required'}), 400
 
-    conn = sqlite3.connect(DATABASE)
+    conn = db_connect()
     c = conn.cursor()
-    c.execute('UPDATE saved_keys SET name = ?, public_key = ? WHERE id = ? AND owner_id = ?',
-              (name, public_key, key_id, session['user_id']))
+    db_execute(c, 'UPDATE saved_keys SET name = ?, public_key = ? WHERE id = ? AND owner_id = ?',
+               (name, public_key, key_id, session['user_id']))
     conn.commit()
     updated = c.rowcount
     conn.close()
@@ -313,9 +397,9 @@ def delete_saved_key(key_id):
     if 'user_id' not in session:
         return jsonify({'error': 'Not authenticated'}), 401
 
-    conn = sqlite3.connect(DATABASE)
+    conn = db_connect()
     c = conn.cursor()
-    c.execute('DELETE FROM saved_keys WHERE id = ? AND owner_id = ?', (key_id, session['user_id']))
+    db_execute(c, 'DELETE FROM saved_keys WHERE id = ? AND owner_id = ?', (key_id, session['user_id']))
     conn.commit()
     deleted = c.rowcount
     conn.close()
