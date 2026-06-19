@@ -423,7 +423,7 @@
             color: #fff;
         }
 
-        /* Right Sidebar */
+                /* Right Sidebar */
         .right-sidebar-toggle {
             position: fixed;
             top: 50%;
@@ -467,8 +467,7 @@
         }
         .right-sidebar.active { transform: translateX(0); }
         .right-sidebar-overlay {
-            position: fixed;
-            top: 0; left: 0;
+            position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
             background: rgba(0,0,0,0.5);
             z-index: 999;
@@ -489,8 +488,7 @@
             border-bottom: 1px solid rgba(157,78,221,0.3);
         }
         .right-tab-btn {
-            flex: 1;
-            padding: 10px;
+            flex: 1; padding: 10px;
             background: none; border: none;
             color: #c77dff;
             cursor: pointer;
@@ -504,65 +502,6 @@
         .right-tab-btn:hover { color: #9d4edd; }
         .right-tab-content { display: none; flex: 1; }
         .right-tab-content.active { display: flex; flex-direction: column; }
-        .notes-textarea {
-            width: 100%;
-            flex: 1;
-            min-height: 300px;
-            padding: 12px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(157,78,221,0.3);
-            border-radius: 8px;
-            color: #fff;
-            font-family: 'Segoe UI', sans-serif;
-            font-size: 0.9rem;
-            outline: none;
-            resize: vertical;
-            transition: all 0.3s ease;
-        }
-        .notes-textarea:focus {
-            border-color: #9d4edd;
-            background: rgba(157,78,221,0.08);
-        }
-        .notes-status {
-            margin-top: 0.5rem;
-            font-size: 0.8rem;
-            color: #81c784;
-            text-align: right;
-            min-height: 1.2rem;
-        }
-        .saved-keys-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        .saved-keys-list li {
-            padding: 10px 14px;
-            background: rgba(157,78,221,0.08);
-            border: 1px solid rgba(157,78,221,0.2);
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
-            color: #c77dff;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s ease;
-        }
-        .saved-keys-list li:hover {
-            background: rgba(157,78,221,0.2);
-            border-color: rgba(157,78,221,0.4);
-            color: #fff;
-        }
-        .saved-keys-list .key-icon {
-            font-size: 1.1rem;
-        }
-        .saved-keys-empty {
-            color: rgba(255,255,255,0.4);
-            font-size: 0.9rem;
-            text-align: center;
-            padding: 2rem 1rem;
-        }
-/* Notes Manager */
         .notes-toolbar {
             display: flex;
             justify-content: space-between;
@@ -619,10 +558,16 @@
             color: #fff;
             border-left: 3px solid #9d4edd;
         }
-        .notes-list li .note-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .notes-list li .note-title {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
         .notes-list li .note-del {
             opacity: 0;
-            background: none; border: none;
+            background: none;
+            border: none;
             color: #e57373;
             font-size: 1rem;
             cursor: pointer;
@@ -652,7 +597,8 @@
         }
         .note-title-input:focus { border-color: #9d4edd; background: rgba(157,78,221,0.08); }
         .notes-textarea {
-            width: 100%; flex: 1;
+            width: 100%;
+            flex: 1;
             min-height: 220px;
             padding: 12px;
             background: rgba(255,255,255,0.05);
@@ -683,7 +629,37 @@
             color: #ffb74d;
             font-size: 0.78rem;
         }
-    </style>
+        .saved-keys-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .saved-keys-list li {
+            padding: 10px 14px;
+            background: rgba(157,78,221,0.08);
+            border: 1px solid rgba(157,78,221,0.2);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            color: #c77dff;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        .saved-keys-list li:hover {
+            background: rgba(157,78,221,0.2);
+            border-color: rgba(157,78,221,0.4);
+            color: #fff;
+        }
+        .saved-keys-list .key-icon { font-size: 1.1rem; }
+        .saved-keys-empty {
+            color: rgba(255,255,255,0.4);
+            font-size: 0.9rem;
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+</style>
 </head>
 <body>
     <!-- Menu Button -->
@@ -771,6 +747,7 @@
     </div>
 
     <!-- Right Sidebar Toggle -->
+            <!-- Right Sidebar Toggle -->
     <button class="right-sidebar-toggle" id="rightSidebarToggle" aria-label="Tools">&#128295; Tools</button>
 
     <!-- Right Sidebar Overlay -->
@@ -784,13 +761,19 @@
             <button class="right-tab-btn" data-right-tab="savedKeysList">&#128273; Saved Keys</button>
         </div>
 
-        <!-- Notes Tab -->
         <div class="right-tab-content active" id="notes">
-            <textarea class="notes-textarea" id="notesTextarea" placeholder="Type your notes here... They are saved automatically to your browser."></textarea>
+            <div class="notes-toolbar">
+                <h3>&#128221; My Notes</h3>
+                <button class="btn-sm" id="newNoteBtn">+ New</button>
+            </div>
+            <ul class="notes-list" id="notesList">
+                <li class="notes-empty">Log in to create and save notes.</li>
+            </ul>
+            <input type="text" class="note-title-input" id="noteTitleInput" placeholder="Note title..." disabled>
+            <textarea class="notes-textarea" id="notesTextarea" placeholder="Select or create a note to start writing..." disabled></textarea>
             <div class="notes-status" id="notesStatus"></div>
         </div>
 
-        <!-- Saved Keys Tab -->
         <div class="right-tab-content" id="savedKeysList">
             <ul class="saved-keys-list" id="savedKeysListItems">
                 <li class="saved-keys-empty">Log in to see your saved keys.</li>
@@ -798,7 +781,7 @@
         </div>
     </aside>
 
-    <!-- Toast Container -->
+<!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
@@ -1050,6 +1033,10 @@
         });
 
         // Right Sidebar Toggle
+        
+
+        // Check auth on load
+        // Right Sidebar Toggle
         const rightToggle = document.getElementById('rightSidebarToggle');
         const rightSidebar = document.getElementById('rightSidebar');
         const rightOverlay = document.getElementById('rightSidebarOverlay');
@@ -1088,9 +1075,7 @@
                 if (res.ok && data.notes) {
                     notes = data.notes;
                     renderNotesList();
-                    if (notes.length > 0 && !currentNoteId) {
-                        selectNote(notes[0].id);
-                    }
+                    if (notes.length > 0 && !currentNoteId) selectNote(notes[0].id);
                 } else if (res.status === 401) {
                     notes = [];
                     notesList.innerHTML = '<li class="notes-empty">Log in to create and save notes.</li>';
@@ -1101,9 +1086,7 @@
                 } else {
                     notesStatus.textContent = 'Could not load notes.';
                 }
-            } catch (e) {
-                notesStatus.textContent = 'Network error loading notes.';
-            }
+            } catch (e) { notesStatus.textContent = 'Network error loading notes.'; }
         }
 
         function renderNotesList() {
@@ -1154,25 +1137,19 @@
             clearTimeout(notesSaveTimeout);
             notesSaveTimeout = setTimeout(async () => {
                 try {
-                    const title = noteTitleInput.value.trim();
-                    const content = notesTextarea.value;
                     const res = await fetch('/api/notes/' + currentNoteId, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ title, content })
+                        body: JSON.stringify({ title: noteTitleInput.value.trim(), content: notesTextarea.value })
                     });
                     if (res.ok) {
                         const note = notes.find(n => n.id === currentNoteId);
-                        if (note) { note.title = title; note.content = content; }
+                        if (note) { note.title = noteTitleInput.value.trim(); note.content = notesTextarea.value; }
                         renderNotesList();
                         notesStatus.textContent = 'Saved.';
                         setTimeout(() => { if (notesStatus.textContent === 'Saved.') notesStatus.textContent = ''; }, 2000);
-                    } else {
-                        notesStatus.textContent = 'Save failed.';
-                    }
-                } catch (e) {
-                    notesStatus.textContent = 'Network error saving.';
-                }
+                    } else { notesStatus.textContent = 'Save failed.'; }
+                } catch (e) { notesStatus.textContent = 'Network error saving.'; }
             }, 800);
         }
 
@@ -1191,12 +1168,8 @@
                     selectNote(data.id);
                     notesStatus.textContent = 'Created.';
                     setTimeout(() => notesStatus.textContent = '', 2000);
-                } else {
-                    notesStatus.textContent = 'Failed to create note.';
-                }
-            } catch (e) {
-                notesStatus.textContent = 'Network error.';
-            }
+                } else { notesStatus.textContent = 'Failed to create note.'; }
+            } catch (e) { notesStatus.textContent = 'Network error.'; }
         }
 
         async function deleteNote(id) {
@@ -1214,12 +1187,8 @@
                     if (notes.length > 0 && !currentNoteId) selectNote(notes[0].id);
                     notesStatus.textContent = 'Deleted.';
                     setTimeout(() => notesStatus.textContent = '', 2000);
-                } else {
-                    notesStatus.textContent = 'Delete failed.';
-                }
-            } catch (e) {
-                notesStatus.textContent = 'Network error.';
-            }
+                } else { notesStatus.textContent = 'Delete failed.'; }
+            } catch (e) { notesStatus.textContent = 'Network error.'; }
         }
 
         newNoteBtn.addEventListener('click', createNewNote);
@@ -1237,16 +1206,11 @@
                     list.innerHTML = data.keys.map(k => '<li><span class="key-icon">&#128273;</span> ' + (k.name || 'Unnamed').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</li>').join('');
                 } else if (res.status === 401) {
                     list.innerHTML = '<li class="saved-keys-empty">Log in to see your saved keys.</li>';
-                } else {
-                    list.innerHTML = '<li class="saved-keys-empty">No saved keys yet.</li>';
-                }
-            } catch (e) {
-                list.innerHTML = '<li class="saved-keys-empty">Could not load saved keys.</li>';
-            }
+                } else { list.innerHTML = '<li class="saved-keys-empty">No saved keys yet.</li>'; }
+            } catch (e) { list.innerHTML = '<li class="saved-keys-empty">Could not load saved keys.</li>'; }
         }
         loadSavedKeysList();
 
-        // Check auth on load
         checkAuth();
     </script>
 </body>
