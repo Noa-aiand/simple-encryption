@@ -1432,7 +1432,7 @@
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    notesTextarea.value = data.encrypted_message;
+                    notesTextarea.value = data.encrypted;
                     saveCurrentNote();
                     showToast('Note encrypted!', 'success');
                 } else {
