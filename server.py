@@ -488,7 +488,10 @@ def practice_key():
     pub, _priv = get_practice_keys()
     if not pub:
         return jsonify({'error': 'Practice keypair not initialized'}), 500
-    return jsonify({'public_key': pub}), 200
+    resp = jsonify({'public_key': pub})
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    resp.headers['Pragma'] = 'no-cache'
+    return resp, 200
 
 
 def generate_ai_response(user_text):

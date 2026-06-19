@@ -878,21 +878,34 @@
         // ================= Practice Challenge =================
         let practiceKey = '';
 
-        async function loadPracticeKey() {
+        async function loadPracticeKey(retry = 0) {
+            const keyText = document.getElementById('practiceKeyText');
             try {
-                const res = await fetch('/api/practice/key');
+                const cacheBuster = Date.now();
+                const res = await fetch('/api/practice/key?_=' + cacheBuster);
                 const data = await res.json();
-                const keyText = document.getElementById('practiceKeyText');
+                console.log('Practice key response:', res.status, data);
                 if (res.ok && data.public_key) {
                     practiceKey = data.public_key;
                     keyText.value = practiceKey;
                     keyText.classList.add('loaded');
                 } else {
+                    console.warn('Practice key load failed:', data);
+                    if (retry < 3) {
+                        keyText.value = 'Key not ready, retrying... (' + (retry + 1) + '/3)';
+                        setTimeout(() => loadPracticeKey(retry + 1), 1500);
+                        return;
+                    }
                     keyText.value = 'Error: unable to load practice public key. ' + (data.error || 'Please refresh the page.');
                     keyText.classList.add('input-error');
                 }
             } catch (err) {
-                const keyText = document.getElementById('practiceKeyText');
+                console.error('Practice key fetch error:', err);
+                if (retry < 3) {
+                    keyText.value = 'Connection issue, retrying... (' + (retry + 1) + '/3)';
+                    setTimeout(() => loadPracticeKey(retry + 1), 1500);
+                    return;
+                }
                 keyText.value = 'Error: network problem while loading key. Please check your connection and refresh.';
                 keyText.classList.add('input-error');
             }
