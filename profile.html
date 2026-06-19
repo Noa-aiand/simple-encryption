@@ -718,6 +718,16 @@
             text-align: center;
             padding: 2rem 1rem;
         }
+
+        .note-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .note-actions .btn-sm {
+            font-size: 0.7rem;
+            padding: 6px 10px;
+        }
 </style>
 </head>
 <body>
@@ -822,6 +832,25 @@
             <h2><span class="icon">&#128273;</span> Current Saved Key</h2>
             <div class="key-display show" id="savedKeyDisplay"></div>
         </div>
+
+        <!-- Private Key Storage -->
+        <div class="card">
+            <div class="card-title">&#128274; Private PGP Key</div>
+            <p style="color:rgba(255,255,255,0.7);margin-bottom:12px;font-size:0.85rem;">Save your private key so you can decrypt notes and messages. It is encrypted on your device using a storage password before being sent to the server.</p>
+            <div id="privateKeyStatus" class="status-msg"></div>
+            <div id="privateKeySavedIndicator" style="display:none;margin-bottom:12px;color:#86efac;font-size:0.9rem;font-weight:600;">&#128274; Encrypted private key is saved on your account.</div>
+            <label for="privateKeyInput">Private Key (PGP armored)</label>
+            <textarea id="privateKeyInput" placeholder="-----BEGIN PGP PRIVATE KEY BLOCK-----
+...
+-----END PGP PRIVATE KEY BLOCK-----
+" style="min-height:120px;margin-bottom:12px;"></textarea>
+            <label for="privateKeyPassword">Storage Password</label>
+            <input type="password" id="privateKeyPassword" placeholder="A separate password to protect your private key" style="margin-bottom:16px;">
+            <div class="action-btns">
+                <button class="btn btn-primary" id="savePrivateKeyBtn">&#128190; Save Private Key</button>
+                <button class="btn btn-secondary" id="deletePrivateKeyBtn" style="display:none;">&#128465; Remove Saved Key</button>
+            </div>
+        </div>
     </div>
 
     <!-- Right Sidebar Toggle -->
@@ -841,7 +870,11 @@
         <div class="right-tab-content active" id="notes">
             <div class="notes-toolbar">
                 <h3>&#128221; My Notes</h3>
-                <button class="btn-sm" id="newNoteBtn">+ New</button>
+                <div class="note-actions">
+                    <button class="btn-sm" id="encryptNoteBtn" title="Encrypt note with your public key">&#128274; Encrypt</button>
+                    <button class="btn-sm" id="decryptNoteBtn" title="Decrypt note with your private key">&#128275; Decrypt</button>
+                    <button class="btn-sm" id="newNoteBtn">+ New</button>
+                </div>
             </div>
             <ul class="notes-list" id="notesList">
                 <li class="notes-empty">Log in to create and save notes.</li>
@@ -1201,6 +1234,49 @@
             });
         });
 
+
+        // ========= Client-Side Crypto Helpers =========
+        function b64ToBuf(b64) {
+            const binary = atob(b64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            return bytes;
+        }
+        function bufToB64(buf) {
+            let binary = '';
+            const bytes = new Uint8Array(buf);
+            for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+            return btoa(binary);
+        }
+        async function deriveKey(password, saltArray) {
+            const enc = new TextEncoder();
+            const keyMaterial = await crypto.subtle.importKey(
+                "raw", enc.encode(password), {name: "PBKDF2"}, false, ["deriveKey"]
+            );
+            return crypto.subtle.deriveKey(
+                {name: "PBKDF2", salt: new Uint8Array(saltArray), iterations: 100000, hash: "SHA-256"},
+                keyMaterial, {name: "AES-GCM", length: 256}, false, ["encrypt", "decrypt"]
+            );
+        }
+        async function encryptPrivateKey(armoredPrivateKey, password) {
+            const enc = new TextEncoder();
+            const salt = Array.from(crypto.getRandomValues(new Uint8Array(16)));
+            const iv = Array.from(crypto.getRandomValues(new Uint8Array(12)));
+            const key = await deriveKey(password, salt);
+            const ciphertext = await crypto.subtle.encrypt(
+                {name: "AES-GCM", iv: new Uint8Array(iv)}, key, enc.encode(armoredPrivateKey)
+            );
+            return { ciphertext: bufToB64(ciphertext), salt: bufToB64(salt), iv: bufToB64(iv) };
+        }
+        async function decryptPrivateKey(encryptedData, password) {
+            const salt = b64ToBuf(encryptedData.salt);
+            const iv = b64ToBuf(encryptedData.iv);
+            const ciphertext = b64ToBuf(encryptedData.ciphertext);
+            const key = await deriveKey(password, salt);
+            const decrypted = await crypto.subtle.decrypt({name: "AES-GCM", iv}, key, ciphertext);
+            return new TextDecoder().decode(decrypted);
+        }
+
         // Notes Manager
         let notes = [];
         let currentNoteId = null;
@@ -1334,9 +1410,77 @@
             } catch (e) { notesStatus.textContent = 'Network error.'; }
         }
 
+
+        function isPgpEncrypted(text) {
+            return text.trim().includes('-----BEGIN PGP MESSAGE-----');
+        }
+        async function getUserPublicKey() {
+            try {
+                const res = await fetch('/api/me');
+                const data = await res.json();
+                if (data.logged_in && data.public_key) return data.public_key;
+            } catch (e) {}
+            return null;
+        }
+        async function encryptNoteContent() {
+            if (!currentNoteId) { showToast('Select a note first', 'error'); return; }
+            const content = notesTextarea.value.trim();
+            if (!content) { showToast('Note is empty', 'error'); return; }
+            if (isPgpEncrypted(content)) { showToast('Note is already encrypted', 'info'); return; }
+            const pubKeyText = await getUserPublicKey();
+            if (!pubKeyText) { showToast('Save a public key in your profile first', 'error'); return; }
+            showToast('Encrypting...', 'info');
+            try {
+                const publicKey = await openpgp.readKey({ armoredKey: pubKeyText });
+                const message = await openpgp.createMessage({ text: content });
+                const encrypted = await openpgp.encrypt({ message, encryptionKeys: publicKey });
+                notesTextarea.value = encrypted;
+                saveCurrentNote();
+                showToast('Note encrypted!', 'success');
+            } catch (e) { showToast('Encryption failed: ' + e.message, 'error'); }
+        }
+        let cachedDecryptedPrivateKey = null;
+        async function decryptNoteContent() {
+            if (!currentNoteId) { showToast('Select a note first', 'error'); return; }
+            const content = notesTextarea.value.trim();
+            if (!content) { showToast('Note is empty', 'error'); return; }
+            if (!isPgpEncrypted(content)) { showToast('Note does not appear to be encrypted', 'error'); return; }
+            notesStatus.textContent = 'Decrypting...';
+            try {
+                let privKeyArmored = cachedDecryptedPrivateKey;
+                if (!privKeyArmored) {
+                    const res = await fetch('/api/private-key');
+                    const data = await res.json();
+                    if (!data.encrypted_private_key) {
+                        showToast('Save an encrypted private key in your profile first', 'error');
+                        notesStatus.textContent = '';
+                        return;
+                    }
+                    const password = prompt('Enter your private key storage password:');
+                    if (!password) { notesStatus.textContent = ''; return; }
+                    const encryptedData = typeof data.encrypted_private_key === 'string'
+                        ? JSON.parse(data.encrypted_private_key)
+                        : data.encrypted_private_key;
+                    privKeyArmored = await decryptPrivateKey(encryptedData, password);
+                    cachedDecryptedPrivateKey = privKeyArmored;
+                }
+                const privateKey = await openpgp.readPrivateKey({ armoredKey: privKeyArmored });
+                const message = await openpgp.readMessage({ armoredMessage: content });
+                const { data: decrypted } = await openpgp.decrypt({ message, decryptionKeys: privateKey });
+                notesTextarea.value = decrypted;
+                saveCurrentNote();
+                showToast('Note decrypted!', 'success');
+            } catch (e) {
+                showToast('Decryption failed: ' + e.message, 'error');
+            }
+            notesStatus.textContent = '';
+        }
+
         newNoteBtn.addEventListener('click', createNewNote);
         noteTitleInput.addEventListener('input', saveCurrentNote);
         notesTextarea.addEventListener('input', saveCurrentNote);
+        document.getElementById('encryptNoteBtn').addEventListener('click', encryptNoteContent);
+        document.getElementById('decryptNoteBtn').addEventListener('click', decryptNoteContent);
         loadNotes();
 
         // Saved Keys List
@@ -1353,6 +1497,76 @@
             } catch (e) { list.innerHTML = '<li class="saved-keys-empty">Could not load saved keys.</li>'; }
         }
         loadSavedKeysList();
+
+        // ========= Private Key Management =========
+        const privateKeyInput = document.getElementById('privateKeyInput');
+        const privateKeyPassword = document.getElementById('privateKeyPassword');
+        const privateKeyStatus = document.getElementById('privateKeyStatus');
+        const privateKeySavedInd = document.getElementById('privateKeySavedIndicator');
+        const savePrivKeyBtn = document.getElementById('savePrivateKeyBtn');
+        const deletePrivKeyBtn = document.getElementById('deletePrivateKeyBtn');
+
+        async function checkSavedPrivateKey() {
+            try {
+                const res = await fetch('/api/private-key');
+                const data = await res.json();
+                if (data.encrypted_private_key) {
+                    privateKeySavedInd.style.display = 'block';
+                    deletePrivKeyBtn.style.display = 'inline-block';
+                } else {
+                    privateKeySavedInd.style.display = 'none';
+                    deletePrivKeyBtn.style.display = 'none';
+                }
+            } catch (e) {}
+        }
+
+        savePrivKeyBtn.addEventListener('click', async () => {
+            const armored = privateKeyInput.value.trim();
+            const password = privateKeyPassword.value;
+            if (!armored) { showStatus('privateKeyStatus', 'Please paste your private key', 'error'); return; }
+            if (!password) { showStatus('privateKeyStatus', 'Please enter a storage password', 'error'); return; }
+            if (!armored.includes('-----BEGIN PGP PRIVATE KEY BLOCK-----')) {
+                showStatus('privateKeyStatus', 'That does not look like a valid PGP private key', 'error'); return;
+            }
+            setLoading(savePrivKeyBtn, true);
+            try {
+                const payload = await encryptPrivateKey(armored, password);
+                const res = await fetch('/api/private-key', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ encrypted_private_key: JSON.stringify(payload) })
+                });
+                if (res.ok) {
+                    showStatus('privateKeyStatus', 'Private key saved securely!', 'ok');
+                    privateKeyInput.value = '';
+                    privateKeyPassword.value = '';
+                    checkSavedPrivateKey();
+                } else {
+                    const d = await res.json();
+                    showStatus('privateKeyStatus', d.error || 'Failed to save', 'error');
+                }
+            } catch (e) {
+                showStatus('privateKeyStatus', 'Encryption failed: ' + e.message, 'error');
+            }
+            setLoading(savePrivKeyBtn, false);
+        });
+
+        deletePrivKeyBtn.addEventListener('click', async () => {
+            if (!confirm('Remove your saved encrypted private key from the server?')) return;
+            try {
+                const res = await fetch('/api/private-key', { method: 'DELETE' });
+                if (res.ok) {
+                    showStatus('privateKeyStatus', 'Private key removed.', 'ok');
+                    checkSavedPrivateKey();
+                } else {
+                    showStatus('privateKeyStatus', 'Failed to remove.', 'error');
+                }
+            } catch (e) {
+                showStatus('privateKeyStatus', 'Network error.', 'error');
+            }
+        });
+
+        checkSavedPrivateKey();
 
         checkAuth();
         loadProfile();
