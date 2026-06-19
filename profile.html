@@ -1422,7 +1422,19 @@
             } catch (e) {}
             return null;
         }
+        async function ensureOpenPgp() {
+            if (typeof openpgp !== 'undefined') return;
+            showToast('Loading crypto library...', 'info');
+            await new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/openpgp@5.11.1/dist/openpgp.min.js';
+                s.onload = resolve;
+                s.onerror = () => reject(new Error('Failed to load OpenPGP.js'));
+                document.head.appendChild(s);
+            });
+        }
         async function encryptNoteContent() {
+            await ensureOpenPgp();
             if (!currentNoteId) { showToast('Select a note first', 'error'); return; }
             const content = notesTextarea.value.trim();
             if (!content) { showToast('Note is empty', 'error'); return; }
@@ -1441,6 +1453,7 @@
         }
         let cachedDecryptedPrivateKey = null;
         async function decryptNoteContent() {
+            await ensureOpenPgp();
             if (!currentNoteId) { showToast('Select a note first', 'error'); return; }
             const content = notesTextarea.value.trim();
             if (!content) { showToast('Note is empty', 'error'); return; }
