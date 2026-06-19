@@ -375,27 +375,34 @@
             font-weight: 600;
         }
 
-        .key-display-box {
-            margin-top: 1rem;
-            padding: 1rem;
+        .key-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 12px 15px;
+            padding-top: 45px;
             background: rgba(0,0,0,0.25);
             border: 2px solid rgba(157,78,221,0.5);
             border-radius: 10px;
             font-family: 'Courier New', monospace;
             font-size: 0.78rem;
             color: #c77dff;
-            white-space: pre-wrap;
-            word-break: break-word;
-            max-height: 320px;
-            overflow-y: auto;
-            position: relative;
-            transition: border-color 0.3s ease;
+            resize: vertical;
+            outline: none;
+            transition: all 0.3s ease;
         }
-        .key-display-box.loaded {
+        .key-textarea.loaded {
             border-color: #4caf50;
             background: rgba(76,175,80,0.06);
+            color: #81c784;
         }
-        .key-display-box .copy-btn {
+        .key-textarea:focus {
+            border-color: #9d4edd;
+        }
+        .key-box-wrapper {
+            position: relative;
+            margin-top: 1rem;
+        }
+        .key-box-wrapper .copy-btn {
             position: absolute;
             top: 10px;
             right: 10px;
@@ -407,51 +414,12 @@
             font-size: 0.75rem;
             cursor: pointer;
             transition: all 0.3s ease;
+            z-index: 2;
         }
-        .key-display-box .copy-btn:hover {
+        .key-box-wrapper .copy-btn:hover {
             background: rgba(157,78,221,0.4);
             color: #fff;
         }
-        .key-loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 2rem 1rem;
-            color: #c77dff;
-            font-size: 1rem;
-        }
-        .key-loading .spinner {
-            width: 18px;
-            height: 18px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-top-color: #9d4edd;
-        }
-        .key-loaded-banner {
-            display: none;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            background: rgba(76,175,80,0.15);
-            border: 1px solid rgba(76,175,80,0.4);
-            border-radius: 8px;
-            color: #81c784;
-            font-size: 0.9rem;
-            margin-bottom: 10px;
-        }
-        .key-loaded-banner.show { display: flex; }
-        .key-error-banner {
-            display: none;
-            align-items: center;
-            gap: 8px;
-            padding: 12px;
-            background: rgba(244,67,54,0.12);
-            border: 1px solid rgba(244,67,54,0.4);
-            border-radius: 8px;
-            color: #e57373;
-            font-size: 0.9rem;
-        }
-        .key-error-banner.show { display: flex; }
 
         .form-group textarea {
             width: 100%;
@@ -672,20 +640,13 @@
             </div>
 
             <div class="form-group">
-                <label>Practice Partner's Public Key (copy this!)</label>
-                <div class="key-loaded-banner" id="keyLoadedBanner">
-                    <span>&#10003;</span> Key loaded successfully! Copy it below.
-                </div>
-                <div class="key-error-banner" id="keyErrorBanner">
-                    <span>&#10007;</span> <span id="keyErrorText">Failed to load key</span>
-                </div>
-                <div class="key-display-box" id="practiceKeyBox">
-                    <button class="copy-btn" id="copyPracticeKey">Copy</button>
-                    <div class="key-loading" id="keyLoading">
-                        <span class="spinner"></span>
-                        <span>Loading practice partner's public key...</span>
-                    </div>
-                    <pre id="practiceKeyText" style="display:none; margin:0; font-family:inherit; font-size:inherit; color:inherit; white-space:pre-wrap; word-break:break-word;"></pre>
+                <label style="display:flex;align-items:center;gap:8px;font-size:1rem;">
+                    <span style="font-size:1.4rem;">&#128273;</span> Practice Partner's Public PGP Key
+                </label>
+                <p style="color:#ccc;font-size:0.85rem;margin-bottom:0.8rem;">Copy the key below and use it in the Encrypt / Decrypt page to send a secure message.</p>
+                <div class="key-box-wrapper">
+                    <button class="copy-btn" id="copyPracticeKey">Copy Key</button>
+                    <textarea class="key-textarea" id="practiceKeyText" readonly>Loading practice partner's public key, please wait...</textarea>
                 </div>
             </div>
         </div>
@@ -921,23 +882,19 @@
             try {
                 const res = await fetch('/api/practice/key');
                 const data = await res.json();
-                if (res.ok) {
+                const keyText = document.getElementById('practiceKeyText');
+                if (res.ok && data.public_key) {
                     practiceKey = data.public_key;
-                    document.getElementById('keyLoading').style.display = 'none';
-                    const keyText = document.getElementById('practiceKeyText');
-                    keyText.textContent = practiceKey;
-                    keyText.style.display = 'block';
-                    document.getElementById('practiceKeyBox').classList.add('loaded');
-                    document.getElementById('keyLoadedBanner').classList.add('show');
+                    keyText.value = practiceKey;
+                    keyText.classList.add('loaded');
                 } else {
-                    document.getElementById('keyLoading').style.display = 'none';
-                    document.getElementById('keyErrorText').textContent = data.error || 'Unknown error';
-                    document.getElementById('keyErrorBanner').classList.add('show');
+                    keyText.value = 'Error: unable to load practice public key. ' + (data.error || 'Please refresh the page.');
+                    keyText.classList.add('input-error');
                 }
             } catch (err) {
-                document.getElementById('keyLoading').style.display = 'none';
-                document.getElementById('keyErrorText').textContent = 'Network error — check your connection';
-                document.getElementById('keyErrorBanner').classList.add('show');
+                const keyText = document.getElementById('practiceKeyText');
+                keyText.value = 'Error: network problem while loading key. Please check your connection and refresh.';
+                keyText.classList.add('input-error');
             }
         }
 
