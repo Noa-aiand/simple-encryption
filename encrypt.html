@@ -965,7 +965,7 @@
                 <h3>&#128221; My Notes</h3>
                 <div class="note-actions">
                     <button class="btn-sm" id="encryptNoteBtn" title="Encrypt note with your public key">&#128274; Encrypt</button>
-                    
+                    <button class="btn-sm" id="copyNoteBtn" title="Copy note content">&#128203; Copy</button>
                     <button class="btn-sm" id="newNoteBtn">+ New</button>
                 </div>
             </div>
@@ -1046,6 +1046,35 @@
             const div = document.createElement('div');
             div.textContent = str;
             return div.innerHTML;
+        }
+
+        function copyToClipboard(text, successMsg) {
+            if (text === undefined || text === null || text === '') {
+                showToast('Nothing to copy', 'error');
+                return;
+            }
+            navigator.clipboard.writeText(text).then(() => {
+                showToast(successMsg, 'success');
+            }).catch(() => {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.setAttribute('readonly', '');
+                ta.style.position = 'fixed';
+                ta.style.left = '-9999px';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.focus();
+                ta.select();
+                try {
+                    const ok = document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    if (ok) showToast(successMsg, 'success');
+                    else showToast('Copy failed', 'error');
+                } catch (e) {
+                    document.body.removeChild(ta);
+                    showToast('Copy failed', 'error');
+                }
+            });
         }
 
         // ================= Field Validation =================
@@ -1284,28 +1313,6 @@
             document.getElementById(labelId).className = 'result-label';
         }
 
-        async function copyToClipboard(text) {
-            try {
-                await navigator.clipboard.writeText(text);
-                showGenStatus('Copied to clipboard!', 'ok');
-            } catch (err) {
-                const ta = document.createElement('textarea');
-                ta.value = text;
-                ta.style.position = 'fixed';
-                ta.style.left = '-9999px';
-                document.body.appendChild(ta);
-                ta.focus();
-                ta.select();
-                try {
-                    document.execCommand('copy');
-                    showGenStatus('Copied to clipboard!', 'ok');
-                } catch (e) {
-                    showGenStatus('Copy failed. Please manually copy.', 'error');
-                }
-                document.body.removeChild(ta);
-            }
-        }
-
         function showGenStatus(text, type) {
             const el = document.getElementById('genStatus');
             el.textContent = text;
@@ -1391,8 +1398,8 @@
             }
         });
 
-        document.getElementById('copyPublicBtn').addEventListener('click', () => copyToClipboard(generatedPublicKey));
-        document.getElementById('copyPrivateBtn').addEventListener('click', () => copyToClipboard(generatedPrivateKey));
+        document.getElementById('copyPublicBtn').addEventListener('click', () => copyToClipboard(generatedPublicKey, 'Public key copied!'));
+        document.getElementById('copyPrivateBtn').addEventListener('click', () => copyToClipboard(generatedPrivateKey, 'Private key copied!'));
         document.getElementById('saveToProfileBtn').addEventListener('click', () => savePublicKeyToProfile(generatedPublicKey));
 
         // Encrypt
@@ -1433,7 +1440,7 @@
         });
 
         document.getElementById('copyEncryptedBtn').addEventListener('click', () => {
-            copyToClipboard(document.getElementById('encResult').textContent);
+            copyToClipboard(document.getElementById('encResult').textContent, 'Encrypted message copied!');
         });
 
         document.getElementById('clearEncBtn').addEventListener('click', () => {
@@ -1480,7 +1487,7 @@
         });
 
         document.getElementById('copyDecryptedBtn').addEventListener('click', () => {
-            copyToClipboard(document.getElementById('decResult').textContent);
+            copyToClipboard(document.getElementById('decResult').textContent, 'Decrypted message copied!');
         });
 
         document.getElementById('clearDecBtn').addEventListener('click', () => {
@@ -1746,6 +1753,11 @@
         noteTitleInput.addEventListener('input', saveCurrentNote);
         notesTextarea.addEventListener('input', saveCurrentNote);
         document.getElementById('encryptNoteBtn').addEventListener('click', encryptNoteContent);
+        document.getElementById('copyNoteBtn').addEventListener('click', () => {
+            const content = notesTextarea.value;
+            if (!content.trim()) { showToast('Note is empty', 'error'); return; }
+            copyToClipboard(content, 'Note copied!');
+        });
         loadNotes();
 
         // Saved Keys List (toolbar)
@@ -1796,21 +1808,13 @@
                 showToast('No key to copy', 'error');
                 return;
             }
-            navigator.clipboard.writeText(text).then(() => {
-                showToast('Public key copied!', 'info');
-            }).catch(() => {
-                const tmp = document.createElement('textarea');
-                tmp.value = text; document.body.appendChild(tmp);
-                tmp.select(); document.execCommand('copy');
-                document.body.removeChild(tmp);
-                showToast('Public key copied!', 'info');
-            });
+            copyToClipboard(text, 'Public key copied!');
         });
         loadProfileKey();
 
         checkAuth();
     </script>
 
-    <div class="version-badge">V1.3</div>
+    <div class="version-badge">V1.4</div>
 </body>
 </html>

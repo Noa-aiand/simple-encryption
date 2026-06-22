@@ -12,7 +12,7 @@ Multi-page PGP encryption web app with user accounts, persistent keys, practice 
   - `practice.html` — AI practice partner with RSA-2048/4096 keypair selector, plaintext rejection, and LLM-powered dynamic encrypted replies
   - **Right sidebar (Tools)** on every page with Notes (multi-note CRUD), Saved Keys list, and My Profile public key
 - **Nav**: responsive burger menu, auth status in top-right, logout button
-- **Version badge**: V1.3 in bottom-right corner on every page
+- **Version badge**: V1.4 in bottom-right corner on every page
 
 ## Backend
 - **Framework**: Flask (`server.py`)
@@ -75,9 +75,10 @@ Multi-page PGP encryption web app with user accounts, persistent keys, practice 
 > - Also update this `AGENTS.md` Version History section.
 
 ## Current Version
-**V1.3**
+**V1.4**
 
 ## Version History
+- **V1.4**: Improved LLM system prompt so replies directly reference the decrypted user message; standardized `copyToClipboard()` helper across all pages and fixed copy reliability; added Copy button for note content in the toolbar.
 - **V1.3**: Integrated optional OpenAI-compatible LLM for dynamic practice partner replies; added `requests` dependency and `LLM_API_KEY`/`LLM_BASE_URL`/`LLM_MODEL` env vars; defaults to ai& (`https://api.aiand.com/v1`, `google/gemma-4-31b-it`); falls back to rule-based responses if LLM is unavailable.
 - **V1.2**: Practice challenge now returns only an encrypted reply (requires logged-in user with saved public key); added RSA-2048/4096 practice key size selector; added My Profile tab to the right sidebar on every page showing the user's saved public key.
 - **V1.1**: Fixed toolbar on Encrypt page (sidebar HTML moved before `<script>`, removed null `rightClose`). Removed private key storage entirely. Fixed copy keys with toast + fallback. Sidebar note encrypt/decrypt uses server API. 
@@ -87,7 +88,7 @@ Multi-page PGP encryption web app with user accounts, persistent keys, practice 
 ## Known Constraints / Gotchas
 - **Build.io deploy latency**: each push takes ~2–3 minutes. Verify with `bld ps -a simple-encryption -j`.
 - **Key format**: generated keys are custom PEM-base64 PGP blocks, NOT compatible with OpenPGP.js `readKey()`. Always use `/api/encrypt` and `/api/decrypt` for sidebar operations.
-- **Copy function**: uses `navigator.clipboard.writeText()` with `textarea fallback + focus()` for older browsers.
+- **Copy function**: uses `navigator.clipboard.writeText()` with a robust off-screen `textarea` fallback (`focus()` + `select()` + `execCommand('copy')`) for older browsers and non-secure contexts.
 - **LLM privacy**: enabling the LLM sends decrypted practice messages to the configured provider. Keep the API key secret and only enable it if users accept that.
 - **No pipelines**: direct deploy to single app.
 

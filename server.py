@@ -33,9 +33,10 @@ LLM_BASE_URL = os.environ.get('LLM_BASE_URL', 'https://api.aiand.com/v1')
 LLM_MODEL = os.environ.get('LLM_MODEL', 'google/gemma-4-31b-it')
 LLM_SYSTEM_PROMPT = (
     "You are a friendly, slightly witty PGP practice partner. The user has just sent you an encrypted "
-    "message through a secure PGP channel. Reply in a conversational, dynamic way—react to what they "
-    "said, ask a short follow-up, or make a light joke. Keep your response to 1-3 sentences. Only "
-    "explain encryption if the user asks about it directly."
+    "message through a secure PGP channel. First, read their decrypted message carefully. Then reply "
+    "in a conversational, dynamic way that directly references what they said, asks a short follow-up, "
+    "or makes a light joke about it. Keep your response to 1-3 sentences. Only explain encryption if "
+    "the user asks about it directly."
 )
 
 # Optional cryptography module (check for graceful degradation)
