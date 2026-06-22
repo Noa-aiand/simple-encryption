@@ -12,12 +12,31 @@ from werkzeug.security import generate_password_hash, check_password_hash
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Optional HTTP client for LLM integration
+try:
+    import requests
+    REQUESTS_AVAILABLE = True
+except ImportError:
+    REQUESTS_AVAILABLE = False
+    logger.warning("requests not installed; LLM practice partner disabled")
+
 # Base directory (absolute, so it works regardless of working directory)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 DATABASE = os.path.join(BASE_DIR, 'users.db')
+
+# LLM configuration (OpenAI-compatible API)
+LLM_API_KEY = os.environ.get('LLM_API_KEY')
+LLM_BASE_URL = os.environ.get('LLM_BASE_URL', 'https://api.aiand.com/v1')
+LLM_MODEL = os.environ.get('LLM_MODEL', 'google/gemma-4-31b-it')
+LLM_SYSTEM_PROMPT = (
+    "You are a friendly, slightly witty PGP practice partner. The user has just sent you an encrypted "
+    "message through a secure PGP channel. Reply in a conversational, dynamic way—react to what they "
+    "said, ask a short follow-up, or make a light joke. Keep your response to 1-3 sentences. Only "
+    "explain encryption if the user asks about it directly."
+)
 
 # Optional cryptography module (check for graceful degradation)
 try:
@@ -162,33 +181,11 @@ init_db()
 
 # ============== Practice Partner Keypair ==============
 
-def init_practice_keys():
-    """Generate or load the server's practice RSA keypair stored in the database."""
-    conn = db_connect()
-    c = conn.cursor()
-    db_execute(c, """
-        CREATE TABLE IF NOT EXISTS server_config (
-            key TEXT PRIMARY KEY,
-            value TEXT NOT NULL
-        )
-    """)
-    conn.commit()
-
-    db_execute(c, "SELECT value FROM server_config WHERE key = ?", ('practice_private_key',))
-    row = c.fetchone()
-    if row:
-        conn.close()
-        return
-
-    if not CRYPTO_AVAILABLE:
-        logger.warning("Cannot generate practice keys: cryptography not available")
-        conn.close()
-        return
-
-    logger.info("Generating practice partner RSA-4096 keypair...")
+def _generate_practice_keypair(size):
+    """Generate a practice RSA keypair of the requested size and return armored blocks."""
     private_key = rsa.generate_private_key(
         public_exponent=65537,
-        key_size=4096
+        key_size=size
     )
     public_key = private_key.public_key()
 
@@ -206,23 +203,69 @@ def init_practice_keys():
     public_b64 = base64.b64encode(public_pem.encode()).decode()
     private_b64 = base64.b64encode(private_pem.encode()).decode()
 
-    public_block = make_pgp_block('PUBLIC KEY BLOCK', public_b64, 'Practice Partner RSA-4096')
-    private_block = make_pgp_block('PRIVATE KEY BLOCK', private_b64, 'Practice Partner RSA-4096')
-
-    db_execute(c, "INSERT INTO server_config (key, value) VALUES (?, ?), (?, ?)",
-               ('practice_private_key', private_block, 'practice_public_key', public_block))
-    conn.commit()
-    conn.close()
-    logger.info("Practice partner keypair generated and stored")
+    public_block = make_pgp_block('PUBLIC KEY BLOCK', public_b64, f'Practice Partner RSA-{size}')
+    private_block = make_pgp_block('PRIVATE KEY BLOCK', private_b64, f'Practice Partner RSA-{size}')
+    return public_block, private_block
 
 
-def get_practice_keys():
-    """Return (public_key_block, private_key_block) for the practice partner."""
+def init_practice_keys():
+    """Generate or load the practice RSA keypairs (2048 and 4096) stored in the database."""
     conn = db_connect()
     c = conn.cursor()
+    db_execute(c, """
+        CREATE TABLE IF NOT EXISTS server_config (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        )
+    """)
+    conn.commit()
+
+    # Migrate legacy single keypair to sized 4096 keys if present
     db_execute(c, "SELECT value FROM server_config WHERE key = ?", ('practice_public_key',))
-    pub_row = c.fetchone()
+    old_pub = c.fetchone()
     db_execute(c, "SELECT value FROM server_config WHERE key = ?", ('practice_private_key',))
+    old_priv = c.fetchone()
+    if old_pub and old_priv:
+        db_execute(c, "SELECT value FROM server_config WHERE key = ?", ('practice_public_key_4096',))
+        if not c.fetchone():
+            db_execute(c, "INSERT INTO server_config (key, value) VALUES (?, ?), (?, ?)",
+                       ('practice_public_key_4096', old_pub[0], 'practice_private_key_4096', old_priv[0]))
+            conn.commit()
+        db_execute(c, "DELETE FROM server_config WHERE key IN (?, ?)",
+                   ('practice_public_key', 'practice_private_key'))
+        conn.commit()
+
+    if not CRYPTO_AVAILABLE:
+        logger.warning("Cannot generate practice keys: cryptography not available")
+        conn.close()
+        return
+
+    for size in (2048, 4096):
+        pub_key_name = f'practice_public_key_{size}'
+        priv_key_name = f'practice_private_key_{size}'
+        db_execute(c, "SELECT value FROM server_config WHERE key = ?", (priv_key_name,))
+        if c.fetchone():
+            continue
+
+        logger.info("Generating practice partner RSA-%d keypair...", size)
+        public_block, private_block = _generate_practice_keypair(size)
+        db_execute(c, "INSERT INTO server_config (key, value) VALUES (?, ?), (?, ?)",
+                   (priv_key_name, private_block, pub_key_name, public_block))
+        conn.commit()
+        logger.info("Practice partner RSA-%d keypair generated and stored", size)
+
+    conn.close()
+
+
+def get_practice_keys(size=4096):
+    """Return (public_key_block, private_key_block) for the practice partner at the given size."""
+    if size not in (2048, 4096):
+        size = 4096
+    conn = db_connect()
+    c = conn.cursor()
+    db_execute(c, "SELECT value FROM server_config WHERE key = ?", (f'practice_public_key_{size}',))
+    pub_row = c.fetchone()
+    db_execute(c, "SELECT value FROM server_config WHERE key = ?", (f'practice_private_key_{size}',))
     priv_row = c.fetchone()
     conn.close()
     return (pub_row[0] if pub_row else None, priv_row[0] if priv_row else None)
@@ -620,17 +663,60 @@ def practice_key():
     """Return the practice partner's public key so users can encrypt messages to it."""
     if not CRYPTO_AVAILABLE:
         return jsonify({'error': 'Cryptography not available'}), 503
-    pub, _priv = get_practice_keys()
+    key_size = request.args.get('size', 4096, type=int)
+    if key_size not in (2048, 4096):
+        return jsonify({'error': 'Key size must be 2048 or 4096'}), 400
+    pub, _priv = get_practice_keys(key_size)
     if not pub:
         return jsonify({'error': 'Practice keypair not initialized'}), 500
-    resp = jsonify({'public_key': pub})
+    resp = jsonify({'public_key': pub, 'key_size': key_size})
     resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
     resp.headers['Pragma'] = 'no-cache'
     return resp, 200
 
 
+def llm_reply(user_text):
+    """Call an OpenAI-compatible chat completions endpoint for a dynamic reply."""
+    if not REQUESTS_AVAILABLE or not LLM_API_KEY:
+        return None
+
+    url = LLM_BASE_URL.rstrip('/') + '/chat/completions'
+    headers = {
+        'Authorization': f'Bearer {LLM_API_KEY}',
+        'Content-Type': 'application/json'
+    }
+    payload = {
+        'model': LLM_MODEL,
+        'messages': [
+            {'role': 'system', 'content': LLM_SYSTEM_PROMPT},
+            {'role': 'user', 'content': user_text}
+        ],
+        'temperature': 0.85,
+        'max_tokens': 200
+    }
+
+    try:
+        r = requests.post(url, headers=headers, json=payload, timeout=12)
+        r.raise_for_status()
+        data = r.json()
+        choices = data.get('choices', [])
+        if choices:
+            content = choices[0].get('message', {}).get('content', '').strip()
+            if content:
+                return content
+    except Exception as e:
+        logger.warning("LLM call failed, using fallback: %s", e)
+
+    return None
+
+
 def generate_ai_response(user_text):
-    """Generate a contextual response based on the decrypted user message."""
+    """Generate a contextual response, preferring an LLM if configured."""
+    reply = llm_reply(user_text)
+    if reply:
+        return reply
+
+    # ---- Fallback: rule-based responses ----
     text = user_text.lower().strip()
 
     if any(k in text for k in ['hello', 'hi', 'hey', 'greetings']):
@@ -686,13 +772,18 @@ def generate_ai_response(user_text):
 def practice_send():
     """
     Receive an encrypted message from the user, decrypt it, generate an AI response,
-    and optionally encrypt the reply back to the user's saved public key.
+    and encrypt the reply back to the user's saved public key. The reply is only
+    returned as an encrypted PGP MESSAGE block.
     """
     if not CRYPTO_AVAILABLE:
         return jsonify({'error': 'Cryptography not available on this server'}), 503
 
     data = request.get_json() or {}
     message_block = data.get('message', '').strip()
+    key_size = data.get('key_size', 4096)
+
+    if key_size not in (2048, 4096):
+        return jsonify({'error': 'Key size must be 2048 or 4096'}), 400
 
     if not message_block:
         return jsonify({'error': 'Message is required'}), 400
@@ -707,14 +798,14 @@ def practice_send():
                 'You sent unencrypted text. The practice challenge requires you to encrypt your message '
                 'with the practice partner\'s public key before sending.\n\n'
                 'Steps to pass:\n'
-                '1. Copy the practice public key displayed on this page\n'
+                '1. Choose a key size (2048 or 4096) and copy the practice public key\n'
                 '2. Go to the Encrypt / Decrypt page\n'
                 '3. Paste the practice key, type your message, and encrypt it\n'
                 '4. Paste the resulting PGP MESSAGE block here and try again'
             )
         }), 400
 
-    _pub, priv_block = get_practice_keys()
+    _pub, priv_block = get_practice_keys(key_size)
     if not priv_block:
         return jsonify({'error': 'Practice keypair not initialized'}), 500
 
@@ -751,69 +842,76 @@ def practice_send():
             'message': (
                 'Could not decrypt your message.\n\n'
                 'Make sure you:\n'
-                '1. Used the correct practice partner public key to encrypt\n'
+                '1. Used the correct practice partner public key and size to encrypt\n'
                 '2. Copied the entire PGP MESSAGE block (including -----BEGIN/END markers)\n'
                 '3. The message format is valid'
             )
         }), 400
 
-    # ---- Generate contextual AI response ----
+    # ---- Require logged-in user with saved public key for an encrypted reply ----
+    if 'user_id' not in session:
+        return jsonify({
+            'status': 'failed',
+            'reason': 'no_user_key',
+            'message': (
+                'Your message decrypted successfully, but I can only send an encrypted reply '
+                'if you are logged in and have saved your public key in My Profile.'
+            )
+        }), 400
+
+    conn = db_connect()
+    c = conn.cursor()
+    db_execute(c, 'SELECT public_key FROM users WHERE id = ?', (session['user_id'],))
+    row = c.fetchone()
+    conn.close()
+
+    if not row or not row[0]:
+        return jsonify({
+            'status': 'failed',
+            'reason': 'no_user_key',
+            'message': 'Your message decrypted successfully, but you need to save your public key in My Profile so I can encrypt my reply back to you.'
+        }), 400
+
+    user_public_key = row[0]
     ai_response = generate_ai_response(plaintext)
 
-    # ---- Try to encrypt response back to user's public key ----
-    user_encrypted = None
-    user_has_key = False
-    if 'user_id' in session:
-        conn = db_connect()
-        c = conn.cursor()
-        db_execute(c, 'SELECT public_key FROM users WHERE id = ?', (session['user_id'],))
-        row = c.fetchone()
-        conn.close()
-        if row and row[0]:
-            user_has_key = True
-            user_public_key = row[0]
-            try:
-                b64_pem_user = parse_pgp_block(user_public_key, 'PUBLIC KEY BLOCK')
-                pem_bytes_user = base64.b64decode(b64_pem_user)
-                user_pubkey = serialization.load_pem_public_key(pem_bytes_user)
+    try:
+        b64_pem_user = parse_pgp_block(user_public_key, 'PUBLIC KEY BLOCK')
+        pem_bytes_user = base64.b64decode(b64_pem_user)
+        user_pubkey = serialization.load_pem_public_key(pem_bytes_user)
 
-                aes_key = secrets.token_bytes(32)
-                nonce = secrets.token_bytes(12)
-                aesgcm = AESGCM(aes_key)
-                ciphertext = aesgcm.encrypt(nonce, ai_response.encode('utf-8'), None)
+        aes_key = secrets.token_bytes(32)
+        nonce = secrets.token_bytes(12)
+        aesgcm = AESGCM(aes_key)
+        ciphertext = aesgcm.encrypt(nonce, ai_response.encode('utf-8'), None)
 
-                encrypted_key = user_pubkey.encrypt(
-                    aes_key,
-                    padding.OAEP(
-                        mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                        algorithm=hashes.SHA256(),
-                        label=None
-                    )
-                )
+        encrypted_key = user_pubkey.encrypt(
+            aes_key,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        )
 
-                key_len = len(encrypted_key)
-                payload = key_len.to_bytes(2, 'big') + encrypted_key + nonce + ciphertext
-                payload_b64 = base64.b64encode(payload).decode()
+        key_len = len(encrypted_key)
+        payload = key_len.to_bytes(2, 'big') + encrypted_key + nonce + ciphertext
+        payload_b64 = base64.b64encode(payload).decode()
 
-                user_encrypted = make_pgp_block('MESSAGE', payload_b64, 'Practice Partner Encrypted Reply')
-            except Exception as e:
-                logger.warning("Could not encrypt reply to user's key: %s", e)
-
-    tip = None
-    if user_encrypted is None and 'user_id' in session:
-        if user_has_key:
-            tip = "I couldn't encrypt my reply back to your saved key (the format may be unsupported). But here's the plaintext response:"
-        else:
-            tip = "Tip: Save your public key in your Profile page so I can encrypt my replies back to you!"
-    elif 'user_id' not in session:
-        tip = "Tip: Log in and save your public key in your Profile so I can encrypt my replies back to you!"
+        user_encrypted = make_pgp_block('MESSAGE', payload_b64, 'Practice Partner Encrypted Reply')
+    except Exception as e:
+        logger.exception("Could not encrypt reply to user's key")
+        return jsonify({
+            'status': 'failed',
+            'reason': 'encrypt_reply_error',
+            'message': 'Your message decrypted successfully, but I could not encrypt my reply to your saved public key. Make sure your saved key is a valid PGP public key block.'
+        }), 400
 
     return jsonify({
         'status': 'success',
-        'decrypted': plaintext,
-        'response': ai_response,
+        'message': 'Successful encrypted message!',
         'encrypted_response': user_encrypted,
-        'tip': tip
+        'key_size': key_size
     }), 200
 
 

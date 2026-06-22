@@ -670,6 +670,27 @@
             padding: 6px 10px;
         }
 
+        .profile-content p {
+            color: #ccc;
+            font-size: 0.85rem;
+            margin-bottom: 0.8rem;
+        }
+        .profile-link {
+            display: inline-block;
+            margin-bottom: 0.8rem;
+            color: #9d4edd;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .profile-link:hover { text-decoration: underline; }
+        .profile-status {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: #ffb74d;
+            min-height: 1.2rem;
+        }
+
         .version-badge {
             position: fixed;
             bottom: 12px;
@@ -781,6 +802,7 @@
         <div class="right-tabs">
             <button class="right-tab-btn active" data-right-tab="notes">&#9998; Notes</button>
             <button class="right-tab-btn" data-right-tab="savedKeysList">&#128273; Saved Keys</button>
+            <button class="right-tab-btn" data-right-tab="profile">&#128100; My Profile</button>
         </div>
 
         <div class="right-tab-content active" id="notes">
@@ -804,6 +826,17 @@
             <ul class="saved-keys-list" id="savedKeysListItems">
                 <li class="saved-keys-empty">Log in to see your saved keys.</li>
             </ul>
+        </div>
+
+        <div class="right-tab-content" id="profile">
+            <div class="profile-content">
+                <p>Your saved public key from <a href="/profile.html" class="profile-link">My Profile</a>. Copy it to encrypt or share.</p>
+                <div class="key-box-wrapper">
+                    <button class="copy-btn" id="copyProfileKeyBtn">Copy Key</button>
+                    <textarea class="key-textarea" id="profilePublicKeyText" readonly>Loading your public key...</textarea>
+                </div>
+                <div class="profile-status" id="profileKeyStatus"></div>
+            </div>
         </div>
     </aside>
 
@@ -1346,8 +1379,53 @@
         }
         loadSavedKeysList();
 
+        // Profile Key
+        async function loadProfileKey() {
+            const ta = document.getElementById('profilePublicKeyText');
+            const status = document.getElementById('profileKeyStatus');
+            try {
+                const res = await fetch('/api/me', { cache: 'no-store' });
+                const data = await res.json();
+                if (data.logged_in && data.public_key) {
+                    ta.value = data.public_key;
+                    ta.classList.add('loaded');
+                    status.textContent = '';
+                } else if (data.logged_in) {
+                    ta.value = 'No public key saved. Go to My Profile to save one.';
+                    ta.classList.remove('loaded');
+                    status.innerHTML = 'Tip: <a href="/profile.html" class="profile-link">save your public key</a> in My Profile.';
+                } else {
+                    ta.value = 'Log in to see your public key.';
+                    ta.classList.remove('loaded');
+                    status.textContent = 'Tip: log in to use your profile key.';
+                }
+            } catch (e) {
+                ta.value = 'Could not load public key.';
+                status.textContent = 'Network error loading profile key.';
+            }
+        }
+
+        document.getElementById('copyProfileKeyBtn').addEventListener('click', () => {
+            const ta = document.getElementById('profilePublicKeyText');
+            const text = ta.value.trim();
+            if (!text || text.startsWith('Log in') || text.startsWith('No public') || text.startsWith('Could not')) {
+                showToast('No key to copy', 'error');
+                return;
+            }
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Public key copied!', 'info');
+            }).catch(() => {
+                const tmp = document.createElement('textarea');
+                tmp.value = text; document.body.appendChild(tmp);
+                tmp.select(); document.execCommand('copy');
+                document.body.removeChild(tmp);
+                showToast('Public key copied!', 'info');
+            });
+        });
+        loadProfileKey();
+
         checkAuth();
     </script>
-    <div class="version-badge">V1.1</div>
+    <div class="version-badge">V1.3</div>
 </body>
 </html>

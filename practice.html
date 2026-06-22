@@ -795,6 +795,51 @@
             padding: 6px 10px;
         }
 
+        .key-size-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.8rem;
+        }
+        .key-size-row label {
+            color: #c77dff;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .key-size-row select {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(157,78,221,0.3);
+            border-radius: 6px;
+            color: #fff;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            outline: none;
+            cursor: pointer;
+        }
+        .key-size-row select:focus { border-color: #9d4edd; }
+
+        .profile-content p {
+            color: #ccc;
+            font-size: 0.85rem;
+            margin-bottom: 0.8rem;
+        }
+        .profile-link {
+            display: inline-block;
+            margin-bottom: 0.8rem;
+            color: #9d4edd;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .profile-link:hover { text-decoration: underline; }
+        .profile-status {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: #ffb74d;
+            min-height: 1.2rem;
+        }
+
         .version-badge {
             position: fixed;
             bottom: 12px;
@@ -889,11 +934,11 @@
             <div class="instructions">
                 <h3>The PGP Practice Challenge</h3>
                 <ol>
-                    <li>Your goal: <span class="highlight">send me an encrypted message</span> and prove you understand PGP.</li>
-                    <li>Copy my practice public key from the box below.</li>
-                    <li>Go to the <a href="/encrypt.html" style="color:#9d4edd;">Encrypt / Decrypt</a> page and encrypt a message using my public key.</li>
+                    <li>Make sure you are <span class="highlight">logged in</span> and have <span class="highlight">saved your public key</span> in My Profile so I can encrypt my reply back to you.</li>
+                    <li>Choose a key size (RSA-2048 or RSA-4096) and copy my practice public key from the box below.</li>
+                    <li>Go to the <a href="/encrypt.html" style="color:#9d4edd;">Encrypt / Decrypt</a> page and encrypt a message using that key.</li>
                     <li>Paste the resulting <span class="highlight">PGP MESSAGE block</span> into the message box below and hit Send.</li>
-                    <li>I will decrypt it, read what you wrote, and <span class="highlight">encrypt my reply back to you</span> (if you saved your public key in your profile).</li>
+                    <li>If the message decrypts correctly, you will see <span style="color:#81c784;font-weight:600;">“Successful encrypted message!”</span> and receive my reply as a new PGP MESSAGE block to decrypt.</li>
                     <li><span class="highlight">WARNING:</span> If you send plaintext instead of a PGP-encrypted message, you will <strong>FAIL</strong> the challenge!</li>
                 </ol>
             </div>
@@ -902,7 +947,14 @@
                 <label style="display:flex;align-items:center;gap:8px;font-size:1rem;">
                     <span style="font-size:1.4rem;">&#128273;</span> Practice Partner's Public PGP Key
                 </label>
-                <p style="color:#ccc;font-size:0.85rem;margin-bottom:0.8rem;">Copy the key below and use it in the Encrypt / Decrypt page to send a secure message.</p>
+                <p style="color:#ccc;font-size:0.85rem;margin-bottom:0.8rem;">Choose a key size, copy the key, and use it in the Encrypt / Decrypt page. My reply will be encrypted to your saved public key.</p>
+                <div class="key-size-row">
+                    <label for="practiceKeySize">Key size:</label>
+                    <select id="practiceKeySize">
+                        <option value="4096" selected>RSA-4096</option>
+                        <option value="2048">RSA-2048</option>
+                    </select>
+                </div>
                 <div class="key-box-wrapper">
                     <button class="copy-btn" id="copyPracticeKey">Copy Key</button>
                     <textarea class="key-textarea" id="practiceKeyText" readonly>Loading practice partner's public key, please wait...</textarea>
@@ -944,6 +996,7 @@
         <div class="right-tabs">
             <button class="right-tab-btn active" data-right-tab="notes">&#9998; Notes</button>
             <button class="right-tab-btn" data-right-tab="savedKeysList">&#128273; Saved Keys</button>
+            <button class="right-tab-btn" data-right-tab="profile">&#128100; My Profile</button>
         </div>
 
         <div class="right-tab-content active" id="notes">
@@ -967,6 +1020,17 @@
             <ul class="saved-keys-list" id="savedKeysListItems">
                 <li class="saved-keys-empty">Log in to see your saved keys.</li>
             </ul>
+        </div>
+
+        <div class="right-tab-content" id="profile">
+            <div class="profile-content">
+                <p>Your saved public key from <a href="/profile.html" class="profile-link">My Profile</a>. Copy it to encrypt or share.</p>
+                <div class="key-box-wrapper">
+                    <button class="copy-btn" id="copyProfileKeyBtn">Copy Key</button>
+                    <textarea class="key-textarea" id="profilePublicKeyText" readonly>Loading your public key...</textarea>
+                </div>
+                <div class="profile-status" id="profileKeyStatus"></div>
+            </div>
         </div>
     </aside>
 
@@ -1175,12 +1239,14 @@
 
         // ================= Practice Challenge =================
         let practiceKey = '';
+        let practiceKeySize = 4096;
+        const practiceKeySizeSelect = document.getElementById('practiceKeySize');
 
-        async function loadPracticeKey(retry = 0) {
+        async function loadPracticeKey(retry = 0, size = practiceKeySize) {
             const keyText = document.getElementById('practiceKeyText');
+            practiceKeySize = size;
             try {
-                // Cache-busting URL + no-store to force a fresh request
-                const url = '/api/practice/key?_=' + Date.now();
+                const url = '/api/practice/key?size=' + size + '&_=' + Date.now();
                 const res = await fetch(url, { cache: 'no-store' });
                 const data = await res.json();
                 console.log('Practice key response:', res.status, JSON.stringify(data || {}).slice(0, 200));
@@ -1196,18 +1262,17 @@
                 console.warn('Practice key fetch error attempt', retry + 1, err);
             }
 
-            // Retry with exponential backoff
             if (retry < 3) {
                 keyText.value = 'Loading practice key, retrying... (' + (retry + 1) + '/3)';
-                setTimeout(() => loadPracticeKey(retry + 1), 1500 * (retry + 1));
+                setTimeout(() => loadPracticeKey(retry + 1, size), 1500 * (retry + 1));
                 return;
             }
 
-            // FINAL FALLBACK: try XMLHttpRequest (different transport, may bypass stale cache)
+            // XMLHttpRequest fallback
             keyText.value = 'Trying alternate load method...';
             try {
                 const xhr = new XMLHttpRequest();
-                xhr.open('GET', '/api/practice/key?_=' + Date.now(), true);
+                xhr.open('GET', '/api/practice/key?size=' + size + '&_=' + Date.now(), true);
                 xhr.setRequestHeader('Cache-Control', 'no-cache');
                 xhr.setRequestHeader('Pragma', 'no-cache');
                 xhr.onload = function() {
@@ -1244,6 +1309,12 @@
             keyText.classList.add('input-error');
         }
 
+        practiceKeySizeSelect.addEventListener('change', () => {
+            practiceKeySize = parseInt(practiceKeySizeSelect.value, 10);
+            document.getElementById('practiceKeyText').classList.remove('loaded');
+            loadPracticeKey(0, practiceKeySize);
+        });
+
         document.getElementById('copyPracticeKey').addEventListener('click', () => {
             if (!practiceKey) { showToast('No key to copy', 'error'); return; }
             navigator.clipboard.writeText(practiceKey).then(() => {
@@ -1264,6 +1335,18 @@
             setTimeout(() => { el.className = 'status-msg'; el.textContent = ''; }, 8000);
         }
 
+        function copyTextToClipboard(text, successMsg) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast(successMsg, 'info');
+            }).catch(() => {
+                const ta = document.createElement('textarea');
+                ta.value = text; document.body.appendChild(ta);
+                ta.select(); document.execCommand('copy');
+                document.body.removeChild(ta);
+                showToast(successMsg, 'info');
+            });
+        }
+
         document.getElementById('sendBtn').addEventListener('click', async () => {
             const msgInput = document.getElementById('practiceMessage');
             const msg = msgInput.value.trim();
@@ -1281,31 +1364,34 @@
                 const res = await fetch('/api/practice/send', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: msg })
+                    body: JSON.stringify({ message: msg, key_size: practiceKeySize })
                 });
                 const data = await res.json();
 
                 if (res.ok && data.status === 'success') {
-                    showStatus('sendStatus', 'Challenge passed! Encrypted message received and decrypted successfully.', 'ok');
+                    showStatus('sendStatus', data.message || 'Successful encrypted message!', 'ok');
                     const card = document.getElementById('responseCard');
                     const content = document.getElementById('responseContent');
                     card.style.display = 'block';
 
                     let html = '<div class="response-card">';
-                    html += '<h3>I decrypted your message:</h3>';
-                    html += '<div class="plaintext">' + escapeHtml(data.decrypted) + '</div>';
-                    html += '<h3>Here is my response:</h3>';
-                    html += '<div class="plaintext">' + escapeHtml(data.response) + '</div>';
-
+                    html += '<h3>&#128272; Encrypted reply (decrypt with your private key):</h3>';
                     if (data.encrypted_response) {
-                        html += '<h3>Your encrypted reply (decrypt this!):</h3>';
-                        html += '<div class="encrypted-output">' + escapeHtml(data.encrypted_response) + '</div>';
-                    }
-                    if (data.tip) {
-                        html += '<div style="margin-top:1rem;font-size:0.85rem;color:#ffb74d;">' + escapeHtml(data.tip) + '</div>';
+                        html += '<div class="key-box-wrapper" style="margin-top:0.5rem;">';
+                        html += '<button class="copy-btn" id="copyResponseBtn">Copy</button>';
+                        html += '<textarea class="key-textarea encrypted-output" id="responseEncryptedText" readonly style="min-height:160px;">' + escapeHtml(data.encrypted_response) + '</textarea>';
+                        html += '</div>';
+                    } else {
+                        html += '<div class="plaintext">No encrypted response was returned.</div>';
                     }
                     html += '</div>';
                     content.innerHTML = html;
+
+                    if (data.encrypted_response) {
+                        document.getElementById('copyResponseBtn').addEventListener('click', () => {
+                            copyTextToClipboard(data.encrypted_response, 'Encrypted reply copied!');
+                        });
+                    }
                     msgInput.value = '';
                 } else {
                     // Failure states
@@ -1621,9 +1707,46 @@
         }
         loadSavedKeysList();
 
+        // Profile Key
+        async function loadProfileKey() {
+            const ta = document.getElementById('profilePublicKeyText');
+            const status = document.getElementById('profileKeyStatus');
+            try {
+                const res = await fetch('/api/me', { cache: 'no-store' });
+                const data = await res.json();
+                if (data.logged_in && data.public_key) {
+                    ta.value = data.public_key;
+                    ta.classList.add('loaded');
+                    status.textContent = '';
+                } else if (data.logged_in) {
+                    ta.value = 'No public key saved. Go to My Profile to save one.';
+                    ta.classList.remove('loaded');
+                    status.innerHTML = 'Tip: <a href="/profile.html" class="profile-link">save your public key</a> in My Profile.';
+                } else {
+                    ta.value = 'Log in to see your public key.';
+                    ta.classList.remove('loaded');
+                    status.textContent = 'Tip: log in to use your profile key.';
+                }
+            } catch (e) {
+                ta.value = 'Could not load public key.';
+                status.textContent = 'Network error loading profile key.';
+            }
+        }
+
+        document.getElementById('copyProfileKeyBtn').addEventListener('click', () => {
+            const ta = document.getElementById('profilePublicKeyText');
+            const text = ta.value.trim();
+            if (!text || text.startsWith('Log in') || text.startsWith('No public') || text.startsWith('Could not')) {
+                showToast('No key to copy', 'error');
+                return;
+            }
+            copyTextToClipboard(text, 'Public key copied!');
+        });
+        loadProfileKey();
+
 checkAuth();
         loadPracticeKey();
     </script>
-    <div class="version-badge">V1.1</div>
+    <div class="version-badge">V1.3</div>
 </body>
 </html>
