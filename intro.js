@@ -121,11 +121,22 @@
                 display: block;
                 margin-bottom: 6px;
             }
-            .pgp-intro-body .step-card .label {
-                color: #c77dff;
-                font-size: 0.85rem;
-                font-weight: 600;
-            }
+        .pgp-intro-body .step-card .label {
+            color: #c77dff;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .pgp-intro-body .step-list {
+            margin: 0 0 1rem 1.4rem;
+            padding: 0;
+            color: #ccc;
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+        .pgp-intro-body .step-list li {
+            margin-bottom: 0.35rem;
+        }
+
             .pgp-intro-footer {
                 padding: 1rem 2rem 1.6rem;
                 display: flex;
@@ -191,7 +202,7 @@
                     <p>Your safe space to learn encryption by doing.</p>
                 </div>
                 <div class="pgp-intro-body">
-                    <h3><span>&#128161;</span> What is PGP?</h3>
+                    <h3>What is PGP?</h3>
                     <p>
                         PGP (Pretty Good Privacy) is a way to send messages that only the intended recipient can read.
                         It uses a <strong>key pair</strong>: a <strong>public key</strong> you can share with anyone, and a
@@ -199,7 +210,7 @@
                         but only your private key can decrypt it.
                     </p>
 
-                    <h3><span>&#128273;</span> Your first key pair</h3>
+                    <h3>Your first key pair</h3>
                     <p>Head to <strong>Encrypt / Decrypt</strong> and click <strong>Generate Key Pair</strong>. The tool will:</p>
                     <ul>
                         <li>Create an RSA public key and private key.</li>
@@ -207,35 +218,30 @@
                         <li>Let you download a backup copy to your device.</li>
                     </ul>
 
-                    <h3><span>&#128274;</span> How to practice</h3>
-                    <div class="step-grid">
-                        <div class="step-card"><span class="emoji">&#128221;</span><span class="label">Write a note</span></div>
-                        <div class="step-card"><span class="emoji">&#128273;</span><span class="label">Grab a public key</span></div>
-                        <div class="step-card"><span class="emoji">&#128274;</span><span class="label">Encrypt it</span></div>
-                        <div class="step-card"><span class="emoji">&#128275;</span><span class="label">Decrypt later</span></div>
-                    </div>
+                    <h3>How to practice</h3>
+                    <ol class="step-list"><li>Write a note</li><li>Grab a public key</li><li>Encrypt it</li><li>Decrypt later</li></ol>
 
-                    <h3><span>&#127919;</span> Practice Partner Challenge</h3>
+                    <h3>Practice Partner Challenge</h3>
                     <p>
                         On the <strong>Practice</strong> page you can exchange encrypted messages with an AI practice partner.
                         Copy the partner's public key, encrypt a message, paste it back, and the partner will reply with an
                         encrypted message only you can decrypt. It is a full end-to-end encryption loop!
                     </p>
 
-                    <h3><span>&#128203;</span> Saved Keys & Notes</h3>
+                    <h3>Saved Keys & Notes</h3>
                     <p>
                         Use <strong>Saved Keys</strong> to store your friends' public keys. Use the <strong>Notes</strong> tab
                         in the right sidebar to write, encrypt, and decrypt quick practice notes.
                     </p>
 
-                    <h3><span>&#128214;</span> Learn More on the Home Page</h3>
+                    <h3>Learn More on the Home Page</h3>
                     <p>
                         Scroll down on the Home page for a full beginner's guide covering
                         <strong>what PGP is, what it does, how to use it, and when to use it</strong>.
                     </p>
 
                     <div class="warning-box">
-                        <strong>&#9888; Remember:</strong> This is a learning environment. Your keys are stored on the
+                        <strong>Remember:</strong> This is a learning environment. Your keys are stored on the
                         server so beginners cannot lose them. <strong>Never use this app for real secrets.</strong>
                     </div>
                 </div>

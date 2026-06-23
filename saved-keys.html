@@ -894,7 +894,7 @@
             <h1>PGP Practice Tool</h1>
             <div class="subtitle">Saved Public Keys</div>
             <div class="practice-notice">
-                <strong>&#9888; Learning Environment:</strong> This is a safe place to practice PGP.
+                <strong>Learning Environment:</strong> This is a safe place to practice PGP.
                 Save your friends' public keys here to practice encrypting messages to them. Never use this app for real secrets.
             </div>
             <nav class="nav-tabs">
@@ -959,7 +959,7 @@
 
         <!-- Right Sidebar Toggle -->
         <!-- Right Sidebar Toggle -->
-    <button class="right-sidebar-toggle" id="rightSidebarToggle" aria-label="Tools">&#128295; Tools</button>
+    <button class="right-sidebar-toggle" id="rightSidebarToggle" aria-label="Tools">Tools</button>
 
     <!-- Right Sidebar Overlay -->
     <div class="right-sidebar-overlay" id="rightSidebarOverlay"></div>
@@ -968,17 +968,17 @@
     <aside class="right-sidebar" id="rightSidebar">
         <h2>Tools</h2>
         <div class="right-tabs">
-            <button class="right-tab-btn active" data-right-tab="notes">&#9998; Notes</button>
-            <button class="right-tab-btn" data-right-tab="savedKeysList">&#128273; Saved Keys</button>
-            <button class="right-tab-btn" data-right-tab="profile">&#128100; My Profile</button>
+            <button class="right-tab-btn active" data-right-tab="notes">Notes</button>
+            <button class="right-tab-btn" data-right-tab="savedKeysList">Saved Keys</button>
+            <button class="right-tab-btn" data-right-tab="profile">My Profile</button>
         </div>
 
         <div class="right-tab-content active" id="notes">
             <div class="notes-toolbar">
-                <h3>&#128221; My Notes</h3>
+                <h3>My Notes</h3>
                 <div class="note-actions">
-                    <button class="btn-sm" id="encryptNoteBtn" title="Encrypt note with your public key">&#128274; Encrypt</button>
-                    <button class="btn-sm" id="copyNoteBtn" title="Copy note content">&#128203; Copy</button>
+                    <button class="btn-sm" id="encryptNoteBtn" title="Encrypt note with your public key">Encrypt</button>
+                    <button class="btn-sm" id="copyNoteBtn" title="Copy note content">Copy</button>
                     <button class="btn-sm" id="newNoteBtn">+ New</button>
                 </div>
             </div>
@@ -1039,8 +1039,7 @@
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = 'toast ' + type;
-            const icon = type === 'success' ? '&#10003;' : type === 'error' ? '&#10007;' : '&#9432;';
-            toast.innerHTML = `<span>${icon}</span><span style="flex:1">${escapeHtml(text)}</span><button class="toast-close">&times;</button>`;
+            toast.innerHTML = `<span style="flex:1">${escapeHtml(text)}</span><button class="toast-close">&times;</button>`;
             container.appendChild(toast);
 
             const closeBtn = toast.querySelector('.toast-close');
@@ -1709,7 +1708,7 @@
                 const res = await fetch('/api/saved-keys');
                 const data = await res.json();
                 if (res.ok && data.keys && data.keys.length > 0) {
-                    list.innerHTML = data.keys.map(k => '<li><span class="key-icon">&#128273;</span> ' + (k.name || 'Unnamed').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</li>').join('');
+                    list.innerHTML = data.keys.map(k => '<li> ' + (k.name || 'Unnamed').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</li>').join('');
                 } else if (res.status === 401) {
                     list.innerHTML = '<li class="saved-keys-empty">Log in to see your saved keys.</li>';
                 } else { list.innerHTML = '<li class="saved-keys-empty">No saved keys yet.</li>'; }
@@ -1758,6 +1757,6 @@
 
     </script>
     <script src="/intro.js"></script>
-    <div class="version-badge">V1.7</div>
+    <div class="version-badge">V1.8</div>
 </body>
 </html>

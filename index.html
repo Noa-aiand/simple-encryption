@@ -360,9 +360,37 @@
         }
 
         .lock-icon {
-            font-size: 4rem;
-            margin-bottom: 1.5rem;
+            width: 48px;
+            height: 36px;
+            background: rgba(157, 78, 221, 0.25);
+            border: 2px solid rgba(157, 78, 221, 0.6);
+            border-radius: 6px;
+            margin: 0 auto 1.5rem;
+            position: relative;
             opacity: 0.9;
+        }
+        .lock-icon::before {
+            content: '';
+            position: absolute;
+            top: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 22px;
+            border: 2px solid rgba(157, 78, 221, 0.6);
+            border-bottom: none;
+            border-radius: 24px 24px 0 0;
+        }
+        .lock-icon::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            background: #9d4edd;
+            border-radius: 50%;
         }
 
         h1 {
@@ -861,12 +889,12 @@
     <!-- Main Content -->
     <div class="main-content">
         <div class="container">
-            <div class="lock-icon">&#128274;</div>
+            <div class="lock-icon"></div>
             <h1>PGP Practice Tool</h1>
             <div class="divider"></div>
             <div class="subtitle">Learn Encryption by Doing</div>
             <div class="practice-notice">
-                <strong>&#9888; Learning Environment:</strong> This is a safe place to practice PGP.
+                <strong>Learning Environment:</strong> This is a safe place to practice PGP.
                 Your keys are stored on the server so you can focus on learning. Do not use this app for real secrets.
             </div>
             <nav class="nav-tabs">
@@ -880,7 +908,7 @@
 
         <!-- What Does PGP Do? -->
         <section class="learn-section">
-            <h2>&#128214; What Does PGP Do?</h2>
+            <h2>What Does PGP Do?</h2>
             <p class="lead">
                 PGP (Pretty Good Privacy) is one of the most important building blocks of digital privacy.
                 Below is a beginner-friendly guide to what PGP is, what it does, and how you can use it safely.
@@ -888,7 +916,7 @@
 
             <div class="learn-grid">
                 <div class="learn-card">
-                    <div class="icon">&#128161;</div>
+                    
                     <h3>What is PGP?</h3>
                     <p>
                         PGP is a system of <span class="highlight">public-key cryptography</span>. Instead of sharing one secret password,
@@ -904,7 +932,7 @@
                 </div>
 
                 <div class="learn-card">
-                    <div class="icon">&#128274;</div>
+                    
                     <h3>What Does PGP Do?</h3>
                     <p>PGP gives you three superpowers:</p>
                     <ul>
@@ -918,7 +946,7 @@
                 </div>
 
                 <div class="learn-card">
-                    <div class="icon">&#128295;</div>
+                    
                     <h3>How Should You Use PGP?</h3>
                     <p>The basic flow is simple once you have a key pair:</p>
                     <ul>
@@ -931,7 +959,7 @@
                 </div>
 
                 <div class="learn-card">
-                    <div class="icon">&#9200;</div>
+                    
                     <h3>When Should You Use PGP?</h3>
                     <p>Use PGP whenever you want extra protection for information:</p>
                     <ul>
@@ -946,7 +974,7 @@
                 </div>
 
                 <div class="learn-card">
-                    <div class="icon">&#127919;</div>
+                    
                     <h3>Practice Partner Challenge</h3>
                     <p>
                         The best way to learn is by doing. Visit the <a href="/practice.html" style="color:#c77dff;">Practice</a> page,
@@ -959,7 +987,7 @@
                 </div>
 
                 <div class="learn-card">
-                    <div class="icon">&#9888;</div>
+                    
                     <h3>Practice Safely</h3>
                     <p>
                         <strong>This app is a learning environment.</strong> Your keys are stored on the server so you cannot lose them
@@ -976,7 +1004,7 @@
 
     <!-- Right Sidebar Toggle -->
             <!-- Right Sidebar Toggle -->
-    <button class="right-sidebar-toggle" id="rightSidebarToggle" aria-label="Tools">&#128295; Tools</button>
+    <button class="right-sidebar-toggle" id="rightSidebarToggle" aria-label="Tools">Tools</button>
 
     <!-- Right Sidebar Overlay -->
     <div class="right-sidebar-overlay" id="rightSidebarOverlay"></div>
@@ -985,17 +1013,17 @@
     <aside class="right-sidebar" id="rightSidebar">
         <h2>Tools</h2>
         <div class="right-tabs">
-            <button class="right-tab-btn active" data-right-tab="notes">&#9998; Notes</button>
-            <button class="right-tab-btn" data-right-tab="savedKeysList">&#128273; Saved Keys</button>
-            <button class="right-tab-btn" data-right-tab="profile">&#128100; My Profile</button>
+            <button class="right-tab-btn active" data-right-tab="notes">Notes</button>
+            <button class="right-tab-btn" data-right-tab="savedKeysList">Saved Keys</button>
+            <button class="right-tab-btn" data-right-tab="profile">My Profile</button>
         </div>
 
         <div class="right-tab-content active" id="notes">
             <div class="notes-toolbar">
-                <h3>&#128221; My Notes</h3>
+                <h3>My Notes</h3>
                 <div class="note-actions">
-                    <button class="btn-sm" id="encryptNoteBtn" title="Encrypt note with your public key">&#128274; Encrypt</button>
-                    <button class="btn-sm" id="copyNoteBtn" title="Copy note content">&#128203; Copy</button>
+                    <button class="btn-sm" id="encryptNoteBtn" title="Encrypt note with your public key">Encrypt</button>
+                    <button class="btn-sm" id="copyNoteBtn" title="Copy note content">Copy</button>
                     <button class="btn-sm" id="newNoteBtn">+ New</button>
                 </div>
             </div>
@@ -1058,8 +1086,7 @@
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = 'toast ' + type;
-            const icon = type === 'success' ? '&#10003;' : type === 'error' ? '&#10007;' : '&#9432;';
-            toast.innerHTML = `<span>${icon}</span><span style="flex:1">${escapeHtml(text)}</span><button class="toast-close">&times;</button>`;
+            toast.innerHTML = `<span style="flex:1">${escapeHtml(text)}</span><button class="toast-close">&times;</button>`;
             container.appendChild(toast);
 
             const closeBtn = toast.querySelector('.toast-close');
@@ -1394,7 +1421,7 @@
                     noteTitleInput.disabled = true;
                     notesTextarea.disabled = true;
                     newNoteBtn.disabled = true;
-                    notesStatus.innerHTML = '<span class="login-hint">&#9432; Login required for persistent notes</span>';
+                    notesStatus.innerHTML = '<span class="login-hint">Login required for persistent notes</span>';
                 } else {
                     notesStatus.textContent = 'Could not load notes.';
                 }
@@ -1585,7 +1612,7 @@
                 const res = await fetch('/api/saved-keys');
                 const data = await res.json();
                 if (res.ok && data.keys && data.keys.length > 0) {
-                    list.innerHTML = data.keys.map(k => '<li><span class="key-icon">&#128273;</span> ' + (k.name || 'Unnamed').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</li>').join('');
+                    list.innerHTML = data.keys.map(k => '<li> ' + (k.name || 'Unnamed').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</li>').join('');
                 } else if (res.status === 401) {
                     list.innerHTML = '<li class="saved-keys-empty">Log in to see your saved keys.</li>';
                 } else { list.innerHTML = '<li class="saved-keys-empty">No saved keys yet.</li>'; }
@@ -1633,6 +1660,6 @@
         checkAuth();
     </script>
     <script src="/intro.js"></script>
-    <div class="version-badge">V1.7</div>
+    <div class="version-badge">V1.8</div>
 </body>
 </html>

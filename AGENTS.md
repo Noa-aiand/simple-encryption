@@ -14,7 +14,7 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
   - `practice.html` — AI practice partner with RSA-2048/4096 keypair selector, plaintext rejection, and LLM-powered dynamic encrypted replies
   - **Right sidebar (Tools)** on every page with Notes (multi-note CRUD), Saved Keys list, and My Profile public key
 - **Nav**: responsive burger menu, auth status in top-right, logout button
-- **Version badge**: V1.7 in bottom-right corner on every page
+- **Version badge**: V1.8 in bottom-right corner on every page
 
 ## Backend
 - **Framework**: Flask (`server.py`)
@@ -79,9 +79,10 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 > - Also update this `AGENTS.md` Version History section.
 
 ## Current Version
-**V1.7**
+**V1.8**
 
 ## Version History
+- **V1.8**: Removed or replaced emoji icons throughout the site (warning signs, lock icons, tab icons, button icons, toast icons, and intro modal icons) with text labels and subtle CSS shapes to create a more natural, less AI-generated feel.
 - **V1.7**: Added a "What Does PGP Do?" educational section to the Home page explaining what PGP is, what it does, how to use it, and when to use it. Updated the first-time introduction modal to point users to the new guide.
 - **V1.6**: Added a first-time introduction modal that appears automatically when a user registers or logs in for the first time. The intro explains PGP basics, key generation, encrypt/decrypt, the practice partner challenge, saved keys, and notes. Added `intro_seen` user flag and `/api/intro-seen` endpoint to persist dismissal. Loaded via a reusable `intro.js` script across all pages.
 - **V1.5**: Pivoted app positioning from "serious PGP tool" to "PGP beginner practice / learning tool". Server now stores generated private keys in user profiles for beginner convenience. Added clear "Learning Environment" warning banners on every page. Fixed JavaScript syntax errors in note-decrypt code across all pages. Fixed note decryption API call (`message`/`encrypted_message` compatibility). Added key-status indicators, key-download buttons, and private-key management in My Profile. Updated copy buttons and help text for beginners.
