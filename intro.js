@@ -228,6 +228,12 @@
                         in the right sidebar to write, encrypt, and decrypt quick practice notes.
                     </p>
 
+                    <h3><span>&#128214;</span> Learn More on the Home Page</h3>
+                    <p>
+                        Scroll down on the Home page for a full beginner's guide covering
+                        <strong>what PGP is, what it does, how to use it, and when to use it</strong>.
+                    </p>
+
                     <div class="warning-box">
                         <strong>&#9888; Remember:</strong> This is a learning environment. Your keys are stored on the
                         server so beginners cannot lose them. <strong>Never use this app for real secrets.</strong>

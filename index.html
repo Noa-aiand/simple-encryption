@@ -341,9 +341,11 @@
         /* Main Content */
         .main-content {
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
+            padding-top: 40px;
         }
 
         .container {
@@ -354,6 +356,7 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            margin-bottom: 40px;
         }
 
         .lock-icon {
@@ -714,6 +717,77 @@
             line-height: 1.5;
         }
         .practice-notice strong { color: #ff9800; }
+
+        /* Educational Section */
+        .learn-section {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px 60px;
+        }
+        .learn-section h2 {
+            text-align: center;
+            color: #9d4edd;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .learn-section .lead {
+            text-align: center;
+            color: #c77dff;
+            font-size: 1.05rem;
+            max-width: 700px;
+            margin: 0 auto 2rem;
+            line-height: 1.6;
+        }
+        .learn-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        .learn-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1.6rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .learn-card:hover {
+            border-color: rgba(157, 78, 221, 0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+        }
+        .learn-card .icon {
+            font-size: 2rem;
+            margin-bottom: 0.8rem;
+        }
+        .learn-card h3 {
+            color: #c77dff;
+            font-size: 1.1rem;
+            margin-bottom: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .learn-card p {
+            color: #ddd;
+            font-size: 0.95rem;
+            line-height: 1.65;
+            margin-bottom: 0.8rem;
+        }
+        .learn-card ul {
+            color: #ccc;
+            font-size: 0.92rem;
+            line-height: 1.6;
+            margin-left: 1.2rem;
+        }
+        .learn-card li {
+            margin-bottom: 0.4rem;
+        }
+        .learn-card .highlight {
+            color: #9d4edd;
+            font-weight: 600;
+        }
 </style>
 </head>
 <body>
@@ -803,6 +877,101 @@
                 <a href="/practice.html" class="nav-tab">Practice</a>
             </nav>
         </div>
+
+        <!-- What Does PGP Do? -->
+        <section class="learn-section">
+            <h2>&#128214; What Does PGP Do?</h2>
+            <p class="lead">
+                PGP (Pretty Good Privacy) is one of the most important building blocks of digital privacy.
+                Below is a beginner-friendly guide to what PGP is, what it does, and how you can use it safely.
+            </p>
+
+            <div class="learn-grid">
+                <div class="learn-card">
+                    <div class="icon">&#128161;</div>
+                    <h3>What is PGP?</h3>
+                    <p>
+                        PGP is a system of <span class="highlight">public-key cryptography</span>. Instead of sharing one secret password,
+                        you create a <strong>key pair</strong>:
+                    </p>
+                    <ul>
+                        <li><strong>Public key</strong> — safe to share with anyone. It is used to encrypt messages <em>to</em> you.</li>
+                        <li><strong>Private key</strong> — kept secret. It is the only thing that can decrypt messages sent <em>to</em> you.</li>
+                    </ul>
+                    <p>
+                        The two keys are mathematically linked, but you cannot figure out the private key from the public key.
+                    </p>
+                </div>
+
+                <div class="learn-card">
+                    <div class="icon">&#128274;</div>
+                    <h3>What Does PGP Do?</h3>
+                    <p>PGP gives you three superpowers:</p>
+                    <ul>
+                        <li><strong>Confidentiality</strong> — only the intended recipient can read the message.</li>
+                        <li><strong>Authentication</strong> — you can prove a message really came from you.</li>
+                        <li><strong>Integrity</strong> — you can detect if a message was tampered with in transit.</li>
+                    </ul>
+                    <p>
+                        In short, PGP turns readable text into scrambled ciphertext that only the right private key can unscramble.
+                    </p>
+                </div>
+
+                <div class="learn-card">
+                    <div class="icon">&#128295;</div>
+                    <h3>How Should You Use PGP?</h3>
+                    <p>The basic flow is simple once you have a key pair:</p>
+                    <ul>
+                        <li><strong>Generate</strong> a key pair in the <a href="/encrypt.html" style="color:#c77dff;">Encrypt / Decrypt</a> page.</li>
+                        <li><strong>Share your public key</strong> with friends or paste it into <a href="/profile.html" style="color:#c77dff;">My Profile</a>.</li>
+                        <li><strong>Encrypt</strong> a message using the recipient's public key.</li>
+                        <li><strong>Send</strong> the encrypted block however you like — email, chat, notes.</li>
+                        <li><strong>Decrypt</strong> received messages with your private key.</li>
+                    </ul>
+                </div>
+
+                <div class="learn-card">
+                    <div class="icon">&#9200;</div>
+                    <h3>When Should You Use PGP?</h3>
+                    <p>Use PGP whenever you want extra protection for information:</p>
+                    <ul>
+                        <li>Sending sensitive personal information over email or chat.</li>
+                        <li>Sharing passwords, account recovery codes, or financial details.</li>
+                        <li>Signing files or messages to prove they came from you.</li>
+                        <li>Protecting notes, backups, or files stored in the cloud.</li>
+                    </ul>
+                    <p>
+                        You do not need to encrypt everything — PGP is for the moments when privacy and trust matter most.
+                    </p>
+                </div>
+
+                <div class="learn-card">
+                    <div class="icon">&#127919;</div>
+                    <h3>Practice Partner Challenge</h3>
+                    <p>
+                        The best way to learn is by doing. Visit the <a href="/practice.html" style="color:#c77dff;">Practice</a> page,
+                        copy the partner's public key, encrypt a message, and send it. The partner will reply with an encrypted
+                        message that only you can decrypt.
+                    </p>
+                    <p>
+                        It is a complete end-to-end encryption loop in a safe, beginner-friendly environment.
+                    </p>
+                </div>
+
+                <div class="learn-card">
+                    <div class="icon">&#9888;</div>
+                    <h3>Practice Safely</h3>
+                    <p>
+                        <strong>This app is a learning environment.</strong> Your keys are stored on the server so you cannot lose them
+                        while practicing. That is convenient for learning, but it is not how real PGP tools work.
+                    </p>
+                    <p>
+                        Once you understand the basics, move to a real PGP tool (such as GnuPG, ProtonMail, or Thunderbird with Enigmail)
+                        and keep your private key only on your own device.
+                    </p>
+                </div>
+            </div>
+        </section>
     </div>
 
     <!-- Right Sidebar Toggle -->
@@ -1464,6 +1633,6 @@
         checkAuth();
     </script>
     <script src="/intro.js"></script>
-    <div class="version-badge">V1.6</div>
+    <div class="version-badge">V1.7</div>
 </body>
 </html>
