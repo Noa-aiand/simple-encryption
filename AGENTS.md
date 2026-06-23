@@ -6,7 +6,7 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 > This app is intentionally designed as a **learning environment**, not a high-security tool. Keys are stored server-side so beginners can focus on learning PGP without losing their first keys.
 
 ## Frontend
-- **5 pages** sharing a consistent purple gradient theme (`#1a1a2e` → `#16213e`, Segoe UI) with Y2K-inspired glossy buttons, glowing headings, chrome-style cards, and a subtle grid/scanline background overlay:
+- **5 pages** sharing an early-2000s clunky & vibrant theme (neon gradients, 3D outset buttons, rainbow dividers, starfield background, scrolling marquee, and terminal-style inputs):
   - `index.html` — Home with auth, PGP feature overview
   - `encrypt.html` — Key generation, encrypt/decrypt with manual key input, keypair generation RSA 2048/4096
   - `profile.html` — Username, public key save/display, nav tabs
@@ -14,7 +14,7 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
   - `practice.html` — AI practice partner with RSA-2048/4096 keypair selector, plaintext rejection, and LLM-powered dynamic encrypted replies
   - **Right sidebar (Tools)** on every page with Notes (multi-note CRUD), Saved Keys list, and My Profile public key
 - **Nav**: responsive burger menu, auth status in top-right, logout button
-- **Version badge**: V1.9 in bottom-right corner on every page
+- **Version badge**: V1.10 in bottom-right corner on every page
 
 ## Backend
 - **Framework**: Flask (`server.py`)
@@ -79,9 +79,10 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 > - Also update this `AGENTS.md` Version History section.
 
 ## Current Version
-**V1.9**
+**V1.10**
 
 ## Version History
+- **V1.10**: Full early-2000s clunky & vibrant frontend redesign: starfield background, rainbow dividers, 3D outset buttons with press effects, neon yellow headings with drop shadows, inset terminal-style inputs, and a scrolling marquee banner. No backend changes.
 - **V1.9**: Standardized navigation tab formatting across all 5 pages and added Y2K-style visual touches: glossy gradient buttons, a subtle grid/scanline background overlay, glowing headings, chrome-style cards, and a CSS lock icon on the homepage.
 - **V1.8**: Removed or replaced emoji icons throughout the site (warning signs, lock icons, tab icons, button icons, toast icons, and intro modal icons) with text labels and subtle CSS shapes to create a more natural, less AI-generated feel.
 - **V1.7**: Added a "What Does PGP Do?" educational section to the Home page explaining what PGP is, what it does, how to use it, and when to use it. Updated the first-time introduction modal to point users to the new guide.
