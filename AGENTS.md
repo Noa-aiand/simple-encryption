@@ -14,7 +14,7 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
   - `practice.html` — AI practice partner with RSA-2048/4096 keypair selector, plaintext rejection, and LLM-powered dynamic encrypted replies
   - **Right sidebar (Tools)** on every page with Notes (multi-note CRUD), Saved Keys list, and My Profile public key
 - **Nav**: responsive burger menu, auth status in top-right, logout button
-- **Version badge**: V1.11 in bottom-right corner on every page
+- **Version badge**: V1.12 in bottom-right corner on every page
 
 ## Backend
 - **Framework**: Flask (`server.py`)
@@ -79,9 +79,10 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 > - Also update this `AGENTS.md` Version History section.
 
 ## Current Version
-**V1.11**
+**V1.12**
 
 ## Version History
+- **V1.12**: Fixed homepage "What Does PGP Do?" section text contrast and sidebar profile text so light gray/purple copy is readable against the white/light-blue background. No backend changes.
 - **V1.11**: Softened the early-2000s theme: replaced neon purple/pink palette with a light blue and white color scheme, gentler gradients, subtler shadows, and easier-on-the-eyes typography while keeping the clunky 3D buttons, rainbow divider, and marquee. No backend changes.
 - **V1.10**: Full early-2000s clunky & vibrant frontend redesign: starfield background, rainbow dividers, 3D outset buttons with press effects, neon yellow headings with drop shadows, inset terminal-style inputs, and a scrolling marquee banner. No backend changes.
 - **V1.9**: Standardized navigation tab formatting across all 5 pages and added Y2K-style visual touches: glossy gradient buttons, a subtle grid/scanline background overlay, glowing headings, chrome-style cards, and a CSS lock icon on the homepage.
