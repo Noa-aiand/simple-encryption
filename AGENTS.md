@@ -6,7 +6,7 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 > This app is intentionally designed as a **learning environment**, not a high-security tool. Keys are stored server-side so beginners can focus on learning PGP without losing their first keys.
 
 ## Frontend
-- **5 pages** sharing a consistent purple gradient theme (`#1a1a2e` → `#16213e`, Segoe UI):
+- **5 pages** sharing a consistent purple gradient theme (`#1a1a2e` → `#16213e`, Segoe UI) with Y2K-inspired glossy buttons, glowing headings, chrome-style cards, and a subtle grid/scanline background overlay:
   - `index.html` — Home with auth, PGP feature overview
   - `encrypt.html` — Key generation, encrypt/decrypt with manual key input, keypair generation RSA 2048/4096
   - `profile.html` — Username, public key save/display, nav tabs
@@ -14,7 +14,7 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
   - `practice.html` — AI practice partner with RSA-2048/4096 keypair selector, plaintext rejection, and LLM-powered dynamic encrypted replies
   - **Right sidebar (Tools)** on every page with Notes (multi-note CRUD), Saved Keys list, and My Profile public key
 - **Nav**: responsive burger menu, auth status in top-right, logout button
-- **Version badge**: V1.8 in bottom-right corner on every page
+- **Version badge**: V1.9 in bottom-right corner on every page
 
 ## Backend
 - **Framework**: Flask (`server.py`)
@@ -79,9 +79,10 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 > - Also update this `AGENTS.md` Version History section.
 
 ## Current Version
-**V1.8**
+**V1.9**
 
 ## Version History
+- **V1.9**: Standardized navigation tab formatting across all 5 pages and added Y2K-style visual touches: glossy gradient buttons, a subtle grid/scanline background overlay, glowing headings, chrome-style cards, and a CSS lock icon on the homepage.
 - **V1.8**: Removed or replaced emoji icons throughout the site (warning signs, lock icons, tab icons, button icons, toast icons, and intro modal icons) with text labels and subtle CSS shapes to create a more natural, less AI-generated feel.
 - **V1.7**: Added a "What Does PGP Do?" educational section to the Home page explaining what PGP is, what it does, how to use it, and when to use it. Updated the first-time introduction modal to point users to the new guide.
 - **V1.6**: Added a first-time introduction modal that appears automatically when a user registers or logs in for the first time. The intro explains PGP basics, key generation, encrypt/decrypt, the practice partner challenge, saved keys, and notes. Added `intro_seen` user flag and `/api/intro-seen` endpoint to persist dismissal. Loaded via a reusable `intro.js` script across all pages.
