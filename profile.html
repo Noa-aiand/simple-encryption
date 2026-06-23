@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PGP Encryption - Profile</title>
+    <title>PGP Practice Tool - Profile</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -761,6 +761,30 @@
             pointer-events: none;
             z-index: 500;
         }
+        .practice-notice {
+            max-width: 900px;
+            margin: 0 auto 1.5rem;
+            padding: 14px 18px;
+            background: rgba(255, 152, 0, 0.12);
+            border: 1px solid rgba(255, 152, 0, 0.35);
+            border-radius: 10px;
+            color: #ffb74d;
+            font-size: 0.92rem;
+            line-height: 1.5;
+        }
+        .practice-notice strong { color: #ff9800; }
+        .key-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.8rem;
+        }
+        .key-status.ok { background: rgba(76,175,80,0.15); color: #81c784; border: 1px solid rgba(76,175,80,0.3); }
+        .key-status.missing { background: rgba(255,152,0,0.15); color: #ffb74d; border: 1px solid rgba(255,152,0,0.3); }
 </style>
 </head>
 <body>
@@ -827,8 +851,12 @@
     <!-- Main Content -->
     <div class="main-content">
         <div class="page-header">
-            <h1>PGP Encryption</h1>
+            <h1>PGP Practice Tool</h1>
             <div class="subtitle">User Profile</div>
+            <div class="practice-notice">
+                <strong>&#9888; Learning Environment:</strong> This is a safe place to practice PGP.
+                Your public and private keys are stored here so you can decrypt messages. Never use this app for real secrets.
+            </div>
             <nav class="nav-tabs">
                 <a href="/" class="nav-tab">Home</a>
                 <a href="/encrypt.html" class="nav-tab">Encrypt / Decrypt</a>
@@ -846,15 +874,27 @@
                 <div class="value" id="profileUsername">Loading...</div>
             </div>
 
+            <div id="keyStatusRow" style="display:none;">
+                <span class="key-status" id="publicKeyStatus">Public key: missing</span>
+                <span class="key-status" id="privateKeyStatus">Private key: missing</span>
+            </div>
+
             <div class="form-group">
                 <label for="profilePublicKey">Your Public Key</label>
                 <textarea id="profilePublicKey" placeholder="Paste your PGP public key here, or generate one from the Encrypt / Decrypt page..."></textarea>
             </div>
 
+            <div class="form-group">
+                <label for="profilePrivateKey">Your Private Key</label>
+                <textarea id="profilePrivateKey" placeholder="Paste your PGP private key here, or generate one from the Encrypt / Decrypt page..."></textarea>
+            </div>
+
             <div class="action-btns">
-                <button class="btn btn-primary" id="saveKeyBtn">Save Public Key</button>
-                <button class="btn btn-secondary" id="copyKeyBtn">Copy Key</button>
-                <button class="btn btn-success" id="clearKeyBtn">Clear</button>
+                <button class="btn btn-primary" id="saveKeyBtn">Save Keys</button>
+                <button class="btn btn-secondary" id="copyKeyBtn">Copy Public Key</button>
+                <button class="btn btn-secondary" id="copyPrivateKeyBtn">Copy Private Key</button>
+                <button class="btn btn-success" id="downloadKeyBtn">Download Key Backup</button>
+                <button class="btn btn-success" id="clearKeyBtn">Clear Fields</button>
             </div>
 
             <div class="status-msg" id="profileStatus"></div>
@@ -862,7 +902,7 @@
 
         <!-- Saved Key Display -->
         <div class="card" id="savedKeyCard" style="display:none;">
-            <h2><span class="icon">&#128273;</span> Current Saved Key</h2>
+            <h2><span class="icon">&#128273;</span> Current Saved Keys</h2>
             <div class="key-display show" id="savedKeyDisplay"></div>
         </div>
 
@@ -1075,6 +1115,38 @@
             setTimeout(() => { el.className = 'status-msg'; el.textContent = ''; }, 5000);
         }
 
+        function downloadKeyBackup() {
+            const publicKey = document.getElementById('profilePublicKey').value.trim();
+            const privateKey = document.getElementById('profilePrivateKey').value.trim();
+            if (!publicKey || !privateKey) {
+                showToast('No keys to download', 'error');
+                return;
+            }
+            const blob = new Blob(
+                [`PUBLIC KEY:\n\n${publicKey}\n\nPRIVATE KEY:\n\n${privateKey}`],
+                { type: 'text/plain' }
+            );
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'pgp-practice-keys.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function setKeyStatus(hasPublic, hasPrivate) {
+            const row = document.getElementById('keyStatusRow');
+            const pub = document.getElementById('publicKeyStatus');
+            const priv = document.getElementById('privateKeyStatus');
+            row.style.display = 'block';
+            pub.textContent = 'Public key: ' + (hasPublic ? 'saved' : 'missing');
+            pub.className = 'key-status ' + (hasPublic ? 'ok' : 'missing');
+            priv.textContent = 'Private key: ' + (hasPrivate ? 'saved' : 'missing');
+            priv.className = 'key-status ' + (hasPrivate ? 'ok' : 'missing');
+        }
+
         // Auth Forms
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -1169,6 +1241,8 @@
                     showLoggedOut();
                     document.getElementById('profileUsername').textContent = 'Not logged in';
                     document.getElementById('profilePublicKey').value = '';
+                    document.getElementById('profilePrivateKey').value = '';
+                    document.getElementById('keyStatusRow').style.display = 'none';
                     document.getElementById('savedKeyCard').style.display = 'none';
                     showToast('You have been logged out successfully.', 'info');
                 } else {
@@ -1188,15 +1262,19 @@
                 const res = await fetch('/api/profile');
                 if (res.status === 401) {
                     document.getElementById('profileUsername').textContent = 'Not logged in';
+                    document.getElementById('keyStatusRow').style.display = 'none';
                     showStatus('profileStatus', 'Please log in to view your profile.', 'info');
                     return;
                 }
                 const data = await res.json();
                 if (res.ok) {
                     document.getElementById('profileUsername').textContent = data.username;
+                    document.getElementById('profilePublicKey').value = data.public_key || '';
+                    document.getElementById('profilePrivateKey').value = data.private_key || '';
+                    setKeyStatus(data.has_public_key, data.has_private_key);
                     if (data.public_key) {
-                        document.getElementById('profilePublicKey').value = data.public_key;
-                        document.getElementById('savedKeyDisplay').textContent = data.public_key;
+                        document.getElementById('savedKeyDisplay').textContent =
+                            'PUBLIC KEY:\n\n' + data.public_key + '\n\nPRIVATE KEY:\n\n' + (data.private_key || '(not saved)');
                         document.getElementById('savedKeyCard').style.display = 'block';
                     } else {
                         document.getElementById('savedKeyCard').style.display = 'none';
@@ -1210,41 +1288,61 @@
         }
 
         document.getElementById('saveKeyBtn').addEventListener('click', async () => {
-            const key = document.getElementById('profilePublicKey').value.trim();
+            const publicKey = document.getElementById('profilePublicKey').value.trim();
+            const privateKey = document.getElementById('profilePrivateKey').value.trim();
             try {
-                const res = await fetch('/api/update-public-key', {
+                let ok = true;
+                const pubRes = await fetch('/api/update-public-key', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ public_key: key })
+                    body: JSON.stringify({ public_key: publicKey })
                 });
-                const data = await res.json();
-                if (res.ok) {
-                    showStatus('profileStatus', 'Public key saved successfully!', 'ok');
-                    if (key) {
-                        document.getElementById('savedKeyDisplay').textContent = key;
+                if (!pubRes.ok) { ok = false; }
+                const privRes = await fetch('/api/update-private-key', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ private_key: privateKey })
+                });
+                if (!privRes.ok) { ok = false; }
+
+                if (ok) {
+                    showStatus('profileStatus', 'Keys saved successfully!', 'ok');
+                    setKeyStatus(Boolean(publicKey), Boolean(privateKey));
+                    if (publicKey) {
+                        document.getElementById('savedKeyDisplay').textContent =
+                            'PUBLIC KEY:\n\n' + publicKey + '\n\nPRIVATE KEY:\n\n' + (privateKey || '(not saved)');
                         document.getElementById('savedKeyCard').style.display = 'block';
                     } else {
                         document.getElementById('savedKeyCard').style.display = 'none';
                     }
-                } else if (res.status === 401) {
-                    showStatus('profileStatus', 'Please log in to save your public key.', 'error');
+                } else if (pubRes.status === 401 || privRes.status === 401) {
+                    showStatus('profileStatus', 'Please log in to save your keys.', 'error');
                 } else {
-                    showStatus('profileStatus', data.error || 'Save failed', 'error');
+                    showStatus('profileStatus', 'One or more keys failed to save.', 'error');
                 }
             } catch (e) {
-                showStatus('profileStatus', 'Network error saving public key', 'error');
+                showStatus('profileStatus', 'Network error saving keys', 'error');
             }
         });
 
         document.getElementById('copyKeyBtn').addEventListener('click', () => {
             const key = document.getElementById('profilePublicKey').value;
-            if (!key) { showToast('No key to copy', 'error'); return; }
+            if (!key) { showToast('No public key to copy', 'error'); return; }
             copyToClipboard(key, 'Public key copied!');
         });
 
+        document.getElementById('copyPrivateKeyBtn').addEventListener('click', () => {
+            const key = document.getElementById('profilePrivateKey').value;
+            if (!key) { showToast('No private key to copy', 'error'); return; }
+            copyToClipboard(key, 'Private key copied!');
+        });
+
+        document.getElementById('downloadKeyBtn').addEventListener('click', downloadKeyBackup);
+
         document.getElementById('clearKeyBtn').addEventListener('click', () => {
-            if (confirm('Clear your public key from this field?')) {
+            if (confirm('Clear both key fields? This will not delete saved keys until you click Save Keys.')) {
                 document.getElementById('profilePublicKey').value = '';
+                document.getElementById('profilePrivateKey').value = '';
             }
         });
 
@@ -1493,6 +1591,7 @@
                     showToast(data.error || 'Encryption failed', 'error');
                 }
             } catch (e) { showToast('Encryption failed: ' + e.message, 'error'); }
+        }
 
         async function decryptNoteContent() {
             if (!currentNoteId) { showToast('Select a note first', 'error'); return; }
@@ -1519,8 +1618,6 @@
                     showToast(data.error || 'Decryption failed', 'error');
                 }
             } catch (e) { showToast('Decryption failed: ' + e.message, 'error'); }
-        }
-
         }
 
         newNoteBtn.addEventListener('click', createNewNote);
@@ -1589,6 +1686,6 @@
         checkAuth();
         loadProfile();
     </script>
-    <div class="version-badge">V1.4</div>
+    <div class="version-badge">V1.5</div>
 </body>
 </html>

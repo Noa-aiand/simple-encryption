@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PGP Encryption</title>
+    <title>PGP Practice Tool</title>
     <style>
         * {
             margin: 0;
@@ -702,6 +702,18 @@
             pointer-events: none;
             z-index: 500;
         }
+        .practice-notice {
+            max-width: 620px;
+            margin: 1.5rem auto 0;
+            padding: 14px 18px;
+            background: rgba(255, 152, 0, 0.12);
+            border: 1px solid rgba(255, 152, 0, 0.35);
+            border-radius: 10px;
+            color: #ffb74d;
+            font-size: 0.92rem;
+            line-height: 1.5;
+        }
+        .practice-notice strong { color: #ff9800; }
 </style>
 </head>
 <body>
@@ -776,9 +788,13 @@
     <div class="main-content">
         <div class="container">
             <div class="lock-icon">&#128274;</div>
-            <h1>PGP Encryption</h1>
+            <h1>PGP Practice Tool</h1>
             <div class="divider"></div>
-            <div class="subtitle">Secure Communication</div>
+            <div class="subtitle">Learn Encryption by Doing</div>
+            <div class="practice-notice">
+                <strong>&#9888; Learning Environment:</strong> This is a safe place to practice PGP.
+                Your keys are stored on the server so you can focus on learning. Do not use this app for real secrets.
+            </div>
             <nav class="nav-tabs">
                 <a href="/" class="nav-tab active">Home</a>
                 <a href="/encrypt.html" class="nav-tab">Encrypt / Decrypt</a>
@@ -1121,10 +1137,6 @@
         });
 
         // Right Sidebar Toggle
-        
-
-        // Check auth on load
-        // Right Sidebar Toggle
         const rightToggle = document.getElementById('rightSidebarToggle');
         const rightSidebar = document.getElementById('rightSidebar');
         const rightOverlay = document.getElementById('rightSidebarOverlay');
@@ -1357,6 +1369,7 @@
                     showToast(data.error || 'Encryption failed', 'error');
                 }
             } catch (e) { showToast('Encryption failed: ' + e.message, 'error'); }
+        }
 
         async function decryptNoteContent() {
             if (!currentNoteId) { showToast('Select a note first', 'error'); return; }
@@ -1383,8 +1396,6 @@
                     showToast(data.error || 'Decryption failed', 'error');
                 }
             } catch (e) { showToast('Decryption failed: ' + e.message, 'error'); }
-        }
-
         }
 
         newNoteBtn.addEventListener('click', createNewNote);
@@ -1452,6 +1463,6 @@
 
         checkAuth();
     </script>
-    <div class="version-badge">V1.4</div>
+    <div class="version-badge">V1.5</div>
 </body>
 </html>

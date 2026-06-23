@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PGP Encryption - Encrypt / Decrypt</title>
+    <title>PGP Practice Tool - Encrypt / Decrypt</title>
     <style>
         * {
             margin: 0;
@@ -797,6 +797,18 @@
             pointer-events: none;
             z-index: 500;
         }
+        .practice-notice {
+            max-width: 900px;
+            margin: 0 auto 1.5rem;
+            padding: 14px 18px;
+            background: rgba(255, 152, 0, 0.12);
+            border: 1px solid rgba(255, 152, 0, 0.35);
+            border-radius: 10px;
+            color: #ffb74d;
+            font-size: 0.92rem;
+            line-height: 1.5;
+        }
+        .practice-notice strong { color: #ff9800; }
 </style>
 </head>
 <body>
@@ -866,8 +878,12 @@
     <!-- Main Content -->
     <div class="main-content">
         <div class="page-header">
-            <h1>PGP Encryption</h1>
+            <h1>PGP Practice Tool</h1>
             <div class="subtitle">Encrypt / Decrypt Messages</div>
+            <div class="practice-notice">
+                <strong>&#9888; Learning Environment:</strong> This is a safe place to practice PGP.
+                Generated keys are saved to your profile so you can't lose them. Never use this app for real secrets.
+            </div>
             <nav class="nav-tabs">
                 <a href="/" class="nav-tab">Home</a>
                 <a href="/encrypt.html" class="nav-tab active">Encrypt / Decrypt</a>
@@ -889,9 +905,12 @@
                 <button class="btn btn-primary" id="generateKeysBtn">Generate Key Pair</button>
                 <button class="btn btn-secondary" id="copyPublicBtn" style="display:none;">Copy Public Key</button>
                 <button class="btn btn-secondary" id="copyPrivateBtn" style="display:none;">Copy Private Key</button>
-                <button class="btn btn-success" id="saveToProfileBtn" style="display:none;">Save Public Key to Profile</button>
+                <button class="btn btn-success" id="downloadKeysBtn" style="display:none;">Download Key Backup</button>
             </div>
-            <p style="margin-top:12px;font-size:0.8rem;color:rgba(255,255,255,0.5);"><strong>Important:</strong> Make sure you save your private key securely on your device. We do not store private keys on our servers.</p>
+            <p style="margin-top:12px;font-size:0.8rem;color:rgba(255,255,255,0.5);">
+                <strong>Learning mode:</strong> Generated keys are automatically saved to your profile so you can decrypt messages later.
+                You can also copy or download a backup. Do not use these keys for real secrets.
+            </p>
             <div class="key-box" id="publicKeyBox"></div>
             <div class="key-box" id="privateKeyBox"></div>
             <div class="status-msg" id="genStatus" style="margin-top:1rem; padding:10px; border-radius:8px; font-size:0.9rem; text-align:center; display:none;"></div>
@@ -1271,9 +1290,6 @@
             }
         });
 
-        // Right Sidebar Toggle
-        
-
         checkAuth();
 
         // Server status check
@@ -1327,25 +1343,19 @@
         let generatedPublicKey = '';
         let generatedPrivateKey = '';
 
-        async function savePublicKeyToProfile(publicKey) {
-            if (!publicKey) return;
-            try {
-                const res = await fetch('/api/update-public-key', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ public_key: publicKey })
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    showGenStatus('Public key saved to your profile!', 'ok');
-                } else if (res.status === 401) {
-                    showGenStatus('Log in first to save your key to your profile.', 'error');
-                } else {
-                    showGenStatus(data.error || 'Failed to save key to profile', 'error');
-                }
-            } catch (e) {
-                showGenStatus('Network error saving key to profile', 'error');
-            }
+        function downloadKeyBackup(publicKey, privateKey, keySize) {
+            const blob = new Blob(
+                [`PUBLIC KEY (RSA-${keySize}):\n\n${publicKey}\n\nPRIVATE KEY (RSA-${keySize}):\n\n${privateKey}`],
+                { type: 'text/plain' }
+            );
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `pgp-practice-keys-rsa${keySize}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
         document.getElementById('generateKeysBtn').addEventListener('click', async () => {
@@ -1375,12 +1385,16 @@
 
                     document.getElementById('copyPublicBtn').style.display = 'inline-block';
                     document.getElementById('copyPrivateBtn').style.display = 'inline-block';
-                    document.getElementById('saveToProfileBtn').style.display = 'inline-block';
+                    document.getElementById('downloadKeysBtn').style.display = 'inline-block';
 
                     // Auto-fill encrypt public key
                     document.getElementById('encPublicKey').value = data.public_key;
 
-                    showGenStatus(`RSA-${data.key_size} key pair generated successfully!`, 'ok');
+                    if (data.saved_to_profile) {
+                        showGenStatus(`RSA-${data.key_size} key pair generated and saved to your profile!`, 'ok');
+                    } else {
+                        showGenStatus(`RSA-${data.key_size} key pair generated! Log in to save it to your profile.`, 'info');
+                    }
                 } else if (res.status === 503) {
                     showGenStatus(
                         'Encryption module is not installed on this server. ' +
@@ -1400,7 +1414,14 @@
 
         document.getElementById('copyPublicBtn').addEventListener('click', () => copyToClipboard(generatedPublicKey, 'Public key copied!'));
         document.getElementById('copyPrivateBtn').addEventListener('click', () => copyToClipboard(generatedPrivateKey, 'Private key copied!'));
-        document.getElementById('saveToProfileBtn').addEventListener('click', () => savePublicKeyToProfile(generatedPublicKey));
+        document.getElementById('downloadKeysBtn').addEventListener('click', () => {
+            if (!generatedPublicKey || !generatedPrivateKey) {
+                showToast('Generate a key pair first', 'error');
+                return;
+            }
+            downloadKeyBackup(generatedPublicKey, generatedPrivateKey, document.getElementById('genKeySize').value);
+            showToast('Key backup downloaded', 'success');
+        });
 
         // Encrypt
         document.getElementById('encryptBtn').addEventListener('click', async () => {
@@ -1711,43 +1732,6 @@
                 }
             } catch (e) { showToast('Encryption failed: ' + e.message, 'error'); }
         }
-        let cachedDecryptedPrivateKey = null;
-        async function decryptNoteContent() {
-            await ensureOpenPgp();
-            if (!currentNoteId) { showToast('Select a note first', 'error'); return; }
-            const content = notesTextarea.value.trim();
-            if (!content) { showToast('Note is empty', 'error'); return; }
-            if (!isPgpEncrypted(content)) { showToast('Note does not appear to be encrypted', 'error'); return; }
-            notesStatus.textContent = 'Decrypting...';
-            try {
-                let privKeyArmored = cachedDecryptedPrivateKey;
-                if (!privKeyArmored) {
-                    const res = await fetch('/api/private-key');
-                    const data = await res.json();
-                    if (!data.encrypted_private_key) {
-                        showToast('Save an encrypted private key in your profile first', 'error');
-                        notesStatus.textContent = '';
-                        return;
-                    }
-                    const password = prompt('Enter your private key storage password:');
-                    if (!password) { notesStatus.textContent = ''; return; }
-                    const encryptedData = typeof data.encrypted_private_key === 'string'
-                        ? JSON.parse(data.encrypted_private_key)
-                        : data.encrypted_private_key;
-                    privKeyArmored = await decryptPrivateKey(encryptedData, password);
-                    cachedDecryptedPrivateKey = privKeyArmored;
-                }
-                const privateKey = await openpgp.readPrivateKey({ armoredKey: privKeyArmored });
-                const message = await openpgp.readMessage({ armoredMessage: content });
-                const { data: decrypted } = await openpgp.decrypt({ message, decryptionKeys: privateKey });
-                notesTextarea.value = decrypted;
-                saveCurrentNote();
-                showToast('Note decrypted!', 'success');
-            } catch (e) {
-                showToast('Decryption failed: ' + e.message, 'error');
-            }
-            notesStatus.textContent = '';
-        }
 
         newNoteBtn.addEventListener('click', createNewNote);
         noteTitleInput.addEventListener('input', saveCurrentNote);
@@ -1815,6 +1799,6 @@
         checkAuth();
     </script>
 
-    <div class="version-badge">V1.4</div>
+    <div class="version-badge">V1.5</div>
 </body>
 </html>

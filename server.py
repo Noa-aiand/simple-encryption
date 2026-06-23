@@ -125,6 +125,13 @@ def init_db():
     except Exception:
         conn.rollback()
 
+    try:
+        c.execute("ALTER TABLE users ADD COLUMN private_key TEXT")
+        conn.commit()
+        logger.info("Migrated DB: added private_key column")
+    except Exception:
+        conn.rollback()
+
     if USE_POSTGRES:
         c.execute("""
             CREATE TABLE IF NOT EXISTS saved_keys (
@@ -403,11 +410,18 @@ def me():
     if 'user_id' in session:
         conn = db_connect()
         c = conn.cursor()
-        db_execute(c, 'SELECT username, public_key FROM users WHERE id = ?', (session['user_id'],))
+        db_execute(c, 'SELECT username, public_key, private_key FROM users WHERE id = ?', (session['user_id'],))
         row = c.fetchone()
         conn.close()
         if row:
-            return jsonify({'logged_in': True, 'username': row[0], 'public_key': row[1] or ''}), 200
+            return jsonify({
+                'logged_in': True,
+                'username': row[0],
+                'public_key': row[1] or '',
+                'private_key': row[2] or '',
+                'has_public_key': bool(row[1]),
+                'has_private_key': bool(row[2])
+            }), 200
         return jsonify({'logged_in': True, 'username': session['username']}), 200
     return jsonify({'logged_in': False}), 200
 
@@ -421,7 +435,7 @@ def get_profile():
 
     conn = db_connect()
     c = conn.cursor()
-    db_execute(c, 'SELECT username, public_key FROM users WHERE id = ?', (session['user_id'],))
+    db_execute(c, 'SELECT username, public_key, private_key FROM users WHERE id = ?', (session['user_id'],))
     row = c.fetchone()
     conn.close()
 
@@ -430,7 +444,10 @@ def get_profile():
 
     return jsonify({
         'username': row[0],
-        'public_key': row[1] or ''
+        'public_key': row[1] or '',
+        'private_key': row[2] or '',
+        'has_public_key': bool(row[1]),
+        'has_private_key': bool(row[2])
     }), 200
 
 
@@ -449,6 +466,23 @@ def update_public_key():
     conn.close()
 
     return jsonify({'message': 'Public key saved successfully'}), 200
+
+
+@app.route('/api/update-private-key', methods=['POST'])
+def update_private_key():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+
+    data = request.get_json() or {}
+    private_key = data.get('private_key', '')
+
+    conn = db_connect()
+    c = conn.cursor()
+    db_execute(c, 'UPDATE users SET private_key = ? WHERE id = ?', (private_key, session['user_id']))
+    conn.commit()
+    conn.close()
+
+    return jsonify({'message': 'Private key saved successfully'}), 200
 
 
 # ============== Saved Keys Routes ==============
@@ -1008,11 +1042,29 @@ def generate_keys():
         public_block = make_pgp_block('PUBLIC KEY BLOCK', public_b64, f'RSA-{key_size}')
         private_block = make_pgp_block('PRIVATE KEY BLOCK', private_b64, f'RSA-{key_size}')
 
+        # Optionally persist the keypair to the logged-in user's profile so
+        # beginners do not lose their keys while practicing. We still return
+        # both keys in the response so they can download a backup copy.
+        saved_to_profile = False
+        if 'user_id' in session:
+            try:
+                conn = db_connect()
+                c = conn.cursor()
+                db_execute(c, 'UPDATE users SET public_key = ?, private_key = ? WHERE id = ?',
+                           (public_block, private_block, session['user_id']))
+                conn.commit()
+                conn.close()
+                saved_to_profile = True
+                logger.info("RSA-%d key pair saved to user %s profile", key_size, session['user_id'])
+            except Exception as e:
+                logger.warning("Could not save generated keys to profile: %s", e)
+
         logger.info("RSA-%d key pair generated successfully", key_size)
         return jsonify({
             'public_key': public_block,
             'private_key': private_block,
-            'key_size': key_size
+            'key_size': key_size,
+            'saved_to_profile': saved_to_profile
         }), 200
     except Exception as e:
         logger.exception("Key generation failed")
@@ -1084,7 +1136,7 @@ def decrypt_message():
 
     data = request.get_json() or {}
     private_key_block = data.get('private_key', '')
-    encrypted_block = data.get('encrypted_message', '')
+    encrypted_block = data.get('encrypted_message', '') or data.get('message', '')
 
     if not private_key_block or not encrypted_block:
         return jsonify({'error': 'Private key and encrypted message are required'}), 400

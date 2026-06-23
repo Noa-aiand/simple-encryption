@@ -1,7 +1,9 @@
 # Simple Encryption — Agent Context
 
 ## Overview
-Multi-page PGP encryption web app with user accounts, persistent keys, practice challenge, and a multi-note manager. Deployed on Build.io with PostgreSQL for production persistence.
+Multi-page **PGP beginner practice / learning tool** with user accounts, persistent keys, practice challenge, and a multi-note manager. Deployed on Build.io with PostgreSQL for production persistence.
+
+> This app is intentionally designed as a **learning environment**, not a high-security tool. Keys are stored server-side so beginners can focus on learning PGP without losing their first keys.
 
 ## Frontend
 - **5 pages** sharing a consistent purple gradient theme (`#1a1a2e` → `#16213e`, Segoe UI):
@@ -12,7 +14,7 @@ Multi-page PGP encryption web app with user accounts, persistent keys, practice 
   - `practice.html` — AI practice partner with RSA-2048/4096 keypair selector, plaintext rejection, and LLM-powered dynamic encrypted replies
   - **Right sidebar (Tools)** on every page with Notes (multi-note CRUD), Saved Keys list, and My Profile public key
 - **Nav**: responsive burger menu, auth status in top-right, logout button
-- **Version badge**: V1.4 in bottom-right corner on every page
+- **Version badge**: V1.5 in bottom-right corner on every page
 
 ## Backend
 - **Framework**: Flask (`server.py`)
@@ -30,6 +32,7 @@ Multi-page PGP encryption web app with user accounts, persistent keys, practice 
 ### Profile & Keys
 - `GET /api/profile` → {username, public_key}
 - `POST /api/update-public-key` → saves public_key string for logged-in user
+- `POST /api/update-private-key` → saves private_key string for logged-in user
 - `GET /api/saved-keys` → list user's saved keys
 - `POST /api/saved-keys` → save new named key
 - `PUT /api/saved-keys/:id` → rename/edit saved key
@@ -52,7 +55,7 @@ Multi-page PGP encryption web app with user accounts, persistent keys, practice 
 
 ## Architecture Decisions
 - **PostgreSQL** for production on Build.io (rolling deploys wipe local SQLite)
-- **No private key storage** — server never stores or sees private keys. Users are told to save keys to their device.
+- **Private keys are stored server-side** — this is a deliberate beginner-friendly choice. Users often lose their first private keys, so the app saves them to the user's profile. A clear warning is shown that this is a practice tool and not for real secrets.
 - **Sidebar note encryption** uses `/api/encrypt` (server-side RSA + AES-GCM). Notes are NOT encrypted with OpenPGP.js due to format mismatch.
 - **OpenPGP.js** is loaded only on `encrypt.html` and `practice.html`
 - **Practice partner** has both RSA-2048 and RSA-4096 keypairs stored in `server_config` table
@@ -75,9 +78,10 @@ Multi-page PGP encryption web app with user accounts, persistent keys, practice 
 > - Also update this `AGENTS.md` Version History section.
 
 ## Current Version
-**V1.4**
+**V1.5**
 
 ## Version History
+- **V1.5**: Pivoted app positioning from "serious PGP tool" to "PGP beginner practice / learning tool". Server now stores generated private keys in user profiles for beginner convenience. Added clear "Learning Environment" warning banners on every page. Fixed JavaScript syntax errors in note-decrypt code across all pages. Fixed note decryption API call (`message`/`encrypted_message` compatibility). Added key-status indicators, key-download buttons, and private-key management in My Profile. Updated copy buttons and help text for beginners.
 - **V1.4**: Improved LLM system prompt so replies directly reference the decrypted user message; standardized `copyToClipboard()` helper across all pages and fixed copy reliability; added Copy button for note content in the toolbar.
 - **V1.3**: Integrated optional OpenAI-compatible LLM for dynamic practice partner replies; added `requests` dependency and `LLM_API_KEY`/`LLM_BASE_URL`/`LLM_MODEL` env vars; defaults to ai& (`https://api.aiand.com/v1`, `google/gemma-4-31b-it`); falls back to rule-based responses if LLM is unavailable.
 - **V1.2**: Practice challenge now returns only an encrypted reply (requires logged-in user with saved public key); added RSA-2048/4096 practice key size selector; added My Profile tab to the right sidebar on every page showing the user's saved public key.
