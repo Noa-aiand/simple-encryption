@@ -132,6 +132,13 @@ def init_db():
     except Exception:
         conn.rollback()
 
+    try:
+        c.execute("ALTER TABLE users ADD COLUMN intro_seen INTEGER DEFAULT 0")
+        conn.commit()
+        logger.info("Migrated DB: added intro_seen column")
+    except Exception:
+        conn.rollback()
+
     if USE_POSTGRES:
         c.execute("""
             CREATE TABLE IF NOT EXISTS saved_keys (
@@ -410,7 +417,7 @@ def me():
     if 'user_id' in session:
         conn = db_connect()
         c = conn.cursor()
-        db_execute(c, 'SELECT username, public_key, private_key FROM users WHERE id = ?', (session['user_id'],))
+        db_execute(c, 'SELECT username, public_key, private_key, intro_seen FROM users WHERE id = ?', (session['user_id'],))
         row = c.fetchone()
         conn.close()
         if row:
@@ -420,7 +427,8 @@ def me():
                 'public_key': row[1] or '',
                 'private_key': row[2] or '',
                 'has_public_key': bool(row[1]),
-                'has_private_key': bool(row[2])
+                'has_private_key': bool(row[2]),
+                'intro_seen': bool(row[3])
             }), 200
         return jsonify({'logged_in': True, 'username': session['username']}), 200
     return jsonify({'logged_in': False}), 200
@@ -435,7 +443,7 @@ def get_profile():
 
     conn = db_connect()
     c = conn.cursor()
-    db_execute(c, 'SELECT username, public_key, private_key FROM users WHERE id = ?', (session['user_id'],))
+    db_execute(c, 'SELECT username, public_key, private_key, intro_seen FROM users WHERE id = ?', (session['user_id'],))
     row = c.fetchone()
     conn.close()
 
@@ -447,7 +455,8 @@ def get_profile():
         'public_key': row[1] or '',
         'private_key': row[2] or '',
         'has_public_key': bool(row[1]),
-        'has_private_key': bool(row[2])
+        'has_private_key': bool(row[2]),
+        'intro_seen': bool(row[3])
     }), 200
 
 
@@ -483,6 +492,20 @@ def update_private_key():
     conn.close()
 
     return jsonify({'message': 'Private key saved successfully'}), 200
+
+
+@app.route('/api/intro-seen', methods=['POST'])
+def mark_intro_seen():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+
+    conn = db_connect()
+    c = conn.cursor()
+    db_execute(c, 'UPDATE users SET intro_seen = 1 WHERE id = ?', (session['user_id'],))
+    conn.commit()
+    conn.close()
+
+    return jsonify({'message': 'Intro marked as seen', 'intro_seen': True}), 200
 
 
 # ============== Saved Keys Routes ==============

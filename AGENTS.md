@@ -14,7 +14,7 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
   - `practice.html` — AI practice partner with RSA-2048/4096 keypair selector, plaintext rejection, and LLM-powered dynamic encrypted replies
   - **Right sidebar (Tools)** on every page with Notes (multi-note CRUD), Saved Keys list, and My Profile public key
 - **Nav**: responsive burger menu, auth status in top-right, logout button
-- **Version badge**: V1.5 in bottom-right corner on every page
+- **Version badge**: V1.6 in bottom-right corner on every page
 
 ## Backend
 - **Framework**: Flask (`server.py`)
@@ -33,6 +33,7 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 - `GET /api/profile` → {username, public_key}
 - `POST /api/update-public-key` → saves public_key string for logged-in user
 - `POST /api/update-private-key` → saves private_key string for logged-in user
+- `POST /api/intro-seen` → marks the first-time introduction as seen
 - `GET /api/saved-keys` → list user's saved keys
 - `POST /api/saved-keys` → save new named key
 - `PUT /api/saved-keys/:id` → rename/edit saved key
@@ -78,9 +79,10 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 > - Also update this `AGENTS.md` Version History section.
 
 ## Current Version
-**V1.5**
+**V1.6**
 
 ## Version History
+- **V1.6**: Added a first-time introduction modal that appears automatically when a user registers or logs in for the first time. The intro explains PGP basics, key generation, encrypt/decrypt, the practice partner challenge, saved keys, and notes. Added `intro_seen` user flag and `/api/intro-seen` endpoint to persist dismissal. Loaded via a reusable `intro.js` script across all pages.
 - **V1.5**: Pivoted app positioning from "serious PGP tool" to "PGP beginner practice / learning tool". Server now stores generated private keys in user profiles for beginner convenience. Added clear "Learning Environment" warning banners on every page. Fixed JavaScript syntax errors in note-decrypt code across all pages. Fixed note decryption API call (`message`/`encrypted_message` compatibility). Added key-status indicators, key-download buttons, and private-key management in My Profile. Updated copy buttons and help text for beginners.
 - **V1.4**: Improved LLM system prompt so replies directly reference the decrypted user message; standardized `copyToClipboard()` helper across all pages and fixed copy reliability; added Copy button for note content in the toolbar.
 - **V1.3**: Integrated optional OpenAI-compatible LLM for dynamic practice partner replies; added `requests` dependency and `LLM_API_KEY`/`LLM_BASE_URL`/`LLM_MODEL` env vars; defaults to ai& (`https://api.aiand.com/v1`, `google/gemma-4-31b-it`); falls back to rule-based responses if LLM is unavailable.
@@ -99,3 +101,4 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 ## File Structure
 - `server.py` — Flask backend
 - `index.html`, `encrypt.html`, `profile.html`, `saved-keys.html`, `practice.html` — frontend pages
+- `intro.js` — reusable first-time introduction modal loaded on every page
