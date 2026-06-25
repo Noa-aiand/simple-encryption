@@ -918,8 +918,8 @@ body::after { opacity: 0.03; }
 
 h1, h2, h3, .subtitle {
     font-family: 'Arial Black', 'Arial', 'Verdana', sans-serif;
-    color: #0066cc;
-    text-shadow: 1px 1px 0 #99ccff;
+    color: #0066cc !important;
+    text-shadow: 1px 1px 0 #99ccff !important;
 }
 
 p, li, label, span { color: #003366; }
@@ -1110,6 +1110,12 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
 /* Readability fixes */
 .profile-content p { color: #003366 !important; }
 .profile-link { color: #0000cc !important; }
+
+/* Practice page "How It Works" box — match light blue/white theme */
+.instructions { background: #e6f2ff !important; border: 2px solid #99ccff !important; }
+.instructions h3 { color: #0066cc !important; }
+.instructions ol, .instructions ol li { color: #003366 !important; }
+.instructions .highlight { color: #0066cc !important; }
     </style>
 </head>
 <body>
@@ -1202,9 +1208,9 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                 <ol>
                     <li>Make sure you are <span class="highlight">logged in</span> and have <span class="highlight">saved your public key</span> in My Profile so I can encrypt my reply back to you.</li>
                     <li>Choose a key size (RSA-2048 or RSA-4096) and copy my practice public key from the box below.</li>
-                    <li>Go to the <a href="/encrypt.html" style="color:#9d4edd;">Encrypt / Decrypt</a> page and encrypt a message using that key.</li>
+                    <li>Go to the <a href="/encrypt.html" style="color:#0000cc;">Encrypt / Decrypt</a> page and encrypt a message using that key.</li>
                     <li>Paste the resulting <span class="highlight">PGP MESSAGE block</span> into the message box below and hit Send.</li>
-                    <li>If the message decrypts correctly, you will see <span style="color:#81c784;font-weight:600;">“Successful encrypted message!”</span> and receive my reply as a new PGP MESSAGE block to decrypt.</li>
+                    <li>If the message decrypts correctly, you will see <span style="color:#2e7d32;font-weight:600;">“Successful encrypted message!”</span> and receive my reply as a new PGP MESSAGE block to decrypt.</li>
                     <li><span class="highlight">WARNING:</span> If you send plaintext instead of a PGP-encrypted message, you will <strong>FAIL</strong> the challenge!</li>
                 </ol>
             </div>
@@ -1213,7 +1219,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                 <label style="display:flex;align-items:center;gap:8px;font-size:1rem;">
                     Practice Partner's Public PGP Key
                 </label>
-                <p style="color:#ccc;font-size:0.85rem;margin-bottom:0.8rem;">Choose a key size, copy the key, and use it in the Encrypt / Decrypt page. My reply will be encrypted to your saved public key.</p>
+                <p style="color:#003366;font-size:0.85rem;margin-bottom:0.8rem;">Choose a key size, copy the key, and use it in the Encrypt / Decrypt page. My reply will be encrypted to your saved public key.</p>
                 <div class="key-size-row">
                     <label for="practiceKeySize">Key size:</label>
                     <select id="practiceKeySize">
@@ -2023,6 +2029,6 @@ checkAuth();
         loadPracticeKey();
     </script>
     <script src="/intro.js"></script>
-    <div class="version-badge">V1.12</div>
+    <div class="version-badge">V1.13</div>
 </body>
 </html>

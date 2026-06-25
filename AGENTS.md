@@ -79,9 +79,10 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 > - Also update this `AGENTS.md` Version History section.
 
 ## Current Version
-**V1.12**
+**V1.13**
 
 ## Version History
+- **V1.13**: De-purpled the page headers and practice "How It Works" box so they match the light blue/white theme. The V1.11 heading override (`h1, h2, h3, .subtitle`) was being beaten by the higher-specificity `.page-header h1` / `.page-header .subtitle` rules, leaving the purple `#9d4edd`/`#c77dff` headers and purple glow on the Encrypt, Profile, Saved Keys, and Practice pages. Strengthened the override with `!important` on color + text-shadow across all 5 pages. Also recolored the home page's purple lock-icon to blue, fixed the practice page's purple `.instructions` box (background, border, h3, highlight, list text), and replaced unreadable inline light-gray/light-purple/light-green text (`#ccc`, `#c77dff`, `#9d4edd`, `#81c784`) with readable dark blue/green. No backend changes.
 - **V1.12**: Fixed homepage "What Does PGP Do?" section text contrast and sidebar profile text so light gray/purple copy is readable against the white/light-blue background. No backend changes.
 - **V1.11**: Softened the early-2000s theme: replaced neon purple/pink palette with a light blue and white color scheme, gentler gradients, subtler shadows, and easier-on-the-eyes typography while keeping the clunky 3D buttons, rainbow divider, and marquee. No backend changes.
 - **V1.10**: Full early-2000s clunky & vibrant frontend redesign: starfield background, rainbow dividers, 3D outset buttons with press effects, neon yellow headings with drop shadows, inset terminal-style inputs, and a scrolling marquee banner. No backend changes.

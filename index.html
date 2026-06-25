@@ -868,8 +868,8 @@ body::after { opacity: 0.03; }
 
 h1, h2, h3, .subtitle {
     font-family: 'Arial Black', 'Arial', 'Verdana', sans-serif;
-    color: #0066cc;
-    text-shadow: 1px 1px 0 #99ccff;
+    color: #0066cc !important;
+    text-shadow: 1px 1px 0 #99ccff !important;
 }
 
 p, li, label, span { color: #003366; }
@@ -1029,6 +1029,9 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
 }
 
 .lock-icon { filter: drop-shadow(2px 2px 0 #6699cc); }
+.lock-icon { background: rgba(0,102,204,0.18) !important; border-color: #6699cc !important; }
+.lock-icon::before { border-color: #6699cc !important; }
+.lock-icon::after { background: #0066cc !important; }
 
 .rainbow-divider {
     height: 6px;
@@ -1209,8 +1212,8 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                     <h3>How Should You Use PGP?</h3>
                     <p>The basic flow is simple once you have a key pair:</p>
                     <ul>
-                        <li><strong>Generate</strong> a key pair in the <a href="/encrypt.html" style="color:#c77dff;">Encrypt / Decrypt</a> page.</li>
-                        <li><strong>Share your public key</strong> with friends or paste it into <a href="/profile.html" style="color:#c77dff;">My Profile</a>.</li>
+                        <li><strong>Generate</strong> a key pair in the <a href="/encrypt.html" style="color:#0000cc;">Encrypt / Decrypt</a> page.</li>
+                        <li><strong>Share your public key</strong> with friends or paste it into <a href="/profile.html" style="color:#0000cc;">My Profile</a>.</li>
                         <li><strong>Encrypt</strong> a message using the recipient's public key.</li>
                         <li><strong>Send</strong> the encrypted block however you like — email, chat, notes.</li>
                         <li><strong>Decrypt</strong> received messages with your private key.</li>
@@ -1236,7 +1239,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                     
                     <h3>Practice Partner Challenge</h3>
                     <p>
-                        The best way to learn is by doing. Visit the <a href="/practice.html" style="color:#c77dff;">Practice</a> page,
+                        The best way to learn is by doing. Visit the <a href="/practice.html" style="color:#0000cc;">Practice</a> page,
                         copy the partner's public key, encrypt a message, and send it. The partner will reply with an encrypted
                         message that only you can decrypt.
                     </p>
@@ -1919,6 +1922,6 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         checkAuth();
     </script>
     <script src="/intro.js"></script>
-    <div class="version-badge">V1.12</div>
+    <div class="version-badge">V1.13</div>
 </body>
 </html>
