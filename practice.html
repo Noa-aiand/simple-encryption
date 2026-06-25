@@ -1296,10 +1296,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
 
             <hr style="margin:1.5rem 0;border:none;border-top:2px dashed #99ccff;">
 
-            <div class="form-group">
-                <label for="decPrivateKeyPractice">Your Private Key (to decrypt a reply)</label>
-                <textarea id="decPrivateKeyPractice" placeholder="Paste your PGP private key block here..."></textarea>
-            </div>
+            <p style="font-size:0.85rem;color:#003366;background:#e6f2ff;border:1px solid #99ccff;border-radius:6px;padding:0.6rem 0.8rem;margin-bottom:1rem;">Your saved private key from <a href="/profile.html" style="color:#0000cc;">My Profile</a> will be used automatically to decrypt replies.</p>
             <div class="form-group">
                 <label for="decMessagePractice">Encrypted Message to Decrypt</label>
                 <textarea id="decMessagePractice" placeholder="-----BEGIN PGP MESSAGE-----&#10;Paste the practice partner's encrypted reply here...&#10;-----END PGP MESSAGE-----"></textarea>
@@ -1791,11 +1788,10 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
 
         // Decrypt
         document.getElementById('decryptBtnPractice').addEventListener('click', async () => {
-            const privateKey = document.getElementById('decPrivateKeyPractice').value.trim();
             const encryptedMessage = document.getElementById('decMessagePractice').value.trim();
 
-            if (!privateKey || !encryptedMessage) {
-                showResult('decResultPractice', 'decResultLabelPractice', 'Please provide both a private key and an encrypted message.', 'error');
+            if (!encryptedMessage) {
+                showResult('decResultPractice', 'decResultLabelPractice', 'Please paste an encrypted message to decrypt.', 'error');
                 return;
             }
 
@@ -1803,10 +1799,17 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             setLoading(btn, true);
 
             try {
+                const meRes = await fetch('/api/me');
+                const meData = await meRes.json();
+                if (!meData.logged_in || !meData.private_key) {
+                    showResult('decResultPractice', 'decResultLabelPractice', 'No saved private key found. Please log in and generate a key pair in My Profile first.', 'error');
+                    return;
+                }
+
                 const res = await fetch('/api/decrypt', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ private_key: privateKey, encrypted_message: encryptedMessage })
+                    body: JSON.stringify({ private_key: meData.private_key, encrypted_message: encryptedMessage })
                 });
                 const data = await res.json();
 
@@ -1828,7 +1831,6 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         });
 
         document.getElementById('clearDecBtnPractice').addEventListener('click', () => {
-            document.getElementById('decPrivateKeyPractice').value = '';
             document.getElementById('decMessagePractice').value = '';
             hideResult('decResultPractice', 'decResultLabelPractice');
             document.getElementById('copyDecryptedBtnPractice').style.display = 'none';
@@ -2263,6 +2265,6 @@ checkAuth();
         loadPracticeKey();
     </script>
     <script src="/intro.js"></script>
-    <div class="version-badge">V1.15</div>
+    <div class="version-badge">V1.16</div>
 </body>
 </html>

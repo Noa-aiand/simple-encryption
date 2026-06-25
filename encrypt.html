@@ -1197,13 +1197,10 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         <div class="card">
             <h2>Decrypt Message</h2>
             <div class="form-group">
-                <label>Your Private Key</label>
-                <textarea id="decPrivateKey" placeholder="Paste PGP private key block here..."></textarea>
-            </div>
-            <div class="form-group">
                 <label>Encrypted Message</label>
                 <textarea id="decMessage" placeholder="Paste PGP encrypted message block here..."></textarea>
             </div>
+            <p style="font-size:0.85rem;color:#003366;background:#e6f2ff;border:1px solid #99ccff;border-radius:6px;padding:0.6rem 0.8rem;margin-bottom:1rem;">Your saved private key from <a href="/profile.html" style="color:#0000cc;">My Profile</a> will be used automatically. Make sure you have generated and saved a key pair first.</p>
             <div class="action-btns">
                 <button class="btn btn-primary" id="decryptBtn">Decrypt</button>
                 <button class="btn btn-secondary" id="copyDecryptedBtn" style="display:none;">Copy Result</button>
@@ -1724,11 +1721,10 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
 
         // Decrypt
         document.getElementById('decryptBtn').addEventListener('click', async () => {
-            const privateKey = document.getElementById('decPrivateKey').value.trim();
             const encryptedMessage = document.getElementById('decMessage').value.trim();
 
-            if (!privateKey || !encryptedMessage) {
-                showResult('decResult', 'decResultLabel', 'Please provide both a private key and an encrypted message.', 'error');
+            if (!encryptedMessage) {
+                showResult('decResult', 'decResultLabel', 'Please paste an encrypted message to decrypt.', 'error');
                 return;
             }
 
@@ -1737,10 +1733,17 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             btn.disabled = true;
 
             try {
+                const meRes = await fetch('/api/me');
+                const meData = await meRes.json();
+                if (!meData.logged_in || !meData.private_key) {
+                    showResult('decResult', 'decResultLabel', 'No saved private key found. Please log in and generate a key pair in My Profile first.', 'error');
+                    return;
+                }
+
                 const res = await fetch('/api/decrypt', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ private_key: privateKey, encrypted_message: encryptedMessage })
+                    body: JSON.stringify({ private_key: meData.private_key, encrypted_message: encryptedMessage })
                 });
                 const data = await res.json();
 
@@ -1763,7 +1766,6 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         });
 
         document.getElementById('clearDecBtn').addEventListener('click', () => {
-            document.getElementById('decPrivateKey').value = '';
             document.getElementById('decMessage').value = '';
             hideResult('decResult', 'decResultLabel');
             document.getElementById('copyDecryptedBtn').style.display = 'none';
@@ -2051,6 +2053,6 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
     </script>
 
     <script src="/intro.js"></script>
-    <div class="version-badge">V1.15</div>
+    <div class="version-badge">V1.16</div>
 </body>
 </html>
