@@ -490,23 +490,24 @@
         .result-box {
             margin-top: 1.5rem;
             padding: 1.5rem;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(157, 78, 221, 0.3);
+            background: #f7fbff;
+            border: 2px solid #99ccff;
             border-radius: 8px;
             font-family: 'Courier New', monospace;
             font-size: 0.85rem;
-            color: #c77dff;
+            color: #003366;
             white-space: pre-wrap;
             word-break: break-word;
             min-height: 100px;
             display: none;
+            box-shadow: inset 1px 1px 3px rgba(0,0,0,0.08);
         }
         .result-box.visible { display: block; }
-        .result-box.error { border-color: rgba(244, 67, 54, 0.4); color: #e57373; }
-        .result-box.success { border-color: rgba(76, 175, 80, 0.4); color: #81c784; }
+        .result-box.error { border-color: #ee9999; color: #660000; }
+        .result-box.success { border-color: #99cc99; color: #003366; }
 
         .result-label {
-            color: #9d4edd;
+            color: #0066cc;
             font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 2px;
@@ -518,12 +519,12 @@
         .key-box {
             margin-top: 1rem;
             padding: 1rem;
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(157, 78, 221, 0.2);
+            background: #f7fbff;
+            border: 2px solid #99ccff;
             border-radius: 8px;
             font-family: 'Courier New', monospace;
             font-size: 0.75rem;
-            color: #c77dff;
+            color: #003366;
             white-space: pre-wrap;
             word-break: break-word;
             max-height: 200px;
@@ -544,14 +545,14 @@
         }
         .server-status.show { display: block; }
         .server-status.ok {
-            background: rgba(76, 175, 80, 0.2);
-            color: #81c784;
-            border-bottom: 1px solid rgba(76, 175, 80, 0.3);
+            background: #ddffdd;
+            color: #006600;
+            border-bottom: 2px solid #99cc99;
         }
         .server-status.error {
-            background: rgba(244, 67, 54, 0.2);
-            color: #e57373;
-            border-bottom: 1px solid rgba(244, 67, 54, 0.3);
+            background: #ffdddd;
+            color: #660000;
+            border-bottom: 2px solid #ee9999;
         }
 
                 /* Right Sidebar */
@@ -1147,7 +1148,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         <!-- Key Generator -->
         <div class="card">
             <h2>Key Generator</h2>
-            <label style="color: #c77dff; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">RSA Key Size</label>
+            <label style="color: #0066cc; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">RSA Key Size</label>
             <select class="key-size-select" id="genKeySize">
                 <option value="4096" selected>RSA 4096 (Recommended)</option>
                 <option value="2048">RSA 2048</option>
@@ -1170,7 +1171,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         <!-- Encrypt -->
         <div class="card">
             <h2>Encrypt Message</h2>
-            <label style="color: #c77dff; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">RSA Key Size</label>
+            <label style="color: #0066cc; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">RSA Key Size</label>
             <select class="key-size-select" id="encKeySize">
                 <option value="4096" selected>RSA 4096</option>
                 <option value="2048">RSA 2048</option>
@@ -1583,9 +1584,9 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             const el = document.getElementById('genStatus');
             el.textContent = text;
             el.style.display = 'block';
-            el.style.background = type === 'ok' ? 'rgba(76,175,80,0.15)' : (type === 'error' ? 'rgba(244,67,54,0.15)' : 'rgba(33,150,243,0.15)');
-            el.style.color = type === 'ok' ? '#81c784' : (type === 'error' ? '#e57373' : '#64b5f6');
-            el.style.border = '1px solid ' + (type === 'ok' ? 'rgba(76,175,80,0.3)' : (type === 'error' ? 'rgba(244,67,54,0.3)' : 'rgba(33,150,243,0.3)'));
+            el.style.background = type === 'ok' ? '#ddffdd' : (type === 'error' ? '#ffdddd' : '#e6f2ff');
+            el.style.color = type === 'ok' ? '#006600' : (type === 'error' ? '#660000' : '#003366');
+            el.style.border = '2px solid ' + (type === 'ok' ? '#99cc99' : (type === 'error' ? '#ee9999' : '#99ccff'));
             setTimeout(() => { el.style.display = 'none'; el.textContent = ''; }, 6000);
         }
 
@@ -2050,6 +2051,6 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
     </script>
 
     <script src="/intro.js"></script>
-    <div class="version-badge">V1.14</div>
+    <div class="version-badge">V1.15</div>
 </body>
 </html>

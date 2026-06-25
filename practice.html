@@ -542,48 +542,78 @@
             letter-spacing: 1px;
         }
         .response-card .plaintext {
-            color: #eee;
+            color: #003366;
             font-size: 0.95rem;
             line-height: 1.6;
             margin-bottom: 1rem;
             white-space: pre-wrap;
         }
         .response-card .encrypted-output {
-            background: rgba(0,0,0,0.2);
-            border: 1px solid rgba(76,175,80,0.3);
+            background: #f7fbff;
+            border: 2px solid #99ccff;
             border-radius: 8px;
             padding: 1rem;
             font-family: 'Courier New', monospace;
             font-size: 0.78rem;
-            color: #81c784;
+            color: #003366;
             white-space: pre-wrap;
             word-break: break-word;
             max-height: 300px;
             overflow-y: auto;
+            box-shadow: inset 1px 1px 3px rgba(0,0,0,0.08);
         }
 
         .fail-card {
-            background: rgba(244, 67, 54, 0.05);
-            border: 1px solid rgba(244, 67, 54, 0.25);
+            background: #ffdddd;
+            border: 2px solid #ee9999;
             border-radius: 12px;
             padding: 1.5rem;
             margin-top: 1rem;
         }
         .fail-card h3 {
-            color: #e57373;
+            color: #660000;
             font-size: 1rem;
             margin-bottom: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
         .fail-card .fail-msg {
-            color: #eee;
+            color: #660000;
             font-size: 0.95rem;
             line-height: 1.6;
             white-space: pre-wrap;
         }
 
-                /* Right Sidebar */
+        /* Encrypt/Decrypt helper result boxes */
+        .result-box {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: #f7fbff;
+            border: 2px solid #99ccff;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #003366;
+            white-space: pre-wrap;
+            word-break: break-word;
+            min-height: 80px;
+            display: none;
+            box-shadow: inset 1px 1px 3px rgba(0,0,0,0.08);
+        }
+        .result-box.visible { display: block; }
+        .result-box.error { border-color: #ee9999; color: #660000; }
+        .result-box.success { border-color: #99cc99; color: #003366; }
+        .result-label {
+            color: #0066cc;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
+            display: none;
+        }
+        .result-label.visible { display: block; }
+
+                 /* Right Sidebar */
         .right-sidebar-toggle {
             position: fixed;
             top: 50%;
@@ -1235,6 +1265,54 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             </div>
         </div>
 
+        <!-- Encrypt / Decrypt Helper -->
+        <div class="card">
+            <h2>Encrypt / Decrypt</h2>
+            <p style="font-size:0.88rem;margin-bottom:1rem;">Encrypt a message for the practice partner, or decrypt their reply - without leaving this page.</p>
+
+            <div class="form-group">
+                <label for="encKeySizePractice">Key Size</label>
+                <select id="encKeySizePractice">
+                    <option value="4096" selected>RSA 4096</option>
+                    <option value="2048">RSA 2048</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Recipient's Public Key</label>
+                <textarea id="encPublicKeyPractice" placeholder="Paste the practice partner's public key (or any PGP public key) here..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="encMessagePractice">Message to Encrypt</label>
+                <textarea id="encMessagePractice" placeholder="Type your secret message here..."></textarea>
+            </div>
+            <div class="action-btns">
+                <button class="btn btn-primary" id="encryptBtnPractice">Encrypt</button>
+                <button class="btn btn-secondary" id="copyEncryptedBtnPractice" style="display:none;">Copy Result</button>
+                <button class="btn btn-success" id="sendEncryptedBtnPractice" style="display:none;">Send to Partner</button>
+                <button class="btn btn-secondary" id="clearEncBtnPractice">Clear</button>
+            </div>
+            <div class="result-label" id="encResultLabelPractice">Encrypted Message</div>
+            <div class="result-box" id="encResultPractice"></div>
+
+            <hr style="margin:1.5rem 0;border:none;border-top:2px dashed #99ccff;">
+
+            <div class="form-group">
+                <label for="decPrivateKeyPractice">Your Private Key (to decrypt a reply)</label>
+                <textarea id="decPrivateKeyPractice" placeholder="Paste your PGP private key block here..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="decMessagePractice">Encrypted Message to Decrypt</label>
+                <textarea id="decMessagePractice" placeholder="-----BEGIN PGP MESSAGE-----&#10;Paste the practice partner's encrypted reply here...&#10;-----END PGP MESSAGE-----"></textarea>
+            </div>
+            <div class="action-btns">
+                <button class="btn btn-primary" id="decryptBtnPractice">Decrypt</button>
+                <button class="btn btn-secondary" id="copyDecryptedBtnPractice" style="display:none;">Copy Result</button>
+                <button class="btn btn-secondary" id="clearDecBtnPractice">Clear</button>
+            </div>
+            <div class="result-label" id="decResultLabelPractice">Decrypted Message</div>
+            <div class="result-box" id="decResultPractice"></div>
+        </div>
+
         <!-- Send Message Card -->
         <div class="card">
             <h2>Send Encrypted Message</h2>
@@ -1556,6 +1634,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                     practiceKey = data.public_key;
                     keyText.value = practiceKey;
                     keyText.classList.add('loaded');
+                    syncPracticeKeyToEncryptBox();
                     console.log('Practice key loaded OK, length:', practiceKey.length);
                     return;
                 }
@@ -1584,6 +1663,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                             practiceKey = data.public_key;
                             keyText.value = practiceKey;
                             keyText.classList.add('loaded');
+                            syncPracticeKeyToEncryptBox();
                             console.log('Practice key loaded via XMLHttpRequest OK');
                         } else {
                             console.error('XMLHttpRequest fallback also failed:', xhr.status, data);
@@ -1615,7 +1695,15 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             practiceKeySize = parseInt(practiceKeySizeSelect.value, 10);
             document.getElementById('practiceKeyText').classList.remove('loaded');
             loadPracticeKey(0, practiceKeySize);
+            document.getElementById('encKeySizePractice').value = practiceKeySize;
         });
+
+        function syncPracticeKeyToEncryptBox() {
+            const encKeyField = document.getElementById('encPublicKeyPractice');
+            if (practiceKey && !encKeyField.value.trim()) {
+                encKeyField.value = practiceKey;
+            }
+        }
 
         document.getElementById('copyPracticeKey').addEventListener('click', () => {
             if (!practiceKey) { showToast('No key to copy', 'error'); return; }
@@ -1628,6 +1716,130 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             el.className = 'status-msg show ' + type;
             setTimeout(() => { el.className = 'status-msg'; el.textContent = ''; }, 8000);
         }
+
+        function showResult(elementId, labelId, text, type) {
+            const el = document.getElementById(elementId);
+            const label = document.getElementById(labelId);
+            el.textContent = text;
+            el.className = 'result-box visible ' + type;
+            label.className = 'result-label visible';
+        }
+
+        function hideResult(elementId, labelId) {
+            document.getElementById(elementId).className = 'result-box';
+            document.getElementById(labelId).className = 'result-label';
+        }
+
+        // ===== Encrypt / Decrypt on Practice Page =====
+        document.getElementById('encryptBtnPractice').addEventListener('click', async () => {
+            const publicKey = document.getElementById('encPublicKeyPractice').value.trim();
+            const message = document.getElementById('encMessagePractice').value;
+            const keySize = parseInt(document.getElementById('encKeySizePractice').value);
+
+            if (!publicKey || !message) {
+                showResult('encResultPractice', 'encResultLabelPractice', 'Please provide both a public key and a message to encrypt.', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('encryptBtnPractice');
+            setLoading(btn, true);
+
+            try {
+                const res = await fetch('/api/encrypt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ public_key: publicKey, message: message, key_size: keySize })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    showResult('encResultPractice', 'encResultLabelPractice', data.encrypted, 'success');
+                    document.getElementById('copyEncryptedBtnPractice').style.display = 'inline-block';
+                    document.getElementById('sendEncryptedBtnPractice').style.display = 'inline-block';
+                } else {
+                    showResult('encResultPractice', 'encResultLabelPractice', data.error || 'Encryption failed', 'error');
+                }
+            } catch (e) {
+                showResult('encResultPractice', 'encResultLabelPractice', 'Network error during encryption', 'error');
+            } finally {
+                setLoading(btn, false);
+            }
+        });
+
+        document.getElementById('copyEncryptedBtnPractice').addEventListener('click', () => {
+            copyToClipboard(document.getElementById('encResultPractice').textContent, 'Encrypted message copied!');
+        });
+
+        document.getElementById('sendEncryptedBtnPractice').addEventListener('click', () => {
+            const encryptedText = document.getElementById('encResultPractice').textContent.trim();
+            if (!encryptedText) {
+                showToast('Nothing to send - encrypt a message first.', 'error');
+                return;
+            }
+            document.getElementById('practiceMessage').value = encryptedText;
+            showToast('Encrypted message loaded into Send box. Click "Send to Practice Partner".', 'info');
+            document.getElementById('practiceMessage').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+
+        document.getElementById('clearEncBtnPractice').addEventListener('click', () => {
+            document.getElementById('encPublicKeyPractice').value = '';
+            document.getElementById('encMessagePractice').value = '';
+            hideResult('encResultPractice', 'encResultLabelPractice');
+            document.getElementById('copyEncryptedBtnPractice').style.display = 'none';
+            document.getElementById('sendEncryptedBtnPractice').style.display = 'none';
+        });
+
+        // Decrypt
+        document.getElementById('decryptBtnPractice').addEventListener('click', async () => {
+            const privateKey = document.getElementById('decPrivateKeyPractice').value.trim();
+            const encryptedMessage = document.getElementById('decMessagePractice').value.trim();
+
+            if (!privateKey || !encryptedMessage) {
+                showResult('decResultPractice', 'decResultLabelPractice', 'Please provide both a private key and an encrypted message.', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('decryptBtnPractice');
+            setLoading(btn, true);
+
+            try {
+                const res = await fetch('/api/decrypt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ private_key: privateKey, encrypted_message: encryptedMessage })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    showResult('decResultPractice', 'decResultLabelPractice', data.decrypted, 'success');
+                    document.getElementById('copyDecryptedBtnPractice').style.display = 'inline-block';
+                } else {
+                    showResult('decResultPractice', 'decResultLabelPractice', data.error || 'Decryption failed', 'error');
+                }
+            } catch (e) {
+                showResult('decResultPractice', 'decResultLabelPractice', 'Network error during decryption', 'error');
+            } finally {
+                setLoading(btn, false);
+            }
+        });
+
+        document.getElementById('copyDecryptedBtnPractice').addEventListener('click', () => {
+            copyToClipboard(document.getElementById('decResultPractice').textContent, 'Decrypted message copied!');
+        });
+
+        document.getElementById('clearDecBtnPractice').addEventListener('click', () => {
+            document.getElementById('decPrivateKeyPractice').value = '';
+            document.getElementById('decMessagePractice').value = '';
+            hideResult('decResultPractice', 'decResultLabelPractice');
+            document.getElementById('copyDecryptedBtnPractice').style.display = 'none';
+        });
+
+        // Auto-fill the practice partner's public key into the encrypt box
+        document.getElementById('encKeySizePractice').addEventListener('change', () => {
+            if (practiceKey) {
+                document.getElementById('encPublicKeyPractice').value = practiceKey;
+            }
+        });
 
         document.getElementById('sendBtn').addEventListener('click', async () => {
             const msgInput = document.getElementById('practiceMessage');
@@ -2051,6 +2263,6 @@ checkAuth();
         loadPracticeKey();
     </script>
     <script src="/intro.js"></script>
-    <div class="version-badge">V1.14</div>
+    <div class="version-badge">V1.15</div>
 </body>
 </html>
