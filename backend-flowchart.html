@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simple Encryption - Backend Flowchart</title>
+<style>
+    * { box-sizing: border-box; }
+    body {
+        font-family: 'Verdana', 'Tahoma', 'Arial', sans-serif;
+        background: #f0f6fc;
+        color: #003366;
+        margin: 0;
+        padding: 2rem 1rem 4rem;
+        background-image:
+            linear-gradient(rgba(0,102,204,0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0,102,204,0.05) 1px, transparent 1px);
+        background-size: 40px 40px;
+    }
+    h1, h2, h3 {
+        font-family: 'Arial Black', 'Arial', 'Verdana', sans-serif;
+        color: #0066cc;
+        text-shadow: 1px 1px 0 #99ccff;
+    }
+    h1 { font-size: 2rem; text-align: center; margin: 0 0 0.3rem; }
+    h2 { font-size: 1.4rem; margin-top: 2.5rem; border-bottom: 2px solid #99ccff; padding-bottom: 0.4rem; }
+    h3 { font-size: 1.05rem; margin: 0 0 0.5rem; }
+    .subtitle { text-align: center; color: #0066cc; letter-spacing: 2px; text-transform: uppercase; font-size: 0.9rem; margin-bottom: 2rem; }
+    .rainbow-divider {
+        height: 6px;
+        background: linear-gradient(90deg, #ff9999, #ffcc99, #ffff99, #99ff99, #99ccff, #cc99ff);
+        border: 1px solid #cccccc;
+        border-radius: 3px;
+        margin: 1rem auto 2rem;
+        max-width: 900px;
+    }
+    .diagram-wrap {
+        background: #ffffff;
+        border: 2px solid #99ccff;
+        border-radius: 8px;
+        box-shadow: 4px 4px 0 #b8cce6;
+        padding: 1.5rem;
+        margin: 1.5rem auto;
+        max-width: 1000px;
+        overflow-x: auto;
+    }
+    svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+    .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.8rem;
+        justify-content: center;
+        margin: 1rem auto 0;
+        max-width: 1000px;
+        font-size: 0.82rem;
+    }
+    .legend-item { display: flex; align-items: center; gap: 0.4rem; }
+    .legend-swatch { width: 16px; height: 16px; border: 1px solid #666; border-radius: 3px; }
+    .note {
+        background: #ffffcc;
+        color: #663300;
+        border: 2px solid #cc9900;
+        border-radius: 6px;
+        padding: 0.8rem 1rem;
+        margin: 1rem auto;
+        max-width: 1000px;
+        font-size: 0.88rem;
+        line-height: 1.5;
+    }
+    .note strong { color: #cc6600; }
+    .caption {
+        text-align: center;
+        font-size: 0.85rem;
+        color: #003366;
+        margin-top: 0.6rem;
+        line-height: 1.5;
+    }
+    .caption strong { color: #cc6600; }
+    .file-ref {
+        font-family: 'Courier New', monospace;
+        background: #e6f2ff;
+        border: 1px solid #99ccff;
+        border-radius: 3px;
+        padding: 1px 5px;
+        font-size: 0.85rem;
+    }
+    .version-badge {
+        position: fixed;
+        bottom: 14px;
+        right: 14px;
+        background: #cc0000;
+        color: #ffffff;
+        border: 2px solid #ffffff;
+        box-shadow: 2px 2px 0 #999999;
+        font-family: 'Arial Black', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transform: rotate(-3deg);
+        font-size: 0.8rem;
+        padding: 6px 12px;
+    }
+    @media (max-width: 720px) {
+        body { padding: 1rem 0.5rem 4rem; }
+        h1 { font-size: 1.5rem; }
+    }
+</style>
+</head>
+<body>
+
+<h1>Simple Encryption - Backend Flowchart</h1>
+<div class="subtitle">How server.py runs under the hood</div>
+<div class="rainbow-divider"></div>
+
+<div class="legend">
+    <div class="legend-item"><div class="legend-swatch" style="background:#dbeafe;border-color:#3b82f6"></div>Browser / user</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#fef9c3;border-color:#ca8a04"></div>Flask route</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#dcfce7;border-color:#16a34a"></div>Database</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#f3e8ff;border-color:#9333ea"></div>Crypto (RSA+AES)</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#ffe4e6;border-color:#e11d48"></div>External / LLM</div>
+</div>
+
+<!-- ============ DIAGRAM 1: BIG PICTURE ============ -->
+<h2>1. The Big Picture</h2>
+<p class="caption">
+    Every request is a browser call to a <strong>Flask route</strong> in <span class="file-ref">server.py</span>.
+    Routes talk to the <strong>database</strong> and the <strong>cryptography</strong> library, then send a JSON or HTML response back.
+</p>
+<div class="diagram-wrap">
+<svg viewBox="0 0 900 360" xmlns="http://www.w3.org/2000/svg" font-family="Verdana, sans-serif" font-size="13">
+    <defs>
+        <marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#003366"/>
+        </marker>
+        <marker id="arrb" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#16a34a"/>
+        </marker>
+    </defs>
+
+    <!-- Browser -->
+    <rect x="20" y="140" width="150" height="70" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+    <text x="95" y="170" text-anchor="middle" font-weight="bold" fill="#1e3a8a">Browser</text>
+    <text x="95" y="190" text-anchor="middle" font-size="11" fill="#1e3a8a">5 HTML pages</text>
+
+    <!-- Flask server -->
+    <rect x="320" y="60" width="260" height="240" rx="12" fill="#fef9c3" stroke="#ca8a04" stroke-width="2"/>
+    <text x="450" y="85" text-anchor="middle" font-weight="bold" fill="#713f12">Flask app (server.py)</text>
+    <rect x="340" y="100" width="220" height="34" rx="6" fill="#fff" stroke="#ca8a04"/>
+    <text x="450" y="122" text-anchor="middle" fill="#713f12">URL routing layer</text>
+    <rect x="340" y="148" width="220" height="34" rx="6" fill="#fff" stroke="#ca8a04"/>
+    <text x="450" y="170" text-anchor="middle" fill="#713f12">Session / auth check</text>
+    <rect x="340" y="196" width="100" height="50" rx="6" fill="#f3e8ff" stroke="#9333ea"/>
+    <text x="390" y="218" text-anchor="middle" font-size="11" fill="#581c87">cryptography</text>
+    <text x="390" y="234" text-anchor="middle" font-size="11" fill="#581c87">(RSA + AES-GCM)</text>
+    <rect x="460" y="196" width="100" height="50" rx="6" fill="#fff" stroke="#ca8a04"/>
+    <text x="510" y="218" text-anchor="middle" font-size="11" fill="#713f12">Build JSON /</text>
+    <text x="510" y="234" text-anchor="middle" font-size="11" fill="#713f12">HTML response</text>
+
+    <!-- Database -->
+    <rect x="730" y="100" width="150" height="80" rx="10" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+    <text x="805" y="130" text-anchor="middle" font-weight="bold" fill="#14532d">Database</text>
+    <text x="805" y="150" text-anchor="middle" font-size="11" fill="#14532d">PostgreSQL (prod)</text>
+    <text x="805" y="166" text-anchor="middle" font-size="11" fill="#14532d">SQLite (local)</text>
+
+    <!-- LLM -->
+    <rect x="730" y="220" width="150" height="60" rx="10" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
+    <text x="805" y="245" text-anchor="middle" font-weight="bold" fill="#881337">LLM API</text>
+    <text x="805" y="263" text-anchor="middle" font-size="11" fill="#881337">(optional, ai&amp;)</text>
+
+    <!-- Arrows: browser <-> flask -->
+    <line x1="170" y1="165" x2="315" y2="165" stroke="#003366" stroke-width="2" marker-end="url(#arr)"/>
+    <text x="242" y="158" text-anchor="middle" font-size="10" fill="#003366">HTTP request</text>
+    <line x1="315" y1="185" x2="170" y2="185" stroke="#003366" stroke-width="2" marker-end="url(#arr)" stroke-dasharray="5,3"/>
+    <text x="242" y="200" text-anchor="middle" font-size="10" fill="#003366">response</text>
+
+    <!-- Flask <-> DB -->
+    <line x1="580" y1="130" x2="725" y2="130" stroke="#16a34a" stroke-width="2" marker-end="url(#arrb)"/>
+    <line x1="725" y1="150" x2="580" y2="150" stroke="#16a34a" stroke-width="2" marker-end="url(#arrb)" stroke-dasharray="5,3"/>
+    <text x="650" y="123" text-anchor="middle" font-size="10" fill="#14532d">read / write</text>
+
+    <!-- Flask <-> LLM -->
+    <line x1="580" y1="250" x2="725" y2="250" stroke="#e11d48" stroke-width="2" marker-end="url(#arr)"/>
+    <line x1="725" y1="265" x2="580" y2="265" stroke="#e11d48" stroke-width="2" marker-end="url(#arr)" stroke-dasharray="5,3"/>
+    <text x="650" y="243" text-anchor="middle" font-size="10" fill="#881337">practice reply</text>
+</svg>
+</div>
+
+<!-- ============ DIAGRAM 2: ROUTE MAP ============ -->
+<h2>2. The Routes (what each URL does)</h2>
+<p class="caption">All routes live in <span class="file-ref">server.py</span>. Colored by group. Solid = needs login.</p>
+<div class="diagram-wrap">
+<svg viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg" font-family="Verdana, sans-serif" font-size="12">
+    <defs>
+        <marker id="arr2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#003366"/>
+        </marker>
+    </defs>
+
+    <!-- Static pages group -->
+    <rect x="20" y="20" width="410" height="120" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" opacity="0.4"/>
+    <text x="30" y="40" font-weight="bold" fill="#1e3a8a">Static page routes (return HTML)</text>
+    <rect x="30" y="50" width="190" height="24" rx="4" fill="#fff" stroke="#3b82f6"/>
+    <text x="125" y="66" text-anchor="middle">GET /  ->  index.html</text>
+    <rect x="230" y="50" width="190" height="24" rx="4" fill="#fff" stroke="#3b82f6"/>
+    <text x="325" y="66" text-anchor="middle">GET /encrypt  ->  encrypt.html</text>
+    <rect x="30" y="80" width="190" height="24" rx="4" fill="#fff" stroke="#3b82f6"/>
+    <text x="125" y="96" text-anchor="middle">GET /profile</text>
+    <rect x="230" y="80" width="190" height="24" rx="4" fill="#fff" stroke="#3b82f6"/>
+    <text x="325" y="96" text-anchor="middle">GET /saved-keys</text>
+    <rect x="30" y="110" width="190" height="24" rx="4" fill="#fff" stroke="#3b82f6"/>
+    <text x="125" y="126" text-anchor="middle">GET /practice</text>
+    <text x="325" y="126" text-anchor="middle" font-size="10" fill="#64748b">(safe-file catch-all)</text>
+
+    <!-- Auth group -->
+    <rect x="470" y="20" width="410" height="120" rx="8" fill="#fef9c3" stroke="#ca8a04" stroke-width="1.5" opacity="0.4"/>
+    <text x="480" y="40" font-weight="bold" fill="#713f12">Auth (no login needed)</text>
+    <rect x="480" y="50" width="190" height="24" rx="4" fill="#fff" stroke="#ca8a04"/>
+    <text x="575" y="66" text-anchor="middle">POST /api/register</text>
+    <rect x="680" y="50" width="190" height="24" rx="4" fill="#fff" stroke="#ca8a04"/>
+    <text x="775" y="66" text-anchor="middle">POST /api/login</text>
+    <rect x="480" y="80" width="190" height="24" rx="4" fill="#fff" stroke="#ca8a04"/>
+    <text x="575" y="96" text-anchor="middle">POST /api/logout</text>
+    <rect x="680" y="80" width="190" height="24" rx="4" fill="#fff" stroke="#ca8a04"/>
+    <text x="775" y="96" text-anchor="middle">GET /api/me</text>
+    <text x="575" y="126" text-anchor="middle" font-size="10" fill="#64748b">session['user_id'] set on login</text>
+
+    <!-- Profile + keys -->
+    <rect x="20" y="160" width="410" height="150" rx="8" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5" opacity="0.4"/>
+    <text x="30" y="180" font-weight="bold" fill="#14532d">Profile + Saved Keys (login required)</text>
+    <rect x="30" y="190" width="190" height="24" rx="4" fill="#fff" stroke="#16a34a"/>
+    <text x="125" y="206" text-anchor="middle">GET /api/profile</text>
+    <rect x="230" y="190" width="190" height="24" rx="4" fill="#fff" stroke="#16a34a"/>
+    <text x="325" y="206" text-anchor="middle">POST /api/update-public-key</text>
+    <rect x="30" y="220" width="190" height="24" rx="4" fill="#fff" stroke="#16a34a"/>
+    <text x="125" y="236" text-anchor="middle">POST /api/update-private-key</text>
+    <rect x="230" y="220" width="190" height="24" rx="4" fill="#fff" stroke="#16a34a"/>
+    <text x="325" y="236" text-anchor="middle">POST /api/intro-seen</text>
+    <rect x="30" y="250" width="390" height="24" rx="4" fill="#fff" stroke="#16a34a"/>
+    <text x="225" y="266" text-anchor="middle">GET / POST / PUT / DELETE  /api/saved-keys</text>
+    <text x="225" y="295" text-anchor="middle" font-size="10" fill="#64748b">tables: users, saved_keys</text>
+
+    <!-- Notes -->
+    <rect x="470" y="160" width="410" height="150" rx="8" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5" opacity="0.4"/>
+    <text x="480" y="180" font-weight="bold" fill="#14532d">Notes (login required)</text>
+    <rect x="480" y="190" width="390" height="24" rx="4" fill="#fff" stroke="#16a34a"/>
+    <text x="675" y="206" text-anchor="middle">GET / POST  /api/notes</text>
+    <rect x="480" y="220" width="390" height="24" rx="4" fill="#fff" stroke="#16a34a"/>
+    <text x="675" y="236" text-anchor="middle">PUT / DELETE  /api/notes/:id</text>
+    <text x="675" y="266" text-anchor="middle" font-size="10" fill="#64748b">auto-saved by sidebar (800ms debounce)</text>
+    <text x="675" y="295" text-anchor="middle" font-size="10" fill="#64748b">table: notes</text>
+
+    <!-- Crypto -->
+    <rect x="20" y="330" width="410" height="120" rx="8" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5" opacity="0.4"/>
+    <text x="30" y="350" font-weight="bold" fill="#581c87">Crypto (no login needed)</text>
+    <rect x="30" y="360" width="390" height="24" rx="4" fill="#fff" stroke="#9333ea"/>
+    <text x="225" y="376" text-anchor="middle">POST /api/generate-keys  {key_size}</text>
+    <rect x="30" y="390" width="390" height="24" rx="4" fill="#fff" stroke="#9333ea"/>
+    <text x="225" y="406" text-anchor="middle">POST /api/encrypt  {message, public_key}</text>
+    <rect x="30" y="420" width="390" height="24" rx="4" fill="#fff" stroke="#9333ea"/>
+    <text x="225" y="436" text-anchor="middle">POST /api/decrypt  {message, public_key, private_key}</text>
+
+    <!-- Practice -->
+    <rect x="470" y="330" width="410" height="120" rx="8" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5" opacity="0.4"/>
+    <text x="480" y="350" font-weight="bold" fill="#581c87">Practice challenge</text>
+    <rect x="480" y="360" width="390" height="24" rx="4" fill="#fff" stroke="#9333ea"/>
+    <text x="675" y="376" text-anchor="middle">GET /api/practice/key?size=2048|4096</text>
+    <rect x="480" y="390" width="390" height="24" rx="4" fill="#fff" stroke="#9333ea"/>
+    <text x="675" y="406" text-anchor="middle">POST /api/practice/send  {message, key_size}</text>
+    <text x="675" y="436" text-anchor="middle" font-size="10" fill="#64748b">table: server_config (practice keypairs)</text>
+
+    <!-- legend note -->
+    <rect x="20" y="475" width="860" height="60" rx="6" fill="#ffffcc" stroke="#cc9900" stroke-width="1.5"/>
+    <text x="40" y="497" font-weight="bold" fill="#663300">Solid border = the route runs that group's logic.</text>
+    <text x="40" y="516" fill="#663300">Most /api/* routes first check session['user_id'] - if missing, they return 401 "Not authenticated".</text>
+    <text x="40" y="531" fill="#663300">Crypto endpoints are stateless: they only do math on the keys you send in the request body.</text>
+</svg>
+</div>
+
+<!-- ============ DIAGRAM 3: HYBRID ENCRYPTION ============ -->
+<h2>3. How a Message Gets Encrypted (Hybrid Crypto)</h2>
+<p class="caption">
+    PGP here is <strong>not</strong> the OpenPGP.js format. It's a custom scheme: <strong>RSA wraps a one-time AES key</strong>,
+    then <strong>AES-GCM</strong> encrypts the actual message. Same logic in <span class="file-ref">/api/encrypt</span> and <span class="file-ref">/api/decrypt</span>.
+</p>
+<div class="diagram-wrap">
+<svg viewBox="0 0 900 420" xmlns="http://www.w3.org/2000/svg" font-family="Verdana, sans-serif" font-size="12">
+    <defs>
+        <marker id="arr3" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#003366"/>
+        </marker>
+    </defs>
+
+    <!-- Inputs -->
+    <rect x="20" y="30" width="170" height="40" rx="6" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="105" y="55" text-anchor="middle">message (plaintext)</text>
+    <rect x="20" y="90" width="170" height="40" rx="6" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="105" y="115" text-anchor="middle">recipient's public key</text>
+
+    <!-- Step 1: random AES key -->
+    <rect x="240" y="20" width="180" height="60" rx="6" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5"/>
+    <text x="330" y="45" text-anchor="middle" font-weight="bold" fill="#581c87">1. Random AES key</text>
+    <text x="330" y="63" text-anchor="middle" font-size="11" fill="#581c87">secrets.token_bytes(32)</text>
+
+    <!-- Step 2: AES-GCM encrypt message -->
+    <rect x="240" y="100" width="180" height="60" rx="6" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5"/>
+    <text x="330" y="125" text-anchor="middle" font-weight="bold" fill="#581c87">2. AES-GCM encrypt</text>
+    <text x="330" y="143" text-anchor="middle" font-size="11" fill="#581c87">message + random nonce</text>
+    <text x="330" y="157" text-anchor="middle" font-size="11" fill="#581c87">-> ciphertext</text>
+
+    <!-- Step 3: RSA encrypt AES key -->
+    <rect x="240" y="180" width="180" height="60" rx="6" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5"/>
+    <text x="330" y="205" text-anchor="middle" font-weight="bold" fill="#581c87">3. RSA-OAEP encrypt</text>
+    <text x="330" y="223" text-anchor="middle" font-size="11" fill="#581c87">the AES key, using</text>
+    <text x="330" y="237" text-anchor="middle" font-size="11" fill="#581c87">the public key</text>
+
+    <!-- Step 4: pack payload -->
+    <rect x="240" y="260" width="180" height="60" rx="6" fill="#fef9c3" stroke="#ca8a04" stroke-width="1.5"/>
+    <text x="330" y="285" text-anchor="middle" font-weight="bold" fill="#713f12">4. Pack payload</text>
+    <text x="330" y="303" text-anchor="middle" font-size="10" fill="#713f12">len + encKey + nonce + cipher</text>
+    <text x="330" y="317" text-anchor="middle" font-size="10" fill="#713f12">-> base64</text>
+
+    <!-- Step 5: PGP block -->
+    <rect x="490" y="260" width="180" height="60" rx="6" fill="#fef9c3" stroke="#ca8a04" stroke-width="1.5"/>
+    <text x="580" y="285" text-anchor="middle" font-weight="bold" fill="#713f12">5. PGP armor</text>
+    <text x="580" y="303" text-anchor="middle" font-size="10" fill="#713f12">-----BEGIN PGP MESSAGE-----</text>
+    <text x="580" y="317" text-anchor="middle" font-size="10" fill="#713f12">...base64 wrapped...</text>
+
+    <!-- Output -->
+    <rect x="710" y="260" width="170" height="60" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+    <text x="795" y="285" text-anchor="middle" font-weight="bold" fill="#14532d">Encrypted block</text>
+    <text x="795" y="303" text-anchor="middle" font-size="11" fill="#14532d">safe to send over</text>
+    <text x="795" y="317" text-anchor="middle" font-size="11" fill="#14532d">email / chat / notes</text>
+
+    <!-- arrows -->
+    <line x1="190" y1="50" x2="235" y2="50" stroke="#003366" stroke-width="2" marker-end="url(#arr3)"/>
+    <line x1="190" y1="110" x2="235" y2="120" stroke="#003366" stroke-width="2" marker-end="url(#arr3)"/>
+    <line x1="330" y1="80" x2="330" y2="98" stroke="#003366" stroke-width="2" marker-end="url(#arr3)"/>
+    <text x="345" y="92" font-size="10" fill="#581c87">use key</text>
+    <line x1="330" y1="160" x2="330" y2="178" stroke="#003366" stroke-width="2" marker-end="url(#arr3)"/>
+    <text x="345" y="172" font-size="10" fill="#581c87">use key</text>
+    <line x1="330" y1="240" x2="330" y2="258" stroke="#003366" stroke-width="2" marker-end="url(#arr3)"/>
+    <line x1="420" y1="290" x2="488" y2="290" stroke="#003366" stroke-width="2" marker-end="url(#arr3)"/>
+    <line x1="670" y1="290" x2="708" y2="290" stroke="#003366" stroke-width="2" marker-end="url(#arr3)"/>
+
+    <!-- Decrypt note -->
+    <rect x="240" y="345" width="430" height="60" rx="6" fill="#ffffcc" stroke="#cc9900" stroke-width="1.5"/>
+    <text x="260" y="367" font-weight="bold" fill="#663300">Decrypt = reverse:</text>
+    <text x="260" y="385" font-size="11" fill="#663300">un-base64 -> RSA-decrypt the AES key (needs private key) -> AES-GCM decrypt the ciphertext</text>
+    <text x="260" y="399" font-size="11" fill="#663300">-> original plaintext</text>
+</svg>
+</div>
+
+<!-- ============ DIAGRAM 4: PRACTICE LOOP ============ -->
+<h2>4. The Practice Partner Loop (the coolest part)</h2>
+<p class="caption">
+    The server holds its <strong>own RSA keypair</strong>. You encrypt <em>to the server</em>; the server decrypts, asks an LLM for a
+    reply, then encrypts that reply <em>to your saved public key</em>. Full end-to-end round trip.
+</p>
+<div class="diagram-wrap">
+<svg viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg" font-family="Verdana, sans-serif" font-size="12">
+    <defs>
+        <marker id="arr4" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#003366"/>
+        </marker>
+        <marker id="arr4r" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#e11d48"/>
+        </marker>
+    </defs>
+
+    <!-- step 1 -->
+    <rect x="40" y="20" width="220" height="70" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+    <text x="150" y="42" text-anchor="middle" font-weight="bold" fill="#1e3a8a">1. You fetch the key</text>
+    <text x="150" y="60" text-anchor="middle" font-size="11" fill="#1e3a8a">GET /api/practice/key</text>
+    <text x="150" y="76" text-anchor="middle" font-size="11" fill="#1e3a8a">(RSA-2048 or 4096)</text>
+
+    <!-- step 2 -->
+    <rect x="320" y="20" width="240" height="70" rx="8" fill="#f3e8ff" stroke="#9333ea" stroke-width="2"/>
+    <text x="440" y="42" text-anchor="middle" font-weight="bold" fill="#581c87">2. You encrypt your message</text>
+    <text x="440" y="60" text-anchor="middle" font-size="11" fill="#581c87">on /encrypt page, using the</text>
+    <text x="440" y="76" text-anchor="middle" font-size="11" fill="#581c87">practice partner's PUBLIC key</text>
+
+    <!-- step 3 -->
+    <rect x="620" y="20" width="240" height="70" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+    <text x="740" y="42" text-anchor="middle" font-weight="bold" fill="#1e3a8a">3. You send the block</text>
+    <text x="740" y="60" text-anchor="middle" font-size="11" fill="#1e3a8a">POST /api/practice/send</text>
+    <text x="740" y="76" text-anchor="middle" font-size="11" fill="#1e3a8a">must be a PGP block (no plaintext!)</text>
+
+    <!-- server decrypt box -->
+    <rect x="320" y="140" width="240" height="70" rx="8" fill="#f3e8ff" stroke="#9333ea" stroke-width="2"/>
+    <text x="440" y="162" text-anchor="middle" font-weight="bold" fill="#581c87">4. Server decrypts it</text>
+    <text x="440" y="180" text-anchor="middle" font-size="11" fill="#581c87">using the practice partner's</text>
+    <text x="440" y="196" text-anchor="middle" font-size="11" fill="#581c87">PRIVATE key (stored in server_config)</text>
+
+    <!-- plaintext fail branch -->
+    <rect x="40" y="140" width="220" height="70" rx="8" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
+    <text x="150" y="162" text-anchor="middle" font-weight="bold" fill="#881337">FAIL if plaintext</text>
+    <text x="150" y="180" text-anchor="middle" font-size="11" fill="#881337">no "-----BEGIN PGP" found</text>
+    <text x="150" y="196" text-anchor="middle" font-size="11" fill="#881337">-> 400 "challenge failed"</text>
+
+    <!-- step 5 LLM -->
+    <rect x="620" y="140" width="240" height="70" rx="8" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
+    <text x="740" y="162" text-anchor="middle" font-weight="bold" fill="#881337">5. Generate a reply</text>
+    <text x="740" y="180" text-anchor="middle" font-size="11" fill="#881337">LLM call (if LLM_API_KEY set)</text>
+    <text x="740" y="196" text-anchor="middle" font-size="11" fill="#881337">else rule-based fallback</text>
+
+    <!-- step 6 need user key -->
+    <rect x="320" y="260" width="240" height="70" rx="8" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+    <text x="440" y="282" text-anchor="middle" font-weight="bold" fill="#14532d">6. Load your public key</text>
+    <text x="440" y="300" text-anchor="middle" font-size="11" fill="#14532d">must be logged in + have saved</text>
+    <text x="440" y="316" text-anchor="middle" font-size="11" fill="#14532d">a public key in My Profile</text>
+
+    <!-- step 7 encrypt reply -->
+    <rect x="620" y="260" width="240" height="70" rx="8" fill="#f3e8ff" stroke="#9333ea" stroke-width="2"/>
+    <text x="740" y="282" text-anchor="middle" font-weight="bold" fill="#581c87">7. Encrypt reply to YOU</text>
+    <text x="740" y="300" text-anchor="middle" font-size="11" fill="#581c87">new random AES key + RSA wrap,</text>
+    <text x="740" y="316" text-anchor="middle" font-size="11" fill="#581c87">using YOUR public key</text>
+
+    <!-- step 8 return -->
+    <rect x="320" y="380" width="240" height="70" rx="8" fill="#fef9c3" stroke="#ca8a04" stroke-width="2"/>
+    <text x="440" y="402" text-anchor="middle" font-weight="bold" fill="#713f12">8. Server returns</text>
+    <text x="440" y="420" text-anchor="middle" font-size="11" fill="#713f12">200 { encrypted_response,</text>
+    <text x="440" y="436" text-anchor="middle" font-size="11" fill="#713f12">       "Successful encrypted message!" }</text>
+
+    <!-- step 9 you decrypt -->
+    <rect x="320" y="470" width="240" height="70" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+    <text x="440" y="492" text-anchor="middle" font-weight="bold" fill="#1e3a8a">9. You decrypt the reply</text>
+    <text x="440" y="510" text-anchor="middle" font-size="11" fill="#1e3a8a">on /encrypt page, with</text>
+    <text x="440" y="526" text-anchor="middle" font-size="11" fill="#1e3a8a">YOUR private key -> read it</text>
+
+    <!-- arrows -->
+    <line x1="260" y1="55" x2="318" y2="55" stroke="#003366" stroke-width="2" marker-end="url(#arr4)"/>
+    <line x1="560" y1="55" x2="618" y2="55" stroke="#003366" stroke-width="2" marker-end="url(#arr4)"/>
+    <line x1="740" y1="90" x2="740" y2="138" stroke="#003366" stroke-width="2" marker-end="url(#arr4)"/>
+    <line x1="740" y1="210" x2="740" y2="258" stroke="#e11d48" stroke-width="2" marker-end="url(#arr4r)"/>
+    <line x1="618" y1="175" x2="560" y2="175" stroke="#003366" stroke-width="2" marker-end="url(#arr4)"/>
+    <line x1="620" y1="295" x2="560" y2="295" stroke="#003366" stroke-width="2" marker-end="url(#arr4)"/>
+    <line x1="740" y1="330" x2="740" y2="378" stroke="#003366" stroke-width="2" marker-end="url(#arr4)"/>
+    <line x1="560" y1="415" x2="450" y2="468" stroke="#003366" stroke-width="2" marker-end="url(#arr4)"/>
+    <line x1="320" y1="175" x2="260" y2="175" stroke="#e11d48" stroke-width="2" marker-end="url(#arr4r)" stroke-dasharray="5,3"/>
+    <text x="290" y="168" text-anchor="middle" font-size="10" fill="#881337">if fail</text>
+</svg>
+</div>
+
+<!-- ============ DIAGRAM 5: DATA MODEL ============ -->
+<h2>5. The Data (what's stored where)</h2>
+<p class="caption">On startup <span class="file-ref">init_db()</span> + <span class="file-ref">init_practice_keys()</span> create tables and generate the server's keypairs once.</p>
+<div class="diagram-wrap">
+<svg viewBox="0 0 900 360" xmlns="http://www.w3.org/2000/svg" font-family="Verdana, sans-serif" font-size="12">
+    <!-- users -->
+    <rect x="20" y="20" width="250" height="180" rx="8" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+    <text x="145" y="42" text-anchor="middle" font-weight="bold" fill="#14532d">users</text>
+    <line x1="30" y1="50" x2="260" y2="50" stroke="#16a34a"/>
+    <text x="30" y="68" fill="#14532d">id</text>
+    <text x="30" y="86" fill="#14532d">username  (unique)</text>
+    <text x="30" y="104" fill="#14532d">password_hash</text>
+    <text x="30" y="122" fill="#14532d">public_key   (user's)</text>
+    <text x="30" y="140" fill="#14532d">private_key  (user's)</text>
+    <text x="30" y="158" fill="#14532d">intro_seen</text>
+    <text x="30" y="184" font-size="10" fill="#64748b">1 row per account</text>
+
+    <!-- saved_keys -->
+    <rect x="325" y="20" width="250" height="180" rx="8" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+    <text x="450" y="42" text-anchor="middle" font-weight="bold" fill="#14532d">saved_keys</text>
+    <line x1="335" y1="50" x2="565" y2="50" stroke="#16a34a"/>
+    <text x="335" y="68" fill="#14532d">id</text>
+    <text x="335" y="86" fill="#14532d">owner_id  -> users.id</text>
+    <text x="335" y="104" fill="#14532d">name</text>
+    <text x="335" y="122" fill="#14532d">public_key</text>
+    <text x="335" y="140" fill="#14532d">created_at</text>
+    <text x="335" y="184" font-size="10" fill="#64748b">named key library (CRUD)</text>
+
+    <!-- notes -->
+    <rect x="630" y="20" width="250" height="180" rx="8" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+    <text x="755" y="42" text-anchor="middle" font-weight="bold" fill="#14532d">notes</text>
+    <line x1="640" y1="50" x2="870" y2="50" stroke="#16a34a"/>
+    <text x="640" y="68" fill="#14532d">id</text>
+    <text x="640" y="86" fill="#14532d">owner_id  -> users.id</text>
+    <text x="640" y="104" fill="#14532d">title</text>
+    <text x="640" y="122" fill="#14532d">content</text>
+    <text x="640" y="140" fill="#14532d">updated_at</text>
+    <text x="640" y="184" font-size="10" fill="#64748b">sidebar notes (auto-save)</text>
+
+    <!-- server_config -->
+    <rect x="325" y="230" width="250" height="120" rx="8" fill="#f3e8ff" stroke="#9333ea" stroke-width="2"/>
+    <text x="450" y="252" text-anchor="middle" font-weight="bold" fill="#581c87">server_config</text>
+    <line x1="335" y1="260" x2="565" y2="260" stroke="#9333ea"/>
+    <text x="335" y="278" fill="#581c87">key   (text)</text>
+    <text x="335" y="296" fill="#581c87">value (text)</text>
+    <text x="335" y="324" font-size="10" fill="#64748b">practice_public_key_2048 / 4096</text>
+    <text x="335" y="338" font-size="10" fill="#64748b">practice_private_key_2048 / 4096</text>
+
+    <!-- relation lines -->
+    <line x1="270" y1="86" x2="325" y2="86" stroke="#16a34a" stroke-width="1.5"/>
+    <text x="297" y="80" text-anchor="middle" font-size="10" fill="#14532d">1:N</text>
+    <line x1="575" y1="86" x2="630" y2="86" stroke="#16a34a" stroke-width="1.5"/>
+    <text x="602" y="80" text-anchor="middle" font-size="10" fill="#14532d">1:N</text>
+</svg>
+</div>
+
+<div class="note">
+    <strong>Key takeaway:</strong> the server is the trusted middleman in a practice sandbox. It holds the practice partner's
+    private key (so it can decrypt what you send) and holds each user's public key (so it can encrypt replies back).
+    That's why this is a <strong>learning tool, not a real secrets app</strong> - real PGP never lets anyone else hold your private key.
+</div>
+
+<div class="version-badge">DOC</div>
+
+</body>
+</html>
