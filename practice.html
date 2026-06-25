@@ -1211,6 +1211,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                     <li>Go to the <a href="/encrypt.html" style="color:#0000cc;">Encrypt / Decrypt</a> page and encrypt a message using that key.</li>
                     <li>Paste the resulting <span class="highlight">PGP MESSAGE block</span> into the message box below and hit Send.</li>
                     <li>If the message decrypts correctly, you will see <span style="color:#2e7d32;font-weight:600;">“Successful encrypted message!”</span> and receive my reply as a new PGP MESSAGE block to decrypt.</li>
+                    <li>The partner <span class="highlight">remembers your conversation</span>. Send multiple messages to keep the chat going. Use <span class="highlight">Reset Conversation</span> to start fresh.</li>
                     <li><span class="highlight">WARNING:</span> If you send plaintext instead of a PGP-encrypted message, you will <strong>FAIL</strong> the challenge!</li>
                 </ol>
             </div>
@@ -1244,6 +1245,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             <div class="action-btns">
                 <button class="btn btn-primary" id="sendBtn">Send to Practice Partner</button>
                 <button class="btn btn-secondary" id="clearBtn">Clear</button>
+                <button class="btn btn-secondary" id="resetConversationBtn">Reset Conversation</button>
             </div>
             <div class="status-msg" id="sendStatus"></div>
         </div>
@@ -1700,6 +1702,26 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             document.getElementById('sendStatus').textContent = '';
         });
 
+        document.getElementById('resetConversationBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('resetConversationBtn');
+            setLoading(btn, true);
+            try {
+                const res = await fetch('/api/practice/reset', { method: 'POST' });
+                if (res.ok) {
+                    showToast('Conversation history cleared. The partner will start fresh.', 'success');
+                    document.getElementById('responseCard').style.display = 'none';
+                    document.getElementById('sendStatus').className = 'status-msg';
+                    document.getElementById('sendStatus').textContent = '';
+                } else {
+                    showToast('Could not reset conversation. Are you logged in?', 'error');
+                }
+            } catch (err) {
+                showToast('Network error: unable to reset conversation.', 'error');
+            } finally {
+                setLoading(btn, false);
+            }
+        });
+
         // Right Sidebar Toggle
         const rightToggle = document.getElementById('rightSidebarToggle');
         const rightSidebar = document.getElementById('rightSidebar');
@@ -2029,6 +2051,6 @@ checkAuth();
         loadPracticeKey();
     </script>
     <script src="/intro.js"></script>
-    <div class="version-badge">V1.13</div>
+    <div class="version-badge">V1.14</div>
 </body>
 </html>

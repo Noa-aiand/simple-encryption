@@ -19,7 +19,7 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 ## Backend
 - **Framework**: Flask (`server.py`)
 - **Database**: PostgreSQL via `SCHEMA_TO_GO_URL` (or SQLite for local dev)
-- **Tables**: `users`, `saved_keys`, `notes`, `server_config` (practice keypair)
+- **Tables**: `users`, `saved_keys`, `notes`, `server_config` (practice keypair), `practice_conversations` (per-user chat history)
 - **Keygen**: Server-side RSA-2048/4096 using `cryptography` library (custom PGP-armored format, not raw OpenPGP.js)
 
 ## API Endpoints
@@ -52,7 +52,8 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 
 ### Practice
 - `GET /api/practice/key` → practice partner's public key
-- `POST /api/practice/send` → {message, key_size} (must be encrypted PGP block); returns LLM-powered contextual encrypted response. Rejects plaintext and requires a saved user public key.
+- `POST /api/practice/send` → {message, key_size} (must be encrypted PGP block); returns LLM-powered contextual encrypted response. Rejects plaintext and requires a saved user public key. Maintains per-user conversation history (last 10 messages) so the LLM can keep a natural ongoing conversation.
+- `POST /api/practice/reset` → clears the logged-in user's practice conversation history
 
 ## Architecture Decisions
 - **PostgreSQL** for production on Build.io (rolling deploys wipe local SQLite)
@@ -60,6 +61,7 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 - **Sidebar note encryption** uses `/api/encrypt` (server-side RSA + AES-GCM). Notes are NOT encrypted with OpenPGP.js due to format mismatch.
 - **OpenPGP.js** is loaded only on `encrypt.html` and `practice.html`
 - **Practice partner** has both RSA-2048 and RSA-4096 keypairs stored in `server_config` table
+- **Conversation history** is stored in `practice_conversations` table (per-user, capped at last 10 messages) so the LLM sees prior turns and can maintain a natural ongoing conversation. The `/api/practice/reset` endpoint clears it.
 - **LLM integration** is optional and OpenAI-compatible; configure via `LLM_API_KEY`, `LLM_BASE_URL`, and `LLM_MODEL`. Defaults point to ai& (`https://api.aiand.com/v1`, model `google/gemma-4-31b-it`) but any OpenAI-compatible provider works. Falls back to rule-based replies when not configured or on API failure.
 - **Auto-save on notes** with 800ms debounce
 
@@ -79,9 +81,10 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 > - Also update this `AGENTS.md` Version History section.
 
 ## Current Version
-**V1.13**
+**V1.14**
 
 ## Version History
+- **V1.14**: Fixed dead LLM API key (old key was getting 0 pings — silently falling back to rule-based responses). Set a new working `LLM_API_KEY` on Build.io. Made the practice partner conversational: added a `practice_conversations` DB table that stores per-user chat history, wired conversation history through `llm_reply()` → `generate_ai_response()` → `/api/practice/send` so the LLM sees prior turns and can maintain a natural ongoing conversation (capped at last 10 messages). Improved the system prompt for natural conversation. Added `/api/practice/reset` endpoint and a "Reset Conversation" button on the practice page to clear history. Added visible `logger.info` logging on every LLM call (URL, model, message count, reply length) so pings are traceable. New table: `practice_conversations` (id, owner_id, role, content, created_at).
 - **V1.13**: De-purpled the page headers and practice "How It Works" box so they match the light blue/white theme. The V1.11 heading override (`h1, h2, h3, .subtitle`) was being beaten by the higher-specificity `.page-header h1` / `.page-header .subtitle` rules, leaving the purple `#9d4edd`/`#c77dff` headers and purple glow on the Encrypt, Profile, Saved Keys, and Practice pages. Strengthened the override with `!important` on color + text-shadow across all 5 pages. Also recolored the home page's purple lock-icon to blue, fixed the practice page's purple `.instructions` box (background, border, h3, highlight, list text), and replaced unreadable inline light-gray/light-purple/light-green text (`#ccc`, `#c77dff`, `#9d4edd`, `#81c784`) with readable dark blue/green. No backend changes.
 - **V1.12**: Fixed homepage "What Does PGP Do?" section text contrast and sidebar profile text so light gray/purple copy is readable against the white/light-blue background. No backend changes.
 - **V1.11**: Softened the early-2000s theme: replaced neon purple/pink palette with a light blue and white color scheme, gentler gradients, subtler shadows, and easier-on-the-eyes typography while keeping the clunky 3D buttons, rainbow divider, and marquee. No backend changes.

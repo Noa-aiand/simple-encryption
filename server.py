@@ -32,11 +32,12 @@ LLM_API_KEY = os.environ.get('LLM_API_KEY')
 LLM_BASE_URL = os.environ.get('LLM_BASE_URL', 'https://api.aiand.com/v1')
 LLM_MODEL = os.environ.get('LLM_MODEL', 'google/gemma-4-31b-it')
 LLM_SYSTEM_PROMPT = (
-    "You are a friendly, slightly witty PGP practice partner. The user has just sent you an encrypted "
-    "message through a secure PGP channel. First, read their decrypted message carefully. Then reply "
-    "in a conversational, dynamic way that directly references what they said, asks a short follow-up, "
-    "or makes a light joke about it. Keep your response to 1-3 sentences. Only explain encryption if "
-    "the user asks about it directly."
+    "You are a friendly, witty PGP practice partner chatting with a learner over an encrypted "
+    "channel. This is an ongoing conversation — you can see the previous messages exchanged. "
+    "Stay natural and conversational: reference things the user said earlier, build on the thread "
+    "of the chat, ask follow-up questions, and occasionally make a light joke or observation about "
+    "encryption or what they said. Keep each reply to 1-3 sentences. Be curious and encouraging. "
+    "Only explain encryption concepts if the user asks about them directly."
 )
 
 # Optional cryptography module (check for graceful degradation)
@@ -183,6 +184,31 @@ def init_db():
                 title TEXT NOT NULL DEFAULT 'Untitled Note',
                 content TEXT NOT NULL DEFAULT '',
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        """)
+    conn.commit()
+
+    # Create practice conversation history table
+    if USE_POSTGRES:
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS practice_conversations (
+                id SERIAL PRIMARY KEY,
+                owner_id INTEGER NOT NULL,
+                role TEXT NOT NULL,
+                content TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        """)
+    else:
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS practice_conversations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                owner_id INTEGER NOT NULL,
+                role TEXT NOT NULL,
+                content TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
             )
         """)
@@ -716,6 +742,29 @@ def delete_note(note_id):
 
 # ============== Practice Challenge Routes ==============
 
+PRACTICE_HISTORY_LIMIT = 10
+
+def get_practice_history(user_id, limit=PRACTICE_HISTORY_LIMIT):
+    """Load recent practice conversation messages for a user (oldest first)."""
+    conn = db_connect()
+    c = conn.cursor()
+    db_execute(c, "SELECT role, content FROM practice_conversations WHERE owner_id = ? ORDER BY created_at ASC, id ASC", (user_id,))
+    rows = c.fetchall()
+    conn.close()
+    messages = [{'role': r[0], 'content': r[1]} for r in rows]
+    return messages[-limit:] if len(messages) > limit else messages
+
+
+def save_practice_message(user_id, role, content):
+    """Append a message to the practice conversation history."""
+    conn = db_connect()
+    c = conn.cursor()
+    db_execute(c, "INSERT INTO practice_conversations (owner_id, role, content) VALUES (?, ?, ?)",
+               (user_id, role, content))
+    conn.commit()
+    conn.close()
+
+
 @app.route('/api/practice/key', methods=['GET'])
 def practice_key():
     """Return the practice partner's public key so users can encrypt messages to it."""
@@ -733,9 +782,14 @@ def practice_key():
     return resp, 200
 
 
-def llm_reply(user_text):
-    """Call an OpenAI-compatible chat completions endpoint for a dynamic reply."""
+def llm_reply(user_text, history=None):
+    """Call an OpenAI-compatible chat completions endpoint for a dynamic reply.
+
+    ``history`` is a list of prior {role, content} messages so the LLM can keep
+    a natural, ongoing conversation instead of answering each message in a vacuum.
+    """
     if not REQUESTS_AVAILABLE or not LLM_API_KEY:
+        logger.info("LLM skipped: requests=%s, key_set=%s", REQUESTS_AVAILABLE, bool(LLM_API_KEY))
         return None
 
     url = LLM_BASE_URL.rstrip('/') + '/chat/completions'
@@ -743,17 +797,20 @@ def llm_reply(user_text):
         'Authorization': f'Bearer {LLM_API_KEY}',
         'Content-Type': 'application/json'
     }
+    messages = [{'role': 'system', 'content': LLM_SYSTEM_PROMPT}]
+    if history:
+        messages.extend(history)
+    messages.append({'role': 'user', 'content': user_text})
+
     payload = {
         'model': LLM_MODEL,
-        'messages': [
-            {'role': 'system', 'content': LLM_SYSTEM_PROMPT},
-            {'role': 'user', 'content': user_text}
-        ],
+        'messages': messages,
         'temperature': 0.85,
         'max_tokens': 200
     }
 
     try:
+        logger.info("LLM call -> %s model=%s msgs=%d", url, LLM_MODEL, len(messages))
         r = requests.post(url, headers=headers, json=payload, timeout=12)
         r.raise_for_status()
         data = r.json()
@@ -761,16 +818,18 @@ def llm_reply(user_text):
         if choices:
             content = choices[0].get('message', {}).get('content', '').strip()
             if content:
+                logger.info("LLM reply OK (%d chars)", len(content))
                 return content
+        logger.warning("LLM returned no content: %s", data)
     except Exception as e:
         logger.warning("LLM call failed, using fallback: %s", e)
 
     return None
 
 
-def generate_ai_response(user_text):
+def generate_ai_response(user_text, history=None):
     """Generate a contextual response, preferring an LLM if configured."""
-    reply = llm_reply(user_text)
+    reply = llm_reply(user_text, history=history)
     if reply:
         return reply
 
@@ -931,7 +990,12 @@ def practice_send():
         }), 400
 
     user_public_key = row[0]
-    ai_response = generate_ai_response(plaintext)
+
+    # ---- Save the user's message and load conversation history ----
+    save_practice_message(session['user_id'], 'user', plaintext)
+    history = get_practice_history(session['user_id'])
+    ai_response = generate_ai_response(plaintext, history=history)
+    save_practice_message(session['user_id'], 'assistant', ai_response)
 
     try:
         b64_pem_user = parse_pgp_block(user_public_key, 'PUBLIC KEY BLOCK')
@@ -971,6 +1035,21 @@ def practice_send():
         'encrypted_response': user_encrypted,
         'key_size': key_size
     }), 200
+
+
+@app.route('/api/practice/reset', methods=['POST'])
+def practice_reset():
+    """Clear the practice conversation history for the logged-in user."""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+
+    conn = db_connect()
+    c = conn.cursor()
+    db_execute(c, 'DELETE FROM practice_conversations WHERE owner_id = ?', (session['user_id'],))
+    conn.commit()
+    conn.close()
+
+    return jsonify({'message': 'Conversation history cleared'}), 200
 
 
 # ============== Health / Status ==============
