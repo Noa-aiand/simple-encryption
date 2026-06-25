@@ -19,7 +19,7 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 ## Backend
 - **Framework**: Flask (`server.py`)
 - **Database**: PostgreSQL via `SCHEMA_TO_GO_URL` (or SQLite for local dev)
-- **Tables**: `users`, `saved_keys`, `notes`, `server_config` (practice keypair), `practice_conversations` (per-user chat history)
+- **Tables**: `users`, `saved_keys`, `notes`, `server_config` (practice bot keypairs), `practice_conversations` (per-user, per-bot chat history)
 - **Keygen**: Server-side RSA-2048/4096 using `cryptography` library (custom PGP-armored format, not raw OpenPGP.js)
 
 ## API Endpoints
@@ -51,9 +51,9 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 - `POST /api/decrypt` → {message, public_key, private_key} → {decrypted}
 
 ### Practice
-- `GET /api/practice/key` → practice partner's public key
-- `POST /api/practice/send` → {message, key_size} (must be encrypted PGP block); returns LLM-powered contextual encrypted response. Rejects plaintext and requires a saved user public key. Maintains per-user conversation history (last 10 messages) so the LLM can keep a natural ongoing conversation.
-- `POST /api/practice/reset` → clears the logged-in user's practice conversation history
+- `GET /api/practice/key?bot=<chat|banana|apple>` → selected bot's public key + key_size + name + description
+- `POST /api/practice/send` → {message, bot} (must be encrypted PGP block); returns LLM-powered contextual encrypted response using the bot's personality. Rejects plaintext and requires a saved user public key. Maintains per-bot conversation history (last 10 messages) so the LLM can keep a natural ongoing conversation.
+- `POST /api/practice/reset` → {bot} clears the logged-in user's conversation history with that bot
 
 ## Architecture Decisions
 - **PostgreSQL** for production on Build.io (rolling deploys wipe local SQLite)
@@ -61,7 +61,8 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 - **Sidebar note encryption** uses `/api/encrypt` (server-side RSA + AES-GCM). Notes are NOT encrypted with OpenPGP.js due to format mismatch.
 - **OpenPGP.js** is loaded only on `encrypt.html` and `practice.html`
 - **Practice partner** has both RSA-2048 and RSA-4096 keypairs stored in `server_config` table
-- **Conversation history** is stored in `practice_conversations` table (per-user, capped at last 10 messages) so the LLM sees prior turns and can maintain a natural ongoing conversation. The `/api/practice/reset` endpoint clears it.
+- **Practice bots**: three bots defined in `PRACTICE_BOTS` dict — **Practice Partner** (chat, RSA-4096, reuses existing practice keypair), **Banana Seller** (RSA-2048, own keypair), **Apple Seller** (RSA-4096, own keypair). Each bot has its own system prompt and keypair in `server_config`.
+- **Conversation history** is stored in `practice_conversations` table (per-user, per-bot via `bot_id` column, capped at last 10 messages) so the LLM sees prior turns and can maintain a natural ongoing conversation. The `/api/practice/reset` endpoint clears it for a specific bot.
 - **LLM integration** is optional and OpenAI-compatible; configure via `LLM_API_KEY`, `LLM_BASE_URL`, and `LLM_MODEL`. Defaults point to ai& (`https://api.aiand.com/v1`, model `google/gemma-4-31b-it`) but any OpenAI-compatible provider works. Falls back to rule-based replies when not configured or on API failure.
 - **Auto-save on notes** with 800ms debounce
 
@@ -81,9 +82,10 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 > - Also update this `AGENTS.md` Version History section.
 
 ## Current Version
-**V1.16**
+**V1.17**
 
 ## Version History
+- **V1.17**: Added multiple practice bots with distinct personalities, keypairs, and per-bot conversation history. Three bots available via a dropdown selector on the practice page: **Practice Partner** (RSA-4096, casual chat — reuses the existing keypair), **Banana Seller** (RSA-2048, asks how many bananas and delivery address with a warning not to use real addresses), and **Apple Seller** (RSA-4096, asks how many apples and delivery address with same warning). Each bot has its own keypair stored in `server_config` and its own system prompt. Conversation history is now per-bot (new `bot_id` column in `practice_conversations` table), so resetting one bot doesn't lose another bot's chat. Updated `/api/practice/key`, `/api/practice/send`, and `/api/practice/reset` to accept a `bot` parameter. Replaced the key size dropdown with a bot selector dropdown on the practice page frontend. The encrypt box key size auto-syncs to the selected bot's key size.
 - **V1.16**: Removed the manual private key textarea from the decrypt section on both `encrypt.html` and `practice.html`. The decrypt handler now automatically fetches the user's saved private key from `/api/me` (stored in My Profile), removing a redundant copy-paste step. Shows a helpful error if the user is not logged in or has no saved private key. Added an info note linking to My Profile. No backend changes.
 - **V1.15**: Fixed unreadable encrypt/decrypt output text. The `.result-box` on `encrypt.html` and `.encrypted-output` / `.fail-card` on `practice.html` still used the old dark-theme styling (dark grey backgrounds with light neon green `#81c784` / light purple `#c77dff` text), making encrypted/decrypted output nearly impossible to read. Replaced all with readable white/light-blue backgrounds and dark navy text matching the site theme. Also fixed `.key-box`, `.server-status`, `showGenStatus()`, and inline purple labels on `encrypt.html`. Added an inline Encrypt/Decrypt card to the Practice page so users can encrypt a message for the practice partner and decrypt the partner's reply without leaving the page. Includes a "Send to Partner" convenience button that auto-fills the encrypted result into the Send box, and auto-fills the practice partner's public key into the encrypt box when it loads. No backend changes.
 - **V1.14**: Fixed dead LLM API key (old key was getting 0 pings — silently falling back to rule-based responses). Set a new working `LLM_API_KEY` on Build.io. Made the practice partner conversational: added a `practice_conversations` DB table that stores per-user chat history, wired conversation history through `llm_reply()` → `generate_ai_response()` → `/api/practice/send` so the LLM sees prior turns and can maintain a natural ongoing conversation (capped at last 10 messages). Improved the system prompt for natural conversation. Added `/api/practice/reset` endpoint and a "Reset Conversation" button on the practice page to clear history. Added visible `logger.info` logging on every LLM call (URL, model, message count, reply length) so pings are traceable. New table: `practice_conversations` (id, owner_id, role, content, created_at).

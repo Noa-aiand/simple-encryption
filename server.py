@@ -31,14 +31,55 @@ DATABASE = os.path.join(BASE_DIR, 'users.db')
 LLM_API_KEY = os.environ.get('LLM_API_KEY')
 LLM_BASE_URL = os.environ.get('LLM_BASE_URL', 'https://api.aiand.com/v1')
 LLM_MODEL = os.environ.get('LLM_MODEL', 'google/gemma-4-31b-it')
-LLM_SYSTEM_PROMPT = (
-    "You are a friendly, witty PGP practice partner chatting with a learner over an encrypted "
-    "channel. This is an ongoing conversation — you can see the previous messages exchanged. "
-    "Stay natural and conversational: reference things the user said earlier, build on the thread "
-    "of the chat, ask follow-up questions, and occasionally make a light joke or observation about "
-    "encryption or what they said. Keep each reply to 1-3 sentences. Be curious and encouraging. "
-    "Only explain encryption concepts if the user asks about them directly."
-)
+
+# Practice bot registry: each bot has its own keypair, system prompt, and personality.
+PRACTICE_BOTS = {
+    'chat': {
+        'name': 'Practice Partner',
+        'description': 'A friendly conversational partner for casual encrypted chat.',
+        'key_size': 4096,
+        'pub_key_name': 'practice_public_key_4096',
+        'priv_key_name': 'practice_private_key_4096',
+        'system_prompt': (
+            "You are a friendly, witty PGP practice partner chatting with a learner over an encrypted "
+            "channel. This is an ongoing conversation — you can see the previous messages exchanged. "
+            "Stay natural and conversational: reference things the user said earlier, build on the thread "
+            "of the chat, ask follow-up questions, and occasionally make a light joke or observation about "
+            "encryption or what they said. Keep each reply to 1-3 sentences. Be curious and encouraging. "
+            "Only explain encryption concepts if the user asks about them directly."
+        ),
+    },
+    'banana': {
+        'name': 'Banana Seller',
+        'description': 'A cheerful fruit seller. Ask how many bananas and where to deliver them.',
+        'key_size': 2048,
+        'pub_key_name': 'bot_banana_public_key',
+        'priv_key_name': 'bot_banana_private_key',
+        'system_prompt': (
+            "You are a cheerful, slightly goofy banana seller running a fruit stand. You're talking to "
+            "a customer over an encrypted PGP channel — this is a practice exercise for learning "
+            "encryption, not a real order. Greet the customer warmly, ask how many bananas they'd like "
+            "to buy, and ask for a delivery drop-off address. IMPORTANT: Always remind them not to share "
+            "their real home address — suggest they make one up since this is just practice. Be friendly, "
+            "playful, reference earlier parts of the conversation, and keep each reply to 1-3 sentences."
+        ),
+    },
+    'apple': {
+        'name': 'Apple Seller',
+        'description': 'A professional fruit seller. Ask how many apples and where to deliver them.',
+        'key_size': 4096,
+        'pub_key_name': 'bot_apple_public_key',
+        'priv_key_name': 'bot_apple_private_key',
+        'system_prompt': (
+            "You are a crisp, businesslike apple seller who takes pride in quality produce. You're talking "
+            "to a customer over an encrypted PGP channel — this is a practice exercise for learning "
+            "encryption, not a real order. Ask how many apples they'd like to buy and where they'd like "
+            "them dropped off. IMPORTANT: Always remind them not to give their real address — tell them to "
+            "use a fake one since this is just practice. Be professional but warm, reference earlier parts "
+            "of the conversation, and keep each reply to 1-3 sentences."
+        ),
+    },
+}
 
 # Optional cryptography module (check for graceful degradation)
 try:
@@ -214,6 +255,14 @@ def init_db():
         """)
     conn.commit()
 
+    # Migrate: add bot_id column to practice_conversations (defaults to 'chat')
+    try:
+        c.execute("ALTER TABLE practice_conversations ADD COLUMN bot_id TEXT DEFAULT 'chat'")
+        conn.commit()
+        logger.info("Migrated DB: added bot_id column to practice_conversations")
+    except Exception:
+        conn.rollback()
+
     conn.close()
 
 
@@ -295,7 +344,38 @@ def init_practice_keys():
         conn.commit()
         logger.info("Practice partner RSA-%d keypair generated and stored", size)
 
+    # Generate keypairs for specialty bots (banana=2048, apple=4096)
+    for bot_id, bot_config in PRACTICE_BOTS.items():
+        if bot_id == 'chat':
+            continue  # chat bot reuses the existing practice 4096 keypair
+        pub_key_name = bot_config['pub_key_name']
+        priv_key_name = bot_config['priv_key_name']
+        db_execute(c, "SELECT value FROM server_config WHERE key = ?", (priv_key_name,))
+        if c.fetchone():
+            continue
+        logger.info("Generating %s bot RSA-%d keypair...", bot_id, bot_config['key_size'])
+        public_block, private_block = _generate_practice_keypair(bot_config['key_size'])
+        db_execute(c, "INSERT INTO server_config (key, value) VALUES (?, ?), (?, ?)",
+                   (priv_key_name, private_block, pub_key_name, public_block))
+        conn.commit()
+        logger.info("%s bot keypair generated and stored", bot_id)
+
     conn.close()
+
+
+def get_bot_keys(bot_id):
+    """Return (public_key_block, private_key_block, key_size) for a practice bot."""
+    bot = PRACTICE_BOTS.get(bot_id, PRACTICE_BOTS['chat'])
+    conn = db_connect()
+    c = conn.cursor()
+    db_execute(c, "SELECT value FROM server_config WHERE key = ?", (bot['pub_key_name'],))
+    pub_row = c.fetchone()
+    db_execute(c, "SELECT value FROM server_config WHERE key = ?", (bot['priv_key_name'],))
+    priv_row = c.fetchone()
+    conn.close()
+    return (pub_row[0] if pub_row else None,
+            priv_row[0] if priv_row else None,
+            bot['key_size'])
 
 
 def get_practice_keys(size=4096):
@@ -744,49 +824,57 @@ def delete_note(note_id):
 
 PRACTICE_HISTORY_LIMIT = 10
 
-def get_practice_history(user_id, limit=PRACTICE_HISTORY_LIMIT):
-    """Load recent practice conversation messages for a user (oldest first)."""
+def get_practice_history(user_id, bot_id='chat', limit=PRACTICE_HISTORY_LIMIT):
+    """Load recent practice conversation messages for a user + bot (oldest first)."""
     conn = db_connect()
     c = conn.cursor()
-    db_execute(c, "SELECT role, content FROM practice_conversations WHERE owner_id = ? ORDER BY created_at ASC, id ASC", (user_id,))
+    db_execute(c, "SELECT role, content FROM practice_conversations WHERE owner_id = ? AND bot_id = ? ORDER BY created_at ASC, id ASC", (user_id, bot_id))
     rows = c.fetchall()
     conn.close()
     messages = [{'role': r[0], 'content': r[1]} for r in rows]
     return messages[-limit:] if len(messages) > limit else messages
 
 
-def save_practice_message(user_id, role, content):
-    """Append a message to the practice conversation history."""
+def save_practice_message(user_id, bot_id, role, content):
+    """Append a message to the practice conversation history for a specific bot."""
     conn = db_connect()
     c = conn.cursor()
-    db_execute(c, "INSERT INTO practice_conversations (owner_id, role, content) VALUES (?, ?, ?)",
-               (user_id, role, content))
+    db_execute(c, "INSERT INTO practice_conversations (owner_id, bot_id, role, content) VALUES (?, ?, ?, ?)",
+               (user_id, bot_id, role, content))
     conn.commit()
     conn.close()
 
 
 @app.route('/api/practice/key', methods=['GET'])
 def practice_key():
-    """Return the practice partner's public key so users can encrypt messages to it."""
+    """Return a practice bot's public key so users can encrypt messages to it."""
     if not CRYPTO_AVAILABLE:
         return jsonify({'error': 'Cryptography not available'}), 503
-    key_size = request.args.get('size', 4096, type=int)
-    if key_size not in (2048, 4096):
-        return jsonify({'error': 'Key size must be 2048 or 4096'}), 400
-    pub, _priv = get_practice_keys(key_size)
+    bot_id = request.args.get('bot', 'chat')
+    if bot_id not in PRACTICE_BOTS:
+        return jsonify({'error': f'Unknown bot: {bot_id}'}), 400
+    pub, _priv, key_size = get_bot_keys(bot_id)
     if not pub:
-        return jsonify({'error': 'Practice keypair not initialized'}), 500
-    resp = jsonify({'public_key': pub, 'key_size': key_size})
+        return jsonify({'error': 'Bot keypair not initialized'}), 500
+    bot = PRACTICE_BOTS[bot_id]
+    resp = jsonify({
+        'public_key': pub,
+        'key_size': key_size,
+        'bot': bot_id,
+        'bot_name': bot['name'],
+        'bot_description': bot['description']
+    })
     resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
     resp.headers['Pragma'] = 'no-cache'
     return resp, 200
 
 
-def llm_reply(user_text, history=None):
+def llm_reply(user_text, history=None, system_prompt=None):
     """Call an OpenAI-compatible chat completions endpoint for a dynamic reply.
 
     ``history`` is a list of prior {role, content} messages so the LLM can keep
     a natural, ongoing conversation instead of answering each message in a vacuum.
+    ``system_prompt`` sets the bot's personality.
     """
     if not REQUESTS_AVAILABLE or not LLM_API_KEY:
         logger.info("LLM skipped: requests=%s, key_set=%s", REQUESTS_AVAILABLE, bool(LLM_API_KEY))
@@ -797,7 +885,7 @@ def llm_reply(user_text, history=None):
         'Authorization': f'Bearer {LLM_API_KEY}',
         'Content-Type': 'application/json'
     }
-    messages = [{'role': 'system', 'content': LLM_SYSTEM_PROMPT}]
+    messages = [{'role': 'system', 'content': system_prompt or PRACTICE_BOTS['chat']['system_prompt']}]
     if history:
         messages.extend(history)
     messages.append({'role': 'user', 'content': user_text})
@@ -827,9 +915,9 @@ def llm_reply(user_text, history=None):
     return None
 
 
-def generate_ai_response(user_text, history=None):
+def generate_ai_response(user_text, history=None, system_prompt=None):
     """Generate a contextual response, preferring an LLM if configured."""
-    reply = llm_reply(user_text, history=history)
+    reply = llm_reply(user_text, history=history, system_prompt=system_prompt)
     if reply:
         return reply
 
@@ -888,19 +976,21 @@ def generate_ai_response(user_text, history=None):
 @app.route('/api/practice/send', methods=['POST'])
 def practice_send():
     """
-    Receive an encrypted message from the user, decrypt it, generate an AI response,
-    and encrypt the reply back to the user's saved public key. The reply is only
-    returned as an encrypted PGP MESSAGE block.
+    Receive an encrypted message from the user, decrypt it with the selected bot's
+    private key, generate an AI response using the bot's personality, and encrypt
+    the reply back to the user's saved public key.
     """
     if not CRYPTO_AVAILABLE:
         return jsonify({'error': 'Cryptography not available on this server'}), 503
 
     data = request.get_json() or {}
     message_block = data.get('message', '').strip()
-    key_size = data.get('key_size', 4096)
+    bot_id = data.get('bot', 'chat')
 
-    if key_size not in (2048, 4096):
-        return jsonify({'error': 'Key size must be 2048 or 4096'}), 400
+    if bot_id not in PRACTICE_BOTS:
+        return jsonify({'error': f'Unknown bot: {bot_id}'}), 400
+
+    bot = PRACTICE_BOTS[bot_id]
 
     if not message_block:
         return jsonify({'error': 'Message is required'}), 400
@@ -913,18 +1003,18 @@ def practice_send():
             'message': (
                 'CHALLENGE FAILED!\n\n'
                 'You sent unencrypted text. The practice challenge requires you to encrypt your message '
-                'with the practice partner\'s public key before sending.\n\n'
+                'with the bot\'s public key before sending.\n\n'
                 'Steps to pass:\n'
-                '1. Choose a key size (2048 or 4096) and copy the practice public key\n'
-                '2. Go to the Encrypt / Decrypt page\n'
-                '3. Paste the practice key, type your message, and encrypt it\n'
+                '1. Select a bot and copy its public key\n'
+                '2. Go to the Encrypt / Decrypt section (or page)\n'
+                '3. Paste the bot\'s key, type your message, and encrypt it\n'
                 '4. Paste the resulting PGP MESSAGE block here and try again'
             )
         }), 400
 
-    _pub, priv_block = get_practice_keys(key_size)
+    _pub, priv_block, key_size = get_bot_keys(bot_id)
     if not priv_block:
-        return jsonify({'error': 'Practice keypair not initialized'}), 500
+        return jsonify({'error': 'Bot keypair not initialized'}), 500
 
     # ---- Decrypt the user's message ----
     try:
@@ -959,7 +1049,7 @@ def practice_send():
             'message': (
                 'Could not decrypt your message.\n\n'
                 'Make sure you:\n'
-                '1. Used the correct practice partner public key and size to encrypt\n'
+                '1. Used the correct bot\'s public key to encrypt\n'
                 '2. Copied the entire PGP MESSAGE block (including -----BEGIN/END markers)\n'
                 '3. The message format is valid'
             )
@@ -991,11 +1081,11 @@ def practice_send():
 
     user_public_key = row[0]
 
-    # ---- Save the user's message and load conversation history ----
-    save_practice_message(session['user_id'], 'user', plaintext)
-    history = get_practice_history(session['user_id'])
-    ai_response = generate_ai_response(plaintext, history=history)
-    save_practice_message(session['user_id'], 'assistant', ai_response)
+    # ---- Save the user's message and load per-bot conversation history ----
+    save_practice_message(session['user_id'], bot_id, 'user', plaintext)
+    history = get_practice_history(session['user_id'], bot_id)
+    ai_response = generate_ai_response(plaintext, history=history, system_prompt=bot['system_prompt'])
+    save_practice_message(session['user_id'], bot_id, 'assistant', ai_response)
 
     try:
         b64_pem_user = parse_pgp_block(user_public_key, 'PUBLIC KEY BLOCK')
@@ -1020,7 +1110,7 @@ def practice_send():
         payload = key_len.to_bytes(2, 'big') + encrypted_key + nonce + ciphertext
         payload_b64 = base64.b64encode(payload).decode()
 
-        user_encrypted = make_pgp_block('MESSAGE', payload_b64, 'Practice Partner Encrypted Reply')
+        user_encrypted = make_pgp_block('MESSAGE', payload_b64, f'{bot["name"]} Encrypted Reply')
     except Exception as e:
         logger.exception("Could not encrypt reply to user's key")
         return jsonify({
@@ -1033,23 +1123,32 @@ def practice_send():
         'status': 'success',
         'message': 'Successful encrypted message!',
         'encrypted_response': user_encrypted,
-        'key_size': key_size
+        'key_size': key_size,
+        'bot': bot_id,
+        'bot_name': bot['name']
     }), 200
 
 
 @app.route('/api/practice/reset', methods=['POST'])
 def practice_reset():
-    """Clear the practice conversation history for the logged-in user."""
+    """Clear the practice conversation history for the logged-in user + bot."""
     if 'user_id' not in session:
         return jsonify({'error': 'Not authenticated'}), 401
 
+    data = request.get_json() or {}
+    bot_id = data.get('bot', 'chat')
+
+    if bot_id not in PRACTICE_BOTS:
+        return jsonify({'error': f'Unknown bot: {bot_id}'}), 400
+
     conn = db_connect()
     c = conn.cursor()
-    db_execute(c, 'DELETE FROM practice_conversations WHERE owner_id = ?', (session['user_id'],))
+    db_execute(c, 'DELETE FROM practice_conversations WHERE owner_id = ? AND bot_id = ?',
+               (session['user_id'], bot_id))
     conn.commit()
     conn.close()
 
-    return jsonify({'message': 'Conversation history cleared'}), 200
+    return jsonify({'message': f'Conversation history cleared for {PRACTICE_BOTS[bot_id]["name"]}'}), 200
 
 
 # ============== Health / Status ==============
