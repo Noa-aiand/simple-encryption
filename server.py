@@ -35,13 +35,17 @@ LLM_MODEL = os.environ.get('LLM_MODEL', 'google/gemma-4-31b-it')
 # Practice bot registry: each bot has its own keypair, system prompt, and personality.
 PRACTICE_BOTS = {
     'chat': {
-        'name': 'Practice Partner',
-        'description': 'A friendly conversational partner for casual encrypted chat.',
+        'name': 'Tim',
+        'description': (
+            'Tim is a friendly, easygoing chat partner. He is perfect for beginners who just want to '
+            'practice encrypting and decrypting messages in casual conversation. Talk to him about '
+            'anything — he will keep the conversation going and make you feel comfortable with PGP.'
+        ),
         'key_size': 4096,
         'pub_key_name': 'practice_public_key_4096',
         'priv_key_name': 'practice_private_key_4096',
         'system_prompt': (
-            "You are a friendly, witty PGP practice partner chatting with a learner over an encrypted "
+            "You are Tim, a friendly, witty PGP practice partner chatting with a learner over an encrypted "
             "channel. This is an ongoing conversation — you can see the previous messages exchanged. "
             "Stay natural and conversational: reference things the user said earlier, build on the thread "
             "of the chat, ask follow-up questions, and occasionally make a light joke or observation about "
@@ -50,13 +54,18 @@ PRACTICE_BOTS = {
         ),
     },
     'banana': {
-        'name': 'Banana Seller',
-        'description': 'A cheerful fruit seller. Ask how many bananas and where to deliver them.',
+        'name': 'Jim',
+        'description': (
+            'Jim runs a cheerful banana stand and loves a good deal. He will ask how many bananas you '
+            'want to order and where to deliver them. Remember: use a fake address — this is just '
+            'practice, not a real order! Jim uses a smaller RSA-2048 key, which is faster but slightly '
+            'less secure than 4096-bit keys.'
+        ),
         'key_size': 2048,
         'pub_key_name': 'bot_banana_public_key',
         'priv_key_name': 'bot_banana_private_key',
         'system_prompt': (
-            "You are a cheerful, slightly goofy banana seller running a fruit stand. You're talking to "
+            "You are Jim, a cheerful, slightly goofy banana seller running a fruit stand. You're talking to "
             "a customer over an encrypted PGP channel — this is a practice exercise for learning "
             "encryption, not a real order. Greet the customer warmly, ask how many bananas they'd like "
             "to buy, and ask for a delivery drop-off address. IMPORTANT: Always remind them not to share "
@@ -65,18 +74,23 @@ PRACTICE_BOTS = {
         ),
     },
     'apple': {
-        'name': 'Apple Seller',
-        'description': 'A professional fruit seller. Ask how many apples and where to deliver them.',
+        'name': 'Dorothy',
+        'description': (
+            'Dorothy is a professional apple orchard owner who takes pride in her quality produce. She '
+            'will ask how many apples you would like to buy and where to deliver them. Do not share your '
+            'real address — make one up! Dorothy uses a larger RSA-4096 key for stronger security, '
+            'matching the best practice for modern encryption.'
+        ),
         'key_size': 4096,
         'pub_key_name': 'bot_apple_public_key',
         'priv_key_name': 'bot_apple_private_key',
         'system_prompt': (
-            "You are a crisp, businesslike apple seller who takes pride in quality produce. You're talking "
-            "to a customer over an encrypted PGP channel — this is a practice exercise for learning "
-            "encryption, not a real order. Ask how many apples they'd like to buy and where they'd like "
-            "them dropped off. IMPORTANT: Always remind them not to give their real address — tell them to "
-            "use a fake one since this is just practice. Be professional but warm, reference earlier parts "
-            "of the conversation, and keep each reply to 1-3 sentences."
+            "You are Dorothy, a crisp, businesslike apple seller who takes pride in quality produce. "
+            "You're talking to a customer over an encrypted PGP channel — this is a practice exercise "
+            "for learning encryption, not a real order. Ask how many apples they'd like to buy and where "
+            "they'd like them dropped off. IMPORTANT: Always remind them not to give their real address — "
+            "tell them to use a fake one since this is just practice. Be professional but warm, reference "
+            "earlier parts of the conversation, and keep each reply to 1-3 sentences."
         ),
     },
 }

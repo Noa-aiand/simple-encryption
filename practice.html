@@ -584,6 +584,60 @@
             white-space: pre-wrap;
         }
 
+        /* Practice bot selector cards */
+        .bot-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.2rem;
+        }
+        .bot-card {
+            background: #f7fbff;
+            border: 2px solid #b8cce6;
+            border-radius: 10px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 3px 3px 0 #b8cce6;
+        }
+        .bot-card:hover {
+            border-color: #6699cc;
+            box-shadow: 4px 4px 0 #99bbdd;
+            transform: translate(-1px, -1px);
+        }
+        .bot-card.selected {
+            border-color: #0066cc;
+            background: #e6f2ff;
+            box-shadow: 3px 3px 0 #0066cc;
+        }
+        .bot-card h3 {
+            margin: 0 0 0.3rem;
+            font-size: 1.1rem;
+            color: #0066cc;
+        }
+        .bot-card .bot-role {
+            font-size: 0.78rem;
+            color: #6699cc;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0 0 0.5rem;
+        }
+        .bot-card .bot-keysize {
+            display: inline-block;
+            font-size: 0.72rem;
+            background: #0066cc;
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+        .bot-card .bot-tagline {
+            font-size: 0.82rem;
+            color: #003366;
+            line-height: 1.4;
+            margin: 0;
+        }
+
         /* Encrypt/Decrypt helper result boxes */
         .result-box {
             margin-top: 1.5rem;
@@ -1230,39 +1284,54 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             </nav>
         </div>
 
-        <!-- Instructions Card -->
+        <!-- How It Works -->
         <div class="card">
             <h2>How It Works</h2>
             <div class="instructions">
                 <h3>The PGP Practice Challenge</h3>
                 <ol>
-                    <li>Make sure you are <span class="highlight">logged in</span> and have <span class="highlight">saved your public key</span> in My Profile so the bot can encrypt its reply back to you.</li>
-                    <li>Pick a <span class="highlight">practice bot</span> from the dropdown below and copy its public key.</li>
-                    <li>Use the <span class="highlight">Encrypt / Decrypt</span> card on this page (or the Encrypt page) to encrypt a message using that bot's key.</li>
-                    <li>Paste the resulting <span class="highlight">PGP MESSAGE block</span> into the message box below and hit Send.</li>
-                    <li>If the message decrypts correctly, you will see <span style="color:#2e7d32;font-weight:600;">“Successful encrypted message!”</span> and receive the bot's reply as a new PGP MESSAGE block to decrypt.</li>
-                    <li>Each bot <span class="highlight">remembers your conversation separately</span>. Use <span class="highlight">Reset Conversation</span> to start fresh with the current bot.</li>
-                    <li><span class="highlight">WARNING:</span> If you send plaintext instead of a PGP-encrypted message, you will <strong>FAIL</strong> the challenge!</li>
+                    <li>Pick a practice partner below and copy their <span class="highlight">public key</span>.</li>
+                    <li>Type a message in the <span class="highlight">Encrypt</span> box and encrypt it using their key.</li>
+                    <li>Send the encrypted block to them with the <span class="highlight">Send</span> button.</li>
+                    <li>They will reply with an encrypted message — <span class="highlight">decrypt</span> it with your private key to read it!</li>
                 </ol>
+                <p style="margin-top:0.8rem;font-size:0.85rem;color:#003366;"><span class="highlight">Prerequisite:</span> You must be logged in and have saved a public key in <a href="/profile.html" style="color:#0000cc;">My Profile</a> so the bot can encrypt its reply to you.</p>
+            </div>
+        </div>
+
+        <!-- Choose Your Practice Partner -->
+        <div class="card">
+            <h2>Choose Your Practice Partner</h2>
+            <p style="font-size:0.88rem;margin-bottom:1rem;color:#003366;">Each partner has their own public key and personality. Click one to select them, then copy their key to encrypt your message.</p>
+
+            <div class="bot-cards">
+                <div class="bot-card selected" data-bot="chat" data-name="Tim">
+                    <h3>Tim</h3>
+                    <p class="bot-role">Practice Partner</p>
+                    <span class="bot-keysize">RSA-4096</span>
+                    <p class="bot-tagline">Friendly and easygoing. Perfect for beginners — just chat about anything and he will keep the conversation going.</p>
+                </div>
+                <div class="bot-card" data-bot="banana" data-name="Jim">
+                    <h3>Jim</h3>
+                    <p class="bot-role">Banana Seller</p>
+                    <span class="bot-keysize">RSA-2048</span>
+                    <p class="bot-tagline">Cheerful fruit seller who will ask how many bananas you want and where to deliver them. Use a fake address!</p>
+                </div>
+                <div class="bot-card" data-bot="apple" data-name="Dorothy">
+                    <h3>Dorothy</h3>
+                    <p class="bot-role">Apple Seller</p>
+                    <span class="bot-keysize">RSA-4096</span>
+                    <p class="bot-tagline">Professional orchard owner who will ask how many apples you would like and where to drop them off. Use a fake address!</p>
+                </div>
             </div>
 
+            <p id="botDescription" style="color:#003366;font-size:0.85rem;margin:0 0 1rem;line-height:1.5;"></p>
+
             <div class="form-group">
-                <label style="display:flex;align-items:center;gap:8px;font-size:1rem;">
-                    Practice Bot Public PGP Key
-                </label>
-                <p style="color:#003366;font-size:0.85rem;margin-bottom:0.8rem;">Pick a bot, copy its key, and use it to encrypt your message. The bot's reply will be encrypted to your saved public key.</p>
-                <div class="key-size-row">
-                    <label for="practiceBotSelect">Bot:</label>
-                    <select id="practiceBotSelect">
-                        <option value="chat" selected>Practice Partner (RSA-4096)</option>
-                        <option value="banana">Banana Seller (RSA-2048)</option>
-                        <option value="apple">Apple Seller (RSA-4096)</option>
-                    </select>
-                </div>
-                <p id="botDescription" style="color:#003366;font-size:0.82rem;margin:0.4rem 0 0.8rem;font-style:italic;"></p>
+                <label>Selected Partner's Public PGP Key</label>
                 <div class="key-box-wrapper">
                     <button class="copy-btn" id="copyPracticeKey">Copy Key</button>
-                    <textarea class="key-textarea" id="practiceKeyText" readonly>Loading practice bot's public key, please wait...</textarea>
+                    <textarea class="key-textarea" id="practiceKeyText" readonly>Loading key, please wait...</textarea>
                 </div>
             </div>
         </div>
@@ -1281,7 +1350,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             </div>
             <div class="form-group">
                 <label>Recipient's Public Key</label>
-                <textarea id="encPublicKeyPractice" placeholder="Paste the practice partner's public key (or any PGP public key) here..."></textarea>
+                <textarea id="encPublicKeyPractice" placeholder="The selected partner's public key is auto-filled here. You can also paste any PGP public key..."></textarea>
             </div>
             <div class="form-group">
                 <label for="encMessagePractice">Message to Encrypt</label>
@@ -1290,7 +1359,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             <div class="action-btns">
                 <button class="btn btn-primary" id="encryptBtnPractice">Encrypt</button>
                 <button class="btn btn-secondary" id="copyEncryptedBtnPractice" style="display:none;">Copy Result</button>
-                <button class="btn btn-success" id="sendEncryptedBtnPractice" style="display:none;">Send to Bot</button>
+                <button class="btn btn-success" id="sendEncryptedBtnPractice" style="display:none;">Load into Send Box</button>
                 <button class="btn btn-secondary" id="clearEncBtnPractice">Clear</button>
             </div>
             <div class="result-label" id="encResultLabelPractice">Encrypted Message</div>
@@ -1301,7 +1370,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             <p style="font-size:0.85rem;color:#003366;background:#e6f2ff;border:1px solid #99ccff;border-radius:6px;padding:0.6rem 0.8rem;margin-bottom:1rem;">Your saved private key from <a href="/profile.html" style="color:#0000cc;">My Profile</a> will be used automatically to decrypt replies.</p>
             <div class="form-group">
                 <label for="decMessagePractice">Encrypted Message to Decrypt</label>
-                <textarea id="decMessagePractice" placeholder="-----BEGIN PGP MESSAGE-----&#10;Paste the practice partner's encrypted reply here...&#10;-----END PGP MESSAGE-----"></textarea>
+                <textarea id="decMessagePractice" placeholder="-----BEGIN PGP MESSAGE-----&#10;Paste the partner's encrypted reply here...&#10;-----END PGP MESSAGE-----"></textarea>
             </div>
             <div class="action-btns">
                 <button class="btn btn-primary" id="decryptBtnPractice">Decrypt</button>
@@ -1320,7 +1389,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                 <textarea id="practiceMessage" placeholder="-----BEGIN PGP MESSAGE-----&#10;Paste the full PGP MESSAGE block you generated using the practice key...&#10;-----END PGP MESSAGE-----"></textarea>
             </div>
             <div class="action-btns">
-                <button class="btn btn-primary" id="sendBtn">Send to Practice Bot</button>
+                <button class="btn btn-primary" id="sendBtn">Send Encrypted Message</button>
                 <button class="btn btn-secondary" id="clearBtn">Clear</button>
                 <button class="btn btn-secondary" id="resetConversationBtn">Reset Conversation</button>
             </div>
@@ -1329,7 +1398,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
 
         <!-- Response Area -->
         <div class="card" id="responseCard" style="display:none;">
-            <h2>Practice Partner's Response</h2>
+            <h2 id="responseCardTitle">Response</h2>
             <div id="responseContent"></div>
         </div>
     </div>
@@ -1619,8 +1688,8 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         // ================= Practice Challenge =================
         let practiceKey = '';
         let practiceBot = 'chat';
+        let practiceBotName = 'Tim';
         let practiceKeySize = 4096;
-        const practiceBotSelect = document.getElementById('practiceBotSelect');
 
         async function loadPracticeKey(retry = 0, bot = practiceBot) {
             const keyText = document.getElementById('practiceKeyText');
@@ -1697,10 +1766,15 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             keyText.classList.add('input-error');
         }
 
-        practiceBotSelect.addEventListener('change', () => {
-            practiceBot = practiceBotSelect.value;
-            document.getElementById('practiceKeyText').classList.remove('loaded');
-            loadPracticeKey(0, practiceBot);
+        document.querySelectorAll('.bot-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('.bot-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                practiceBot = card.dataset.bot;
+                practiceBotName = card.dataset.name;
+                document.getElementById('practiceKeyText').classList.remove('loaded');
+                loadPracticeKey(0, practiceBot);
+            });
         });
 
         function syncPracticeKeyToEncryptBox() {
@@ -1782,7 +1856,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                 return;
             }
             document.getElementById('practiceMessage').value = encryptedText;
-            showToast('Encrypted message loaded into Send box. Click "Send to Practice Bot".', 'info');
+            showToast('Encrypted message loaded into the Send box. Click "Send Encrypted Message" to send it.', 'info');
             document.getElementById('practiceMessage').scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
 
@@ -1876,10 +1950,12 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                     showStatus('sendStatus', data.message || 'Successful encrypted message!', 'ok');
                     const card = document.getElementById('responseCard');
                     const content = document.getElementById('responseContent');
+                    const botName = data.bot_name || practiceBotName || 'Partner';
+                    document.getElementById('responseCardTitle').textContent = botName + "'s Response";
                     card.style.display = 'block';
 
                     let html = '<div class="response-card">';
-                    html += '<h3>Encrypted reply (decrypt with your private key):</h3>';
+                    html += '<h3>Encrypted reply from ' + escapeHtml(botName) + ' (decrypt with your private key):</h3>';
                     if (data.encrypted_response) {
                         html += '<div class="key-box-wrapper" style="margin-top:0.5rem;">';
                         html += '<button class="copy-btn" id="copyResponseBtn">Copy</button>';
@@ -1934,7 +2010,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                     body: JSON.stringify({ bot: practiceBot })
                 });
                 if (res.ok) {
-                    showToast('Conversation history cleared. The partner will start fresh.', 'success');
+                    showToast('Conversation with ' + (practiceBotName || 'partner') + ' cleared. They will start fresh.', 'success');
                     document.getElementById('responseCard').style.display = 'none';
                     document.getElementById('sendStatus').className = 'status-msg';
                     document.getElementById('sendStatus').textContent = '';
@@ -2277,6 +2353,6 @@ checkAuth();
         loadPracticeKey();
     </script>
     <script src="/intro.js"></script>
-    <div class="version-badge">V1.17</div>
+    <div class="version-badge">V1.18</div>
 </body>
 </html>
