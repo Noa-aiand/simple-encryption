@@ -777,6 +777,67 @@
         }
         .practice-notice strong { color: #ff9800; }
 
+        /* Start Practicing CTA */
+        .cta-section {
+            text-align: center;
+            margin: 2rem auto 2.5rem;
+            max-width: 900px;
+        }
+        .cta-section p {
+            color: #003366;
+            font-size: 1rem;
+            margin-bottom: 1.2rem;
+            line-height: 1.5;
+        }
+        .cta-btn {
+            display: inline-block;
+            padding: 18px 48px;
+            font-family: 'Arial Black', 'Arial', sans-serif;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: linear-gradient(180deg, #0066cc 0%, #003399 100%);
+            color: #ffffff;
+            border: 3px outset #99ccff;
+            border-radius: 12px;
+            box-shadow: 5px 5px 0 #6699cc, inset 0 1px 0 rgba(255,255,255,0.3);
+            text-decoration: none;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .cta-btn:hover {
+            background: linear-gradient(180deg, #0077dd 0%, #0044aa 100%);
+            transform: translate(2px, 2px);
+            box-shadow: 3px 3px 0 #6699cc, inset 0 1px 0 rgba(255,255,255,0.3);
+        }
+        .cta-btn:active {
+            border-style: inset;
+            transform: translate(3px, 3px);
+            box-shadow: 2px 2px 0 #6699cc;
+        }
+        .cta-bot-row {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 1.2rem;
+        }
+        .cta-bot-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #e6f2ff;
+            border: 2px solid #99ccff;
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-size: 0.82rem;
+            color: #003366;
+            font-weight: bold;
+        }
+        .cta-bot-chip strong { color: #0066cc; }
+
         /* Educational Section */
         .learn-section {
             max-width: 1100px;
@@ -1166,6 +1227,17 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                 <a href="/saved-keys.html" class="nav-tab">Saved Keys</a>
                 <a href="/practice.html" class="nav-tab">Practice</a>
             </nav>
+        </div>
+
+        <!-- Start Practicing CTA -->
+        <div class="cta-section">
+            <p>Ready to try PGP for real? Chat with our practice partners and learn encryption by doing.</p>
+            <a href="/practice.html" class="cta-btn">Start Practicing</a>
+            <div class="cta-bot-row">
+                <span class="cta-bot-chip"><strong>Tim</strong> - Practice Partner (RSA-4096)</span>
+                <span class="cta-bot-chip"><strong>Jim</strong> - Banana Seller (RSA-2048)</span>
+                <span class="cta-bot-chip"><strong>Dorothy</strong> - Apple Seller (RSA-4096)</span>
+            </div>
         </div>
 
         <!-- What Does PGP Do? -->
@@ -1922,6 +1994,6 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         checkAuth();
     </script>
     <script src="/intro.js"></script>
-    <div class="version-badge">V1.18</div>
+    <div class="version-badge">V1.19</div>
 </body>
 </html>
