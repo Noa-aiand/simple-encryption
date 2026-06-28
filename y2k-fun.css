@@ -1,0 +1,116 @@
+/* ===== Y2K Fun Touches ===== */
+/* Subtle, animated early-2000s flair that doesn't clutter pages. */
+
+/* 1. Animated rainbow divider — gradient slowly shifts */
+.rainbow-divider {
+    background: linear-gradient(90deg, #ff9999, #ffcc99, #ffff99, #99ff99, #99ccff, #cc99ff, #ff9999);
+    background-size: 200% 100%;
+    animation: rainbow-slide 8s linear infinite;
+}
+@keyframes rainbow-slide {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+}
+
+/* 2. CTA button glow pulse — eye-catching but subtle */
+.cta-btn {
+    animation: cta-glow 2.5s ease-in-out infinite;
+}
+@keyframes cta-glow {
+    0%, 100% { box-shadow: 5px 5px 0 #6699cc, inset 0 1px 0 rgba(255,255,255,0.3), 0 0 0 rgba(0,102,204,0); }
+    50% { box-shadow: 5px 5px 0 #6699cc, inset 0 1px 0 rgba(255,255,255,0.3), 0 0 24px rgba(0,102,204,0.6); }
+}
+
+/* 3. Page title shimmer — animated gradient on the main h1 */
+.page-header h1 {
+    background: linear-gradient(90deg, #003366, #0066cc, #3399ff, #0066cc, #003366);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: title-shimmer 6s linear infinite;
+}
+@keyframes title-shimmer {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+}
+/* Fallback for browsers without background-clip text support */
+@supports not (background-clip: text) {
+    .page-header h1 { -webkit-text-fill-color: initial; }
+}
+
+/* 4. "NEW!" blinking badge — classic Y2K */
+.new-badge {
+    display: inline-block;
+    background: #ff3333;
+    color: #ffff00;
+    font-family: 'Arial Black', 'Arial', sans-serif;
+    font-size: 0.65rem;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 0.4rem;
+    vertical-align: super;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 0 #990000;
+    animation: new-blink 1.2s steps(2, start) infinite;
+    box-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+@keyframes new-blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.3; }
+}
+
+/* 5. Hit counter — classic Y2K odometer widget */
+.hit-counter {
+    position: fixed;
+    bottom: 12px;
+    left: 12px;
+    z-index: 9000;
+    background: #000;
+    border: 2px ridge #00ff00;
+    border-radius: 3px;
+    padding: 3px 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    color: #00ff00;
+    text-shadow: 0 0 4px #00ff00;
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+}
+.hit-counter::before {
+    content: 'YOU ARE VISITOR';
+    font-size: 0.5rem;
+    color: #66ff66;
+    text-shadow: none;
+    letter-spacing: 0.5px;
+}
+.hit-counter .counter-digits {
+    color: #ffff00;
+    text-shadow: 0 0 4px #ffff00;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+@media (max-width: 600px) {
+    .hit-counter { font-size: 0.7rem; padding: 2px 6px; }
+    .hit-counter::before { font-size: 0.45rem; }
+}
+
+/* 6. Nav-tab glow on hover — subtle neon edge */
+.nav-tab:hover {
+    box-shadow: 2px 2px 0 #8faecf, 0 0 10px rgba(0,102,204,0.4) !important;
+}
+
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+    .rainbow-divider,
+    .cta-btn,
+    .page-header h1,
+    .new-badge {
+        animation: none !important;
+    }
+}

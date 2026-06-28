@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PGP Practice Tool - Saved Keys</title>
+    <title>Learn PGP & OPSEC - Practice Tool</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -1128,10 +1128,10 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             <nav class="sidebar-nav" id="sidebarNav">
                 <a href="/">Home</a>
                 <a href="/practice.html">Practice</a>
-                <a href="/learn.html">Learn</a>
+                <a href="/learn.html" class="active">Learn</a>
                 <a href="/encrypt.html">Encrypt / Decrypt</a>
                 <a href="/profile.html">My Profile</a>
-                <a href="/saved-keys.html" class="active">Saved Keys</a>
+                <a href="/saved-keys.html">Saved Keys</a>
                 <a href="/fingerprint.html">Fingerprint</a>
                 <a href="/password.html">Password Check</a>
             </nav>
@@ -1145,71 +1145,280 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
     <marquee class="top-marquee" scrollamount="6" behavior="scroll" direction="left">WELCOME TO SIMPLE ENCRYPTION -- Learn PGP the retro way -- Best viewed in 1024x768 -- Your keys are stored on the server for practice -- Do not use for real secrets -- Click around and have fun!</marquee>
 
         <div class="page-header">
-            <h1>PGP Practice Tool</h1>
-            <div class="subtitle">Saved Public Keys</div>
+            <h1>Learn PGP &amp; OPSEC</h1>
+            <div class="subtitle">The Full Guide</div>
             <div class="practice-notice">
                 <strong>Learning Environment:</strong> This is a safe place to practice PGP.
-                Save your friends' public keys here to practice encrypting messages to them. Never use this app for real secrets.
+                Read the guides below, then try what you learn on the practice pages. Never use this app for real secrets.
             </div>
             <nav class="nav-tabs">
                 <a href="/" class="nav-tab">Home</a>
                 <a href="/practice.html" class="nav-tab">Practice</a>
-                <a href="/learn.html" class="nav-tab">Learn <span class="new-badge">NEW!</span></a>
+                <a href="/learn.html" class="nav-tab active">Learn</a>
                 <a href="/encrypt.html" class="nav-tab">Encrypt / Decrypt</a>
                 <a href="/profile.html" class="nav-tab">My Profile</a>
-                <a href="/saved-keys.html" class="nav-tab active">Saved Keys</a>
+                <a href="/saved-keys.html" class="nav-tab">Saved Keys</a>
                 <a href="/fingerprint.html" class="nav-tab">Fingerprint</a>
                 <a href="/password.html" class="nav-tab">Password Check</a>
             </nav>
         </div>
 
-        <!-- Add New Key Card -->
-        <div class="card" id="addKeyCard">
-            <h2><span class="icon">➕</span> Add New Key</h2>
-            <div class="form-group">
-                <label for="keyName">Contact Name / Username</label>
-                <input type="text" id="keyName" placeholder="e.g. alice, bob@example.com..." required>
-            </div>
-            <div class="form-group">
-                <label for="keyPublicKey">Public Key</label>
-                <textarea id="keyPublicKey" placeholder="Paste PGP public key block here..." required></textarea>
-            </div>
-            <div class="action-btns">
-                <button class="btn btn-primary" id="saveKeyBtn">Save Key</button>
-                <button class="btn btn-secondary" id="clearFormBtn">Clear</button>
-            </div>
-            <div class="status-msg" id="formStatus"></div>
-        </div>
+        <!-- Learn Guide -->
+        <style>
+            .learn-tabs { display:flex; gap:0.4rem; justify-content:center; flex-wrap:wrap; margin-bottom:1.5rem; }
+            .learn-tab-btn { font-family:'Arial','Verdana',sans-serif; font-weight:bold; font-size:0.85rem; background:linear-gradient(180deg,#e6f2ff 0%,#b3d7ff 100%); border:2px outset #ffffff; color:#003366; box-shadow:2px 2px 0 #8faecf; text-shadow:none; border-radius:8px 8px 0 0; padding:0.6rem 1.1rem; cursor:pointer; transition:all 0.2s ease; }
+            .learn-tab-btn:hover { background:linear-gradient(180deg,#d6eaff 0%,#a3c7ff 100%); }
+            .learn-tab-btn.active { background:linear-gradient(180deg,#0066cc 0%,#003399 100%); color:#fff; border-color:#99ccff; box-shadow:2px 2px 0 #336699; }
+            .learn-panel { display:none; }
+            .learn-panel.active { display:block; }
+            .guide-body { color:#003366; font-size:0.95rem; line-height:1.7; }
+            .guide-body h3 { color:#0066cc; font-size:1.1rem; margin:1.4rem 0 0.5rem; }
+            .guide-body h3:first-child { margin-top:0; }
+            .guide-body p { margin-bottom:0.8rem; }
+            .guide-body ul, .guide-body ol { margin:0 0 1rem 1.4rem; }
+            .guide-body li { margin-bottom:0.4rem; }
+            .guide-body strong { color:#003366; }
+            .guide-body .highlight { color:#0066cc; font-weight:600; }
+            .guide-body code { background:#d9e6f5; padding:2px 5px; border-radius:3px; font-family:'Courier New',monospace; }
+            .guide-callout { background:#fff4e6; border:2px solid #ffb74d; border-radius:8px; padding:0.8rem 1rem; margin:1rem 0; color:#8a4b00; }
+            .guide-callout strong { color:#cc6600; }
+            .guide-do { background:#e8f5e9; border:2px solid #4caf50; border-radius:8px; padding:0.8rem 1rem; margin:0.8rem 0; }
+            .guide-do strong { color:#1b5e20; }
+            .guide-dont { background:#fdeaea; border:2px solid #e07a7e; border-radius:8px; padding:0.8rem 1rem; margin:0.8rem 0; }
+            .guide-dont strong { color:#c62828; }
+        </style>
 
-        <!-- Saved Keys List -->
         <div class="card">
-            <h2><span class="icon">🔑</span> Your Saved Keys</h2>
-            <div id="mainSavedKeysList">
-                <div class="empty-state">
-                    <div class="icon">🔍</div>
-                    <p>No saved keys yet. Add one above!</p>
+            <div class="learn-tabs">
+                <button class="learn-tab-btn active" data-learn-tab="threat">Threat Modeling 101</button>
+                <button class="learn-tab-btn" data-learn-tab="keys">Key Hygiene &amp; Management</button>
+                <button class="learn-tab-btn" data-learn-tab="sign">Sign vs. Encrypt vs. Both</button>
+            </div>
+
+            <!-- Tab 1: Threat Modeling -->
+            <div class="learn-panel active" id="learn-threat">
+                <div class="guide-body">
+                    <h3>What Is Threat Modeling?</h3>
+                    <p>
+                        Threat modeling is the foundation of all OPSEC (operational security). Before you choose any tool —
+                        PGP, Signal, a password manager — you need to answer three questions:
+                    </p>
+                    <ol>
+                        <li><strong>What am I protecting?</strong> — Messages, files, passwords, your identity?</li>
+                        <li><strong>Who am I protecting it from?</strong> — A nosy roommate, an employer, a hacker, a government?</li>
+                        <li><strong>What happens if I fail?</strong> — Embarrassment, financial loss, legal trouble, physical danger?</li>
+                    </ol>
+                    <p>
+                        Your answers determine <em>which tools you need and how much effort to invest</em>. There is no
+                        one-size-fits-all answer. A journalist protecting a whistleblower's identity needs far stronger
+                        protections than someone hiding a surprise party plan.
+                    </p>
+
+                    <h3>The Adversary Spectrum</h3>
+                    <p>Think about who might want your data, and what resources they have:</p>
+                    <ul>
+                        <li><strong>Low-resource:</strong> A curious friend or coworker looking over your shoulder.</li>
+                        <li><strong>Medium-resource:</strong> A hacker trying to steal credentials for profit.</li>
+                        <li><strong>High-resource:</strong> A well-funded attacker, employer, or state actor with time and tools.</li>
+                    </ul>
+                    <p>
+                        PGP protects the <em>contents</em> of your messages. It does not hide <em>who</em> you are talking to
+                        (metadata). If an adversary knowing you communicated at all is dangerous, PGP alone is not enough —
+                        you also need to think about traffic analysis, anonymity networks, and more.
+                    </p>
+
+                    <div class="guide-callout">
+                        <strong>Key Insight:</strong> Perfect security does not exist. The goal is to raise the cost of an
+                        attack higher than what your adversary is willing to pay. A 12-character random password stops a
+                        casual hacker; it will not stop a state intelligence agency with a billion-dollar budget.
+                    </div>
+
+                    <h3>A Simple Threat Model Exercise</h3>
+                    <p>Try this for your own situation. Grab a piece of paper and write down:</p>
+                    <ul>
+                        <li>Your most sensitive piece of digital information.</li>
+                        <li>Who would want it and why.</li>
+                        <li>The worst realistic consequence if it were exposed.</li>
+                        <li>One thing you could do today to make that exposure less likely.</li>
+                    </ul>
+                    <p>
+                        That last point is your security action item. Do it. Then come back and do the exercise again for
+                        the next asset. Threat modeling is not a one-time activity — it is a habit.
+                    </p>
+
+                    <div class="guide-do">
+                        <strong>DO:</strong> Match your tools to your threat model. If you only need to keep a roommate out,
+                        a password is fine. If you are a source talking to a journalist, use PGP, verify fingerprints in
+                        person, and consider anonymity tools.
+                    </div>
+                    <div class="guide-dont">
+                        <strong>DON'T:</strong> Assume more encryption is always better. Encrypting everything, including
+                        trivial messages, can actually <em>attract</em> attention from high-resource adversaries. Be
+                        deliberate about what you protect.
+                    </div>
                 </div>
             </div>
-            <div class="status-msg" id="listStatus"></div>
-        </div>
-    </div>
 
-    <!-- Edit Modal -->
-    <div class="modal-overlay" id="editModal">
-        <div class="modal">
-            <h3>Edit Saved Key</h3>
-            <input type="hidden" id="editKeyId">
-            <div class="form-group">
-                <label for="editKeyName">Contact Name / Username</label>
-                <input type="text" id="editKeyName" required>
+            <!-- Tab 2: Key Hygiene -->
+            <div class="learn-panel" id="learn-keys">
+                <div class="guide-body">
+                    <h3>Creating Keys</h3>
+                    <p>
+                        A PGP key pair consists of a <strong>public key</strong> (share freely) and a <strong>private key</strong>
+                        (guard with your life). When you generate a key, a few choices matter:
+                    </p>
+                    <ul>
+                        <li><strong>Key size:</strong> RSA-2048 is the practical minimum. RSA-4096 is stronger and recommended for anything sensitive. Larger keys are slower but harder to crack.</li>
+                        <li><strong>Algorithm:</strong> RSA is the most widely supported. EdDSA and ECDH are newer and faster, but RSA remains the default in most beginner tools.</li>
+                        <li><strong>Passphrase:</strong> Your private key should be encrypted with a strong passphrase so that stealing the key file is not enough to use it.</li>
+                    </ul>
+
+                    <h3>Storing Keys</h3>
+                    <p>Where you keep your private key is one of the most important security decisions you will make:</p>
+                    <div class="guide-do">
+                        <strong>DO:</strong> Keep your private key on your own device, encrypted with a strong passphrase. Store a backup offline (USB drive in a safe) so you do not lose it.
+                    </div>
+                    <div class="guide-dont">
+                        <strong>DON'T:</strong> Email your private key to yourself, store it in a cloud note, or leave it on a shared computer. This app stores keys server-side <em>only for practice</em> — real PGP tools never do this.
+                    </div>
+
+                    <div class="guide-callout">
+                        <strong>Practice vs. Reality:</strong> This learning tool stores your private key on the server so
+                        beginners cannot lose it. In a real PGP setup, your private key should live <em>only</em> on your
+                        own device. Never put a real private key on someone else's server.
+                    </div>
+
+                    <h3>Rotating Keys</h3>
+                    <p>
+                        Keys do not last forever. You should generate a new key pair and retire the old one when:
+                    </p>
+                    <ul>
+                        <li>You suspect or know your private key was compromised.</li>
+                        <li>Your passphrase was leaked or guessed.</li>
+                        <li>The key is several years old and you want stronger cryptography.</li>
+                        <li>You are changing your primary identity or email address.</li>
+                    </ul>
+                    <p>
+                        When you rotate, <strong>publish the new public key</strong> and sign it with your old key (if you
+                        still trust it) so your contacts know the new key really is yours.
+                    </p>
+
+                    <h3>Retiring Keys</h3>
+                    <p>
+                        When you stop using a key, <strong>revoke</strong> it. A revocation certificate tells everyone who
+                        has your public key that it should no longer be trusted. Generate the revocation certificate when
+                        you create the key and store it somewhere safe — you may not have access to the key later when you
+                        need to revoke it.
+                    </p>
+                    <p>
+                        Old keys that are not revoked can be a liability: someone who finds a compromised private key can
+                        still decrypt old messages that were encrypted to it, or impersonate you to anyone who still has
+                        the old public key.
+                    </p>
+
+                    <h3>The Key Hygiene Checklist</h3>
+                    <ol>
+                        <li>Generate keys with a strong passphrase.</li>
+                        <li>Store the private key only on your own device(s).</li>
+                        <li>Keep an offline backup of the private key.</li>
+                        <li>Generate and store a revocation certificate.</li>
+                        <li>Share your public key through a verifiable channel.</li>
+                        <li>Rotate keys every few years or after any suspected compromise.</li>
+                        <li>Revoke and retire keys you no longer use.</li>
+                    </ol>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="editKeyPublicKey">Public Key</label>
-                <textarea id="editKeyPublicKey" required></textarea>
-            </div>
-            <div class="modal-btns">
-                <button class="btn btn-secondary" id="cancelEditBtn">Cancel</button>
-                <button class="btn btn-primary" id="confirmEditBtn">Update Key</button>
+
+            <!-- Tab 3: Sign vs Encrypt vs Both -->
+            <div class="learn-panel" id="learn-sign">
+                <div class="guide-body">
+                    <h3>The Three Operations</h3>
+                    <p>PGP can do three distinct things. Understanding the difference is essential:</p>
+                    <ul>
+                        <li>
+                            <strong>Encrypt</strong> — Scrambles the message so only the recipient's private key can read it.
+                            Provides <span class="highlight">confidentiality</span>: no one else can see the contents.
+                            But it does <em>not</em> prove who sent it. Anyone with the recipient's public key can encrypt.
+                        </li>
+                        <li>
+                            <strong>Sign</strong> — Creates a cryptographic signature using your private key that anyone
+                            with your public key can verify. Provides <span class="highlight">authentication</span> and
+                            <span class="highlight">integrity</span>: the recipient knows it came from you and was not
+                            tampered with. But the message itself is <em>not</em> hidden — anyone can read it.
+                        </li>
+                        <li>
+                            <strong>Sign and Encrypt</strong> — Does both. The message is signed with your private key,
+                            then encrypted with the recipient's public key. Provides confidentiality, authentication, and
+                            integrity all at once.
+                        </li>
+                    </ul>
+
+                    <h3>When to Use Each</h3>
+                    <table style="width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.9rem;">
+                        <thead>
+                            <tr style="background:#0066cc;color:#fff;">
+                                <th style="padding:0.5rem;border:1px solid #99ccff;text-align:left;">Goal</th>
+                                <th style="padding:0.5rem;border:1px solid #99ccff;text-align:left;">Use</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background:#e6f2ff;">
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">Keep a message secret</td>
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;"><strong>Encrypt only</strong></td>
+                            </tr>
+                            <tr>
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">Prove you wrote it (public statement)</td>
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;"><strong>Sign only</strong></td>
+                            </tr>
+                            <tr style="background:#e6f2ff;">
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">Send a private, verifiable message</td>
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;"><strong>Sign then Encrypt</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="guide-callout">
+                        <strong>Why "sign then encrypt"?</strong> If you encrypt first, then sign the ciphertext, an
+                        attacker could strip your signature and re-sign the ciphertext with their own key, making it
+                        look like <em>they</em> wrote the message. By signing the <em>plaintext</em> first and then
+                        encrypting the signed message, the signature is protected inside the encryption and cannot be
+                        tampered with.
+                    </div>
+
+                    <h3>Why Order Matters</h3>
+                    <p>The two possible orderings are:</p>
+                    <ol>
+                        <li>
+                            <strong>Sign then Encrypt (recommended):</strong> You sign the plaintext with your private key,
+                            then encrypt the (plaintext + signature) with the recipient's public key. The recipient
+                            decrypts first, then verifies your signature. This is the safest combination because the
+                            signature is bound to the original message and protected from tampering.
+                        </li>
+                        <li>
+                            <strong>Encrypt then Sign (not recommended):</strong> You encrypt the message, then sign the
+                            ciphertext. The signature is on the ciphertext, not the plaintext. An attacker can replace
+                            your signature with theirs, forwarding the same ciphertext and claiming they sent it. This
+                            is a real attack known as <em>signature substitution</em>.
+                        </li>
+                    </ol>
+
+                    <div class="guide-do">
+                        <strong>DO:</strong> Use "sign then encrypt" for any message that needs both privacy and proof of
+                        origin. Most modern PGP tools do this by default when you select both options.
+                    </div>
+                    <div class="guide-dont">
+                        <strong>DON'T:</strong> Sign a ciphertext and assume that proves authorship. Always sign the
+                        plaintext <em>before</em> encrypting.
+                    </div>
+
+                    <h3>Try It Yourself</h3>
+                    <p>
+                        On the <a href="/practice.html" style="color:#0000cc;">Practice</a> page, you can encrypt a message
+                        to a practice partner and decrypt their reply. The <a href="/fingerprint.html" style="color:#0000cc;">
+                        Fingerprint</a> tool lets you verify that the key you are encrypting to really belongs to who you
+                        think it does — which is the foundation of knowing your signature will reach the right person.
+                    </p>
+                </div>
             </div>
         </div>
     </div>
@@ -1409,7 +1618,6 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                 const data = await res.json();
                 if (data.logged_in) {
                     showLoggedIn(data.username);
-                    loadSavedKeys();
                 }
             } catch (e) {
                 console.error('Auth check failed:', e);
@@ -1511,7 +1719,6 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                     showToast('Welcome back, ' + data.username + '!', 'success');
                     showLoggedIn(data.username);
                     document.getElementById('loginForm').reset();
-                    loadSavedKeys();
                 } else if (res.status === 401) {
                     setFieldError(usernameInput);
                     setFieldError(passwordInput);
@@ -1540,12 +1747,6 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                 if (res.ok) {
                     showLoggedOut();
                     showToast('You have been logged out successfully.', 'info');
-                    document.getElementById('mainSavedKeysList').innerHTML = `
-                        <div class="empty-state">
-                            <div class="icon">🔍</div>
-                            <p>No saved keys yet. Add one above!</p>
-                        </div>
-                    `;
                 } else {
                     showToast('Logout failed. Please try again.', 'error');
                 }
@@ -1557,181 +1758,17 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             }
         });
 
-        // ==================== Saved Keys Logic ====================
+        // ==================== Learn Page Tabs ====================
 
-        async function loadSavedKeys() {
-            try {
-                const res = await fetch('/api/saved-keys');
-                if (res.status === 401) {
-                    showStatus('listStatus', 'Please log in to view your saved keys.', 'info');
-                    return;
-                }
-                const data = await res.json();
-                if (res.ok) {
-                    renderSavedKeys(data.keys);
-                } else {
-                    showStatus('listStatus', data.error || 'Failed to load saved keys', 'error');
-                }
-            } catch (e) {
-                showStatus('listStatus', 'Network error loading saved keys', 'error');
-            }
-        }
-
-        function renderSavedKeys(keys) {
-            const container = document.getElementById('mainSavedKeysList');
-            if (!keys || keys.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon">🔍</div>
-                        <p>No saved keys yet. Add one above!</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = keys.map(key => `
-                <div class="saved-key-item" data-id="${key.id}">
-                    <div class="saved-key-header">
-                        <div class="saved-key-name">${escapeHtml(key.name)}</div>
-                        <div class="saved-key-actions">
-                            <button class="key-btn key-btn-copy" onclick="copyKey(${key.id})">Copy</button>
-                            <button class="key-btn key-btn-edit" onclick="editKey(${key.id}, '${escapeHtml(key.name).replace(/'/g, "\\'")}', '${escapeHtml(key.public_key).replace(/'/g, "\\'")}')">Edit</button>
-                            <button class="key-btn key-btn-delete" onclick="deleteKey(${key.id})">Delete</button>
-                        </div>
-                    </div>
-                    <div class="saved-key-preview" id="keyPreview-${key.id}">${escapeHtml(key.public_key)}</div>
-                </div>
-            `).join('');
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // Save new key
-        document.getElementById('saveKeyBtn').addEventListener('click', async () => {
-            const name = document.getElementById('keyName').value.trim();
-            const publicKey = document.getElementById('keyPublicKey').value.trim();
-
-            if (!name) {
-                showStatus('formStatus', 'Please enter a contact name.', 'error');
-                return;
-            }
-            if (!publicKey) {
-                showStatus('formStatus', 'Please paste a public key.', 'error');
-                return;
-            }
-
-            try {
-                const res = await fetch('/api/saved-keys', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, public_key: publicKey })
-                });
-                const data = await res.json();
-
-                if (res.ok) {
-                    showStatus('formStatus', 'Key saved successfully!', 'ok');
-                    document.getElementById('keyName').value = '';
-                    document.getElementById('keyPublicKey').value = '';
-                    loadSavedKeys();
-                } else if (res.status === 401) {
-                    showStatus('formStatus', 'Please log in to save keys.', 'error');
-                } else {
-                    showStatus('formStatus', data.error || 'Failed to save key', 'error');
-                }
-            } catch (e) {
-                showStatus('formStatus', 'Network error saving key', 'error');
-            }
+        document.querySelectorAll('.learn-tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.learn-tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.learn-panel').forEach(p => p.classList.remove('active'));
+                btn.classList.add('active');
+                const target = btn.dataset.learnTab;
+                document.getElementById('learn-' + target).classList.add('active');
+            });
         });
-
-        document.getElementById('clearFormBtn').addEventListener('click', () => {
-            document.getElementById('keyName').value = '';
-            document.getElementById('keyPublicKey').value = '';
-        });
-
-        // Copy key
-        window.copyKey = function(id) {
-            const keyText = document.getElementById(`keyPreview-${id}`).textContent;
-            copyToClipboard(keyText, 'Key copied to clipboard!');
-        };
-
-        // Edit key
-        window.editKey = function(id, name, publicKey) {
-            document.getElementById('editKeyId').value = id;
-            document.getElementById('editKeyName').value = name;
-            document.getElementById('editKeyPublicKey').value = publicKey;
-            document.getElementById('editModal').classList.add('active');
-        };
-
-        document.getElementById('cancelEditBtn').addEventListener('click', () => {
-            document.getElementById('editModal').classList.remove('active');
-        });
-
-        document.getElementById('editModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('editModal')) {
-                document.getElementById('editModal').classList.remove('active');
-            }
-        });
-
-        document.getElementById('confirmEditBtn').addEventListener('click', async () => {
-            const id = document.getElementById('editKeyId').value;
-            const name = document.getElementById('editKeyName').value.trim();
-            const publicKey = document.getElementById('editKeyPublicKey').value.trim();
-
-            if (!name) {
-                showStatus('listStatus', 'Name is required.', 'error');
-                return;
-            }
-            if (!publicKey) {
-                showStatus('listStatus', 'Public key is required.', 'error');
-                return;
-            }
-
-            try {
-                const res = await fetch(`/api/saved-keys/${id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, public_key: publicKey })
-                });
-                const data = await res.json();
-
-                if (res.ok) {
-                    document.getElementById('editModal').classList.remove('active');
-                    showStatus('listStatus', 'Key updated successfully!', 'ok');
-                    loadSavedKeys();
-                } else if (res.status === 401) {
-                    showStatus('listStatus', 'Please log in to edit keys.', 'error');
-                } else {
-                    showStatus('listStatus', data.error || 'Failed to update key', 'error');
-                }
-            } catch (e) {
-                showStatus('listStatus', 'Network error updating key', 'error');
-            }
-        });
-
-        // Delete key
-        window.deleteKey = async function(id) {
-            if (!confirm('Are you sure you want to delete this saved key?')) return;
-
-            try {
-                const res = await fetch(`/api/saved-keys/${id}`, { method: 'DELETE' });
-                const data = await res.json();
-
-                if (res.ok) {
-                    showStatus('listStatus', 'Key deleted successfully!', 'ok');
-                    loadSavedKeys();
-                } else if (res.status === 401) {
-                    showStatus('listStatus', 'Please log in to delete keys.', 'error');
-                } else {
-                    showStatus('listStatus', data.error || 'Failed to delete key', 'error');
-                }
-            } catch (e) {
-                showStatus('listStatus', 'Network error deleting key', 'error');
-            }
-        };
 
         // Right Sidebar Toggle
         const rightToggle = document.getElementById('rightSidebarToggle');

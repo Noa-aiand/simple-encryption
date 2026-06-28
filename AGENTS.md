@@ -6,7 +6,7 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 > This app is intentionally designed as a **learning environment**, not a high-security tool. Keys are stored server-side so beginners can focus on learning PGP without losing their first keys.
 
 ## Frontend
-- **7 pages** sharing an early-2000s clunky & vibrant theme (light blue/white palette, 3D outset buttons, rainbow dividers, subtle grid background, scrolling marquee, and terminal-style inputs):
+- **8 pages** sharing an early-2000s clunky & vibrant theme (light blue/white palette, 3D outset buttons, rainbow dividers, subtle grid background, scrolling marquee, and terminal-style inputs):
   - `index.html` — Home with auth, PGP feature overview
   - `encrypt.html` — Key generation, encrypt/decrypt with manual key input, keypair generation RSA 2048/4096
   - `profile.html` — Username, public key save/display, nav tabs
@@ -14,9 +14,10 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
   - `practice.html` — AI practice partner with RSA-2048/4096 keypair selector, plaintext rejection, and LLM-powered dynamic encrypted replies
   - `fingerprint.html` — PGP fingerprint validation practice tool (compute fingerprint from pasted key + match/mismatch drill with scoring)
   - `password.html` — Password strength checker practice tool (live strength meter, entropy estimate, feedback, and weak vs strong teaching examples)
+  - `learn.html` — Full OPSEC guide with tabbed lessons: Threat Modeling 101, Key Hygiene & Management, Sign vs. Encrypt vs. Both
   - **Right sidebar (Tools)** on every page with Notes (multi-note CRUD), Saved Keys list, and My Profile public key
-- **Nav**: responsive burger menu, auth status in top-right, logout button
-- **Version badge**: V1.20 in bottom-right corner on every page
+- **Nav**: responsive burger menu, auth status in top-right, logout button. Practice is positioned right after Home to signal it as the primary feature; Learn tab has a blinking "NEW!" badge.
+- **Version badge**: V1.21 in bottom-right corner on every page
 
 ## Backend
 - **Framework**: Flask (`server.py`)
@@ -85,10 +86,10 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 > - Also update this `AGENTS.md` Version History section.
 
 ## Current Version
-**V1.20**
+**V1.21**
 
 ## Version History
-- **V1.20**: Added two new practice tool pages and recolored the first-time intro modal to match the site theme. New `fingerprint.html` — a PGP fingerprint validation practice tool with two modes: (1) compute a key's fingerprint by pasting a PGP public key block (backed by new `POST /api/fingerprint` endpoint using SHA-256 over the DER-encoded SubjectPublicKeyInfo), and (2) a match/mismatch drill with scoring that trains users to spot tampered keys. New `password.html` — a client-side password strength checker with a live strength meter, entropy estimate, specific feedback (length, character variety, common passwords, keyboard patterns, sequences), and weak vs strong teaching examples (clickable to load into the checker). Changed the Dorothy practice bot from "Apple Seller" to "Investigative Journalist" — updated her system prompt, description, bot card, and homepage CTA chip so she now treats the user as a source handing over sensitive information. Added the two new pages to the nav tabs and sidebar nav across all pages. Bumped version badge to V1.20.
+- **V1.21**: Repositioned the homepage as a gateway to practice. Enhanced the CTA section with larger eye-catching "Start Practicing" button and three bot teaser cards (Tim, Jim, Dorothy) showing name, role, and key-size badge, plus a "Try them now" link. Moved Practice to right after Home in nav order (was last) across all pages to signal it as the primary feature; added a Learn tab to the nav. Created dedicated `learn.html` guide page with three tabbed lessons: (1) Threat Modeling 101 (adversary spectrum, threat model exercise), (2) Key Hygiene & Management (creating, storing, rotating, retiring keys with do/don't callouts), and (3) Sign vs. Encrypt vs. Both (why "sign then encrypt" is the safest combination, with a comparison table). Shortened the homepage "What Does PGP Do?" section from 6 cards to a 3-card summary (Get Started, Practice Safely, Full Guide link) pointing to the new Learn page. Added fun early-2000s visual touches via shared `y2k-fun.css` + `y2k-fun.js`: animated sliding rainbow divider, glowing pulse on CTA button, shimmer effect on page title h1, blinking "NEW!" badge on the Learn nav tab, and a classic Y2K green-on-black hit counter widget (localStorage-based) in the bottom-left corner. All animations respect `prefers-reduced-motion`. Added `/learn` server route. Bumped version badge to V1.21.
 - **V1.19**: Added a prominent "Start Practicing" CTA button to the homepage hero section, with bot preview chips showing Tim, Jim, and Dorothy. The CTA links directly to the practice page and sits above the educational content, making practice the first action users see. Styled as a large 3D blue button matching the site theme. No backend changes.
 - **V1.18**: Redesigned the practice page for clarity. Named the three bots — **Tim** (Practice Partner, RSA-4096), **Jim** (Banana Seller, RSA-2048), and **Dorothy** (Apple Seller, RSA-4096). Replaced the dropdown bot selector with visual clickable bot cards showing each bot's name, role, key size badge, and a tagline. Added detailed descriptions loaded from the server that explain what each bot does, their personality, and which key size they use. Simplified the "How It Works" instructions from 7 steps to 4 clear steps with a prerequisite note. Updated the response card heading and toast messages to use the selected bot's name. Renamed buttons for clarity ("Send Encrypted Message", "Load into Send Box"). Updated bot system prompts to reference their names. No backend API changes beyond bot name/description fields.
 - **V1.17**: Added multiple practice bots with distinct personalities, keypairs, and per-bot conversation history. Three bots available via a dropdown selector on the practice page: **Practice Partner** (RSA-4096, casual chat — reuses the existing keypair), **Banana Seller** (RSA-2048, asks how many bananas and delivery address with a warning not to use real addresses), and **Apple Seller** (RSA-4096, asks how many apples and delivery address with same warning). Each bot has its own keypair stored in `server_config` and its own system prompt. Conversation history is now per-bot (new `bot_id` column in `practice_conversations` table), so resetting one bot doesn't lose another bot's chat. Updated `/api/practice/key`, `/api/practice/send`, and `/api/practice/reset` to accept a `bot` parameter. Replaced the key size dropdown with a bot selector dropdown on the practice page frontend. The encrypt box key size auto-syncs to the selected bot's key size.
@@ -120,5 +121,7 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 
 ## File Structure
 - `server.py` — Flask backend
-- `index.html`, `encrypt.html`, `profile.html`, `saved-keys.html`, `practice.html`, `fingerprint.html`, `password.html` — frontend pages
+- `index.html`, `encrypt.html`, `profile.html`, `saved-keys.html`, `practice.html`, `fingerprint.html`, `password.html`, `learn.html` — frontend pages
 - `intro.js` — reusable first-time introduction modal loaded on every page
+- `y2k-fun.css` — shared early-2000s fun visual effects (animated rainbow divider, CTA glow, title shimmer, NEW badge, hit counter)
+- `y2k-fun.js` — localStorage-based Y2K hit counter widget

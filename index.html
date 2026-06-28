@@ -791,9 +791,9 @@
         }
         .cta-btn {
             display: inline-block;
-            padding: 18px 48px;
+            padding: 22px 56px;
             font-family: 'Arial Black', 'Arial', sans-serif;
-            font-size: 1.2rem;
+            font-size: 1.35rem;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 2px;
@@ -822,21 +822,28 @@
             gap: 1rem;
             justify-content: center;
             flex-wrap: wrap;
-            margin-top: 1.2rem;
+            margin-top: 1.5rem;
         }
-        .cta-bot-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
+        .cta-bot-card {
             background: #e6f2ff;
             border: 2px solid #99ccff;
-            border-radius: 20px;
-            padding: 6px 16px;
-            font-size: 0.82rem;
-            color: #003366;
-            font-weight: bold;
+            border-radius: 12px;
+            padding: 1rem 1.2rem;
+            min-width: 180px;
+            text-align: center;
+            box-shadow: 3px 3px 0 #b3d7ff;
+            transition: all 0.2s ease;
         }
-        .cta-bot-chip strong { color: #0066cc; }
+        .cta-bot-card:hover {
+            border-color: #0066cc;
+            box-shadow: 4px 4px 0 #6699cc;
+            transform: translateY(-3px);
+        }
+        .cta-bot-card h3 { color: #0066cc; font-size: 1rem; margin: 0 0 0.3rem; }
+        .cta-bot-card .cta-bot-role { color: #003366; font-size: 0.82rem; font-weight: bold; margin: 0 0 0.3rem; }
+        .cta-bot-card .cta-bot-key { display:inline-block; background:#0066cc; color:#fff; border-radius:10px; padding:2px 10px; font-size:0.72rem; font-weight:bold; }
+        .cta-try-link { display:inline-block; margin-top:1.2rem; font-size:1rem; font-weight:bold; color:#0066cc; text-decoration:underline; }
+        .cta-try-link:hover { color:#003399; }
 
         /* Educational Section */
         .learn-section {
@@ -1137,6 +1144,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
 .profile-content p { color: #003366 !important; }
 .profile-link { color: #0000cc !important; }
     </style>
+<link rel="stylesheet" href="/y2k-fun.css">
 </head>
 <body>
     <!-- Menu Button -->
@@ -1222,10 +1230,11 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             </div>
             <nav class="nav-tabs">
                 <a href="/" class="nav-tab active">Home</a>
+                <a href="/practice.html" class="nav-tab">Practice</a>
+                <a href="/learn.html" class="nav-tab">Learn <span class="new-badge">NEW!</span></a>
                 <a href="/encrypt.html" class="nav-tab">Encrypt / Decrypt</a>
                 <a href="/profile.html" class="nav-tab">My Profile</a>
                 <a href="/saved-keys.html" class="nav-tab">Saved Keys</a>
-                <a href="/practice.html" class="nav-tab">Practice</a>
                 <a href="/fingerprint.html" class="nav-tab">Fingerprint</a>
                 <a href="/password.html" class="nav-tab">Password Check</a>
             </nav>
@@ -1236,103 +1245,58 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             <p>Ready to try PGP for real? Chat with our practice partners and learn encryption by doing.</p>
             <a href="/practice.html" class="cta-btn">Start Practicing</a>
             <div class="cta-bot-row">
-                <span class="cta-bot-chip"><strong>Tim</strong> - Practice Partner (RSA-4096)</span>
-                <span class="cta-bot-chip"><strong>Jim</strong> - Banana Seller (RSA-2048)</span>
-                <span class="cta-bot-chip"><strong>Dorothy</strong> - Investigative Journalist (RSA-4096)</span>
+                <div class="cta-bot-card">
+                    <h3>Tim</h3>
+                    <p class="cta-bot-role">Practice Partner</p>
+                    <span class="cta-bot-key">RSA-4096</span>
+                </div>
+                <div class="cta-bot-card">
+                    <h3>Jim</h3>
+                    <p class="cta-bot-role">Banana Seller</p>
+                    <span class="cta-bot-key">RSA-2048</span>
+                </div>
+                <div class="cta-bot-card">
+                    <h3>Dorothy</h3>
+                    <p class="cta-bot-role">Investigative Journalist</p>
+                    <span class="cta-bot-key">RSA-4096</span>
+                </div>
             </div>
+            <a href="/practice.html" class="cta-try-link">Try them now &raquo;</a>
         </div>
 
-        <!-- What Does PGP Do? -->
+        <!-- What Does PGP Do? (short summary) -->
         <section class="learn-section">
             <h2>What Does PGP Do?</h2>
             <p class="lead">
-                PGP (Pretty Good Privacy) is one of the most important building blocks of digital privacy.
-                Below is a beginner-friendly guide to what PGP is, what it does, and how you can use it safely.
+                PGP (Pretty Good Privacy) uses <span class="highlight">public-key cryptography</span>: you share a
+                <strong>public key</strong> so others can encrypt messages to you, and keep a <strong>private key</strong>
+                secret to decrypt them. It gives you confidentiality, authentication, and integrity in one tool.
             </p>
-
             <div class="learn-grid">
                 <div class="learn-card">
-                    
-                    <h3>What is PGP?</h3>
-                    <p>
-                        PGP is a system of <span class="highlight">public-key cryptography</span>. Instead of sharing one secret password,
-                        you create a <strong>key pair</strong>:
-                    </p>
+                    <h3>Get Started in 4 Steps</h3>
                     <ul>
-                        <li><strong>Public key</strong> — safe to share with anyone. It is used to encrypt messages <em>to</em> you.</li>
-                        <li><strong>Private key</strong> — kept secret. It is the only thing that can decrypt messages sent <em>to</em> you.</li>
-                    </ul>
-                    <p>
-                        The two keys are mathematically linked, but you cannot figure out the private key from the public key.
-                    </p>
-                </div>
-
-                <div class="learn-card">
-                    
-                    <h3>What Does PGP Do?</h3>
-                    <p>PGP gives you three superpowers:</p>
-                    <ul>
-                        <li><strong>Confidentiality</strong> — only the intended recipient can read the message.</li>
-                        <li><strong>Authentication</strong> — you can prove a message really came from you.</li>
-                        <li><strong>Integrity</strong> — you can detect if a message was tampered with in transit.</li>
-                    </ul>
-                    <p>
-                        In short, PGP turns readable text into scrambled ciphertext that only the right private key can unscramble.
-                    </p>
-                </div>
-
-                <div class="learn-card">
-                    
-                    <h3>How Should You Use PGP?</h3>
-                    <p>The basic flow is simple once you have a key pair:</p>
-                    <ul>
-                        <li><strong>Generate</strong> a key pair in the <a href="/encrypt.html" style="color:#0000cc;">Encrypt / Decrypt</a> page.</li>
-                        <li><strong>Share your public key</strong> with friends or paste it into <a href="/profile.html" style="color:#0000cc;">My Profile</a>.</li>
+                        <li><strong>Generate</strong> a key pair on the <a href="/encrypt.html" style="color:#0000cc;">Encrypt / Decrypt</a> page.</li>
+                        <li><strong>Share</strong> your public key in <a href="/profile.html" style="color:#0000cc;">My Profile</a>.</li>
                         <li><strong>Encrypt</strong> a message using the recipient's public key.</li>
-                        <li><strong>Send</strong> the encrypted block however you like — email, chat, notes.</li>
                         <li><strong>Decrypt</strong> received messages with your private key.</li>
                     </ul>
                 </div>
-
                 <div class="learn-card">
-                    
-                    <h3>When Should You Use PGP?</h3>
-                    <p>Use PGP whenever you want extra protection for information:</p>
-                    <ul>
-                        <li>Sending sensitive personal information over email or chat.</li>
-                        <li>Sharing passwords, account recovery codes, or financial details.</li>
-                        <li>Signing files or messages to prove they came from you.</li>
-                        <li>Protecting notes, backups, or files stored in the cloud.</li>
-                    </ul>
-                    <p>
-                        You do not need to encrypt everything — PGP is for the moments when privacy and trust matter most.
-                    </p>
-                </div>
-
-                <div class="learn-card">
-                    
-                    <h3>Practice Partner Challenge</h3>
-                    <p>
-                        The best way to learn is by doing. Visit the <a href="/practice.html" style="color:#0000cc;">Practice</a> page,
-                        copy the partner's public key, encrypt a message, and send it. The partner will reply with an encrypted
-                        message that only you can decrypt.
-                    </p>
-                    <p>
-                        It is a complete end-to-end encryption loop in a safe, beginner-friendly environment.
-                    </p>
-                </div>
-
-                <div class="learn-card">
-                    
                     <h3>Practice Safely</h3>
                     <p>
-                        <strong>This app is a learning environment.</strong> Your keys are stored on the server so you cannot lose them
-                        while practicing. That is convenient for learning, but it is not how real PGP tools work.
+                        This is a learning environment. Your keys are stored server-side for practice convenience —
+                        never use this app for real secrets. Once you are comfortable, move to a real tool like GnuPG
+                        or ProtonMail and keep your private key on your own device.
                     </p>
+                </div>
+                <div class="learn-card">
+                    <h3>Want the Full Guide?</h3>
                     <p>
-                        Once you understand the basics, move to a real PGP tool (such as GnuPG, ProtonMail, or Thunderbird with Enigmail)
-                        and keep your private key only on your own device.
+                        Learn the foundations of OPSEC: threat modeling, key hygiene, and when to sign vs. encrypt.
+                        Our dedicated <a href="/learn.html" style="color:#0000cc;">Learn</a> page covers it all in depth.
                     </p>
+                    <a href="/learn.html" style="display:inline-block;margin-top:0.5rem;font-weight:bold;color:#0066cc;">Read the Full Guide &raquo;</a>
                 </div>
             </div>
         </section>
@@ -1996,6 +1960,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         checkAuth();
     </script>
     <script src="/intro.js"></script>
-    <div class="version-badge">V1.20</div>
+    <div class="version-badge">V1.21</div>
+<script src="/y2k-fun.js"></script>
 </body>
 </html>

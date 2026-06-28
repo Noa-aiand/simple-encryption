@@ -463,6 +463,12 @@ def password_page():
     return _html_response('password.html')
 
 
+@app.route('/learn')
+@app.route('/learn.html')
+def learn_page():
+    return _html_response('learn.html')
+
+
 @app.route('/<path:filename>')
 def static_files(filename):
     """
