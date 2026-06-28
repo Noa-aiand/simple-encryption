@@ -481,6 +481,18 @@ def threat_model_page():
     return _html_response('threat-model.html')
 
 
+@app.route('/social-engineering')
+@app.route('/social-engineering.html')
+def social_engineering_page():
+    return _html_response('social-engineering.html')
+
+
+@app.route('/eavesdropper')
+@app.route('/eavesdropper.html')
+def eavesdropper_page():
+    return _html_response('eavesdropper.html')
+
+
 @app.route('/<path:filename>')
 def static_files(filename):
     """

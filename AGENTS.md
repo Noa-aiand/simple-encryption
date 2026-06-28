@@ -19,7 +19,7 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
   - `threat-model.html` — Interactive threat modeling quiz with 5 real-world scenarios, multiple-choice answers, explanations, and scoring
   - **Right sidebar (Tools)** on every page with Notes (multi-note CRUD), Saved Keys list, and My Profile public key
 - **Nav**: responsive burger menu, auth status in top-right, logout button. Practice is positioned right after Home to signal it as the primary feature; Learn tab has a blinking "NEW!" badge. "My Profile" removed from nav-tabs; replaced with a fixed top-right "My Profile" link button on every page.
-- **Version badge**: V1.23 in bottom-right corner on every page
+- **Version badge**: V1.24 in bottom-right corner on every page
 
 ## Backend
 - **Framework**: Flask (`server.py`)
@@ -82,16 +82,16 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 
 ## Version Convention
 > **Every user request that changes the project MUST bump the version badge.**
-> - The badge lives in the bottom-right corner of **all 10 HTML pages**.
+> - The badge lives in the bottom-right corner of **all 12 HTML pages**.
 > - On each change, increment the patch number (`V1.0` → `V1.1` → `V1.2`, etc.).
 > - After updating the version, commit, push, and deploy.
 > - Also update this `AGENTS.md` Version History section.
 
 ## Current Version
-**V1.23**
+**V1.24**
 
 ## Version History
-- **V1.23**: Removed Fingerprint and Password Check from the nav-tabs and sidebar-navs across all 10 pages. These tools are now accessed exclusively through the Practice hub page, keeping the top nav clean (Home | Practice | Learn | Encrypt / Decrypt | Saved Keys). Bumped version badge to V1.23.
+- **V1.24**: Added two new practice tools to the Practice hub. New `social-engineering.html` — a Social Engineering Red Flags quiz with 6 real-world scenarios (phishing email, typosquatted domain, fake IT call, CEO gift card scam, macro-enabled attachment, smishing text). Multi-select format: users pick ALL red flags they spot, then get explanations for correct and missed flags. Includes a "7 Red Flags to Watch For" reference card. New `eavesdropper.html` — "What the Eavesdropper Sees" visualizer. Users type a message and see a side-by-side comparison of what an attacker can read on an unencrypted connection (full message + metadata) vs. a PGP-encrypted connection (ciphertext only, metadata still visible). Three view modes: unencrypted only, encrypted only, compare both. Shows simulated network packets with source/destination IPs, protocol, timestamps, SMTP headers, and message content. Includes key takeaways about metadata, WiFi exposure, HTTPS vs PGP, and "store now, crack later." Added both as tool cards on the Practice hub page. Added `/social-engineering` and `/eavesdropper` server routes. Bumped version badge to V1.24.
 - **V1.22**: Converted the Practice page into a hub/chooser with 4 tool cards (PGP Bot Practice, Fingerprint Validator, Password Strength Checker, Threat Modeling) linking to individual tool pages. Moved the original PGP bot practice to `pgp-practice.html`. Created `threat-model.html` — an interactive threat modeling quiz with 5 real-world scenarios (journalist/source, shared laptop, cloud backup, activist group chat, too-perfect app), multiple-choice answers, explanations, and scoring with a results screen. Added a link from the Learn page's Threat Modeling 101 tab to the new practice tool. Removed "My Profile" from the nav-tabs across all pages to declutter; added a fixed top-right "My Profile" link button on every page instead. Standardized nav-tab formatting: fixed the purple border leak on hover/active tabs (added `border-color` overrides), and converted `encrypt.html` and `index.html` sidebar-navs from inline-styled links to the clean class-based form used by all other pages. Added `/pgp-practice` and `/threat-model` server routes. Fixed the sidebar Notes tool: users can now start typing their first note immediately without clicking "+ New" — the note is auto-created with their content on the first keystroke (applied across all 10 pages). Bumped version badge to V1.22.
 - **V1.19**: Added a prominent "Start Practicing" CTA button to the homepage hero section, with bot preview chips showing Tim, Jim, and Dorothy. The CTA links directly to the practice page and sits above the educational content, making practice the first action users see. Styled as a large 3D blue button matching the site theme. No backend changes.
 - **V1.18**: Redesigned the practice page for clarity. Named the three bots — **Tim** (Practice Partner, RSA-4096), **Jim** (Banana Seller, RSA-2048), and **Dorothy** (Apple Seller, RSA-4096). Replaced the dropdown bot selector with visual clickable bot cards showing each bot's name, role, key size badge, and a tagline. Added detailed descriptions loaded from the server that explain what each bot does, their personality, and which key size they use. Simplified the "How It Works" instructions from 7 steps to 4 clear steps with a prerequisite note. Updated the response card heading and toast messages to use the selected bot's name. Renamed buttons for clarity ("Send Encrypted Message", "Load into Send Box"). Updated bot system prompts to reference their names. No backend API changes beyond bot name/description fields.
@@ -124,7 +124,7 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 
 ## File Structure
 - `server.py` — Flask backend
-- `index.html`, `encrypt.html`, `profile.html`, `saved-keys.html`, `practice.html`, `pgp-practice.html`, `fingerprint.html`, `password.html`, `learn.html`, `threat-model.html` — frontend pages
+- `index.html`, `encrypt.html`, `profile.html`, `saved-keys.html`, `practice.html`, `pgp-practice.html`, `fingerprint.html`, `password.html`, `learn.html`, `threat-model.html`, `social-engineering.html`, `eavesdropper.html` — frontend pages
 - `intro.js` — reusable first-time introduction modal loaded on every page
 - `y2k-fun.css` — shared early-2000s fun visual effects (animated rainbow divider, CTA glow, title shimmer, NEW badge, hit counter)
 - `y2k-fun.js` — localStorage-based Y2K hit counter widget
