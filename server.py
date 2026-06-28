@@ -3,6 +3,7 @@ import os
 import sys
 import sqlite3
 import base64
+import hashlib
 import secrets
 import logging
 import random
@@ -76,21 +77,26 @@ PRACTICE_BOTS = {
     'apple': {
         'name': 'Dorothy',
         'description': (
-            'Dorothy is a professional apple orchard owner who takes pride in her quality produce. She '
-            'will ask how many apples you would like to buy and where to deliver them. Do not share your '
-            'real address — make one up! Dorothy uses a larger RSA-4096 key for stronger security, '
-            'matching the best practice for modern encryption.'
+            'Dorothy is a seasoned investigative journalist who works with whistleblowers and confidential '
+            'sources. She understands that you are handing her sensitive and important information, and '
+            'she will treat it with care — asking clarifying questions, confirming key details, and '
+            'reassuring you that the encrypted channel keeps your conversation safe. Dorothy uses a larger '
+            'RSA-4096 key for stronger security, matching the best practice for protecting sensitive '
+            'communications.'
         ),
         'key_size': 4096,
         'pub_key_name': 'bot_apple_public_key',
         'priv_key_name': 'bot_apple_private_key',
         'system_prompt': (
-            "You are Dorothy, a crisp, businesslike apple seller who takes pride in quality produce. "
-            "You're talking to a customer over an encrypted PGP channel — this is a practice exercise "
-            "for learning encryption, not a real order. Ask how many apples they'd like to buy and where "
-            "they'd like them dropped off. IMPORTANT: Always remind them not to give their real address — "
-            "tell them to use a fake one since this is just practice. Be professional but warm, reference "
-            "earlier parts of the conversation, and keep each reply to 1-3 sentences."
+            "You are Dorothy, a seasoned investigative journalist who protects whistleblowers and "
+            "handles confidential tips. You're talking to a source over an encrypted PGP channel — "
+            "this is a practice exercise for learning encryption, not a real leak. The source is "
+            "handing you sensitive and important information, so treat what they share with care and "
+            "seriousness. Acknowledge the trust they are placing in you, ask clarifying follow-up "
+            "questions about the details they provide, confirm you have understood the key points, and "
+            "reassure them that this encrypted channel is the right way to share something sensitive. "
+            "Be professional, calm, and trustworthy. Reference earlier parts of the conversation and "
+            "keep each reply to 1-3 sentences."
         ),
     },
 }
@@ -443,6 +449,18 @@ def saved_keys_page():
 @app.route('/practice.html')
 def practice_page():
     return _html_response('practice.html')
+
+
+@app.route('/fingerprint')
+@app.route('/fingerprint.html')
+def fingerprint_page():
+    return _html_response('fingerprint.html')
+
+
+@app.route('/password')
+@app.route('/password.html')
+def password_page():
+    return _html_response('password.html')
 
 
 @app.route('/<path:filename>')
@@ -1387,6 +1405,67 @@ def decrypt_message():
     except Exception as e:
         logger.exception("Decryption failed")
         return jsonify({'error': f'Decryption failed: {str(e)}'}), 500
+
+
+# ============== Fingerprint ==============
+
+@app.route('/api/fingerprint', methods=['POST'])
+def fingerprint_key():
+    """Compute a fingerprint for a PGP public key block.
+
+    The fingerprint is the SHA-256 digest of the key's DER-encoded
+    SubjectPublicKeyInfo, formatted as space-separated groups of 4 hex
+    characters. It uniquely identifies a public key so two parties can
+    compare it out-of-band (e.g. read it over the phone) to confirm they
+    hold the same key and no man-in-the-middle has swapped it.
+    """
+    if not CRYPTO_AVAILABLE:
+        return jsonify({
+            'error': 'The cryptography module is not available on this server.'
+        }), 503
+
+    data = request.get_json() or {}
+    public_key_block = data.get('public_key', '')
+
+    if not public_key_block.strip():
+        return jsonify({'error': 'A public key block is required'}), 400
+
+    try:
+        b64_pem = parse_pgp_block(public_key_block, 'PUBLIC KEY BLOCK')
+        pem_bytes = base64.b64decode(b64_pem)
+        public_key = serialization.load_pem_public_key(pem_bytes)
+
+        der = public_key.public_bytes(
+            encoding=serialization.Encoding.DER,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+        digest = hashlib.sha256(der).hexdigest().upper()
+
+        groups = [digest[i:i + 4] for i in range(0, len(digest), 4)]
+        lines = [' '.join(groups[i:i + 8]) for i in range(0, len(groups), 8)]
+        fingerprint = '\n'.join(lines)
+
+        key_size = getattr(public_key, 'key_size', None)
+        algorithm = type(public_key).__name__
+
+        logger.info("Fingerprint computed for %s-%s key", algorithm, key_size)
+        return jsonify({
+            'fingerprint': fingerprint,
+            'key_size': key_size,
+            'algorithm': algorithm,
+            'valid': True
+        }), 200
+    except ValueError as e:
+        return jsonify({
+            'error': f'Could not read a valid PGP public key block: {str(e)}',
+            'valid': False
+        }), 400
+    except Exception as e:
+        logger.exception("Fingerprint computation failed")
+        return jsonify({
+            'error': f'Fingerprint computation failed: {str(e)}',
+            'valid': False
+        }), 500
 
 
 

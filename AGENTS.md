@@ -6,15 +6,17 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 > This app is intentionally designed as a **learning environment**, not a high-security tool. Keys are stored server-side so beginners can focus on learning PGP without losing their first keys.
 
 ## Frontend
-- **5 pages** sharing an early-2000s clunky & vibrant theme (light blue/white palette, 3D outset buttons, rainbow dividers, subtle grid background, scrolling marquee, and terminal-style inputs):
+- **7 pages** sharing an early-2000s clunky & vibrant theme (light blue/white palette, 3D outset buttons, rainbow dividers, subtle grid background, scrolling marquee, and terminal-style inputs):
   - `index.html` — Home with auth, PGP feature overview
   - `encrypt.html` — Key generation, encrypt/decrypt with manual key input, keypair generation RSA 2048/4096
   - `profile.html` — Username, public key save/display, nav tabs
   - `saved-keys.html` — Key library CRUD (create, rename, delete saved public keys)
   - `practice.html` — AI practice partner with RSA-2048/4096 keypair selector, plaintext rejection, and LLM-powered dynamic encrypted replies
+  - `fingerprint.html` — PGP fingerprint validation practice tool (compute fingerprint from pasted key + match/mismatch drill with scoring)
+  - `password.html` — Password strength checker practice tool (live strength meter, entropy estimate, feedback, and weak vs strong teaching examples)
   - **Right sidebar (Tools)** on every page with Notes (multi-note CRUD), Saved Keys list, and My Profile public key
 - **Nav**: responsive burger menu, auth status in top-right, logout button
-- **Version badge**: V1.12 in bottom-right corner on every page
+- **Version badge**: V1.20 in bottom-right corner on every page
 
 ## Backend
 - **Framework**: Flask (`server.py`)
@@ -49,6 +51,7 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 - `POST /api/generate-keys` → {key_size: 2048|4096} → {public_key, private_key, key_size}
 - `POST /api/encrypt` → {message, public_key} → {encrypted, key_size}
 - `POST /api/decrypt` → {message, public_key, private_key} → {decrypted}
+- `POST /api/fingerprint` → {public_key} → {fingerprint, key_size, algorithm, valid}
 
 ### Practice
 - `GET /api/practice/key?bot=<chat|banana|apple>` → selected bot's public key + key_size + name + description
@@ -61,7 +64,7 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 - **Sidebar note encryption** uses `/api/encrypt` (server-side RSA + AES-GCM). Notes are NOT encrypted with OpenPGP.js due to format mismatch.
 - **OpenPGP.js** is loaded only on `encrypt.html` and `practice.html`
 - **Practice partner** has both RSA-2048 and RSA-4096 keypairs stored in `server_config` table
-- **Practice bots**: three bots defined in `PRACTICE_BOTS` dict — **Tim** (chat, RSA-4096, reuses existing practice keypair), **Jim** (banana, RSA-2048, own keypair), **Dorothy** (apple, RSA-4096, own keypair). Each bot has its own system prompt and keypair in `server_config`.
+- **Practice bots**: three bots defined in `PRACTICE_BOTS` dict — **Tim** (chat, RSA-4096, reuses existing practice keypair), **Jim** (banana, RSA-2048, own keypair), **Dorothy** (apple, RSA-4096, own keypair; investigative journalist who handles sensitive tips). Each bot has its own system prompt and keypair in `server_config`.
 - **Conversation history** is stored in `practice_conversations` table (per-user, per-bot via `bot_id` column, capped at last 10 messages) so the LLM sees prior turns and can maintain a natural ongoing conversation. The `/api/practice/reset` endpoint clears it for a specific bot.
 - **LLM integration** is optional and OpenAI-compatible; configure via `LLM_API_KEY`, `LLM_BASE_URL`, and `LLM_MODEL`. Defaults point to ai& (`https://api.aiand.com/v1`, model `google/gemma-4-31b-it`) but any OpenAI-compatible provider works. Falls back to rule-based replies when not configured or on API failure.
 - **Auto-save on notes** with 800ms debounce
@@ -76,15 +79,16 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 
 ## Version Convention
 > **Every user request that changes the project MUST bump the version badge.**
-> - The badge lives in the bottom-right corner of **all 5 HTML pages**.
+> - The badge lives in the bottom-right corner of **all 7 HTML pages**.
 > - On each change, increment the patch number (`V1.0` → `V1.1` → `V1.2`, etc.).
 > - After updating the version, commit, push, and deploy.
 > - Also update this `AGENTS.md` Version History section.
 
 ## Current Version
-**V1.19**
+**V1.20**
 
 ## Version History
+- **V1.20**: Added two new practice tool pages and recolored the first-time intro modal to match the site theme. New `fingerprint.html` — a PGP fingerprint validation practice tool with two modes: (1) compute a key's fingerprint by pasting a PGP public key block (backed by new `POST /api/fingerprint` endpoint using SHA-256 over the DER-encoded SubjectPublicKeyInfo), and (2) a match/mismatch drill with scoring that trains users to spot tampered keys. New `password.html` — a client-side password strength checker with a live strength meter, entropy estimate, specific feedback (length, character variety, common passwords, keyboard patterns, sequences), and weak vs strong teaching examples (clickable to load into the checker). Changed the Dorothy practice bot from "Apple Seller" to "Investigative Journalist" — updated her system prompt, description, bot card, and homepage CTA chip so she now treats the user as a source handing over sensitive information. Added the two new pages to the nav tabs and sidebar nav across all pages. Bumped version badge to V1.20.
 - **V1.19**: Added a prominent "Start Practicing" CTA button to the homepage hero section, with bot preview chips showing Tim, Jim, and Dorothy. The CTA links directly to the practice page and sits above the educational content, making practice the first action users see. Styled as a large 3D blue button matching the site theme. No backend changes.
 - **V1.18**: Redesigned the practice page for clarity. Named the three bots — **Tim** (Practice Partner, RSA-4096), **Jim** (Banana Seller, RSA-2048), and **Dorothy** (Apple Seller, RSA-4096). Replaced the dropdown bot selector with visual clickable bot cards showing each bot's name, role, key size badge, and a tagline. Added detailed descriptions loaded from the server that explain what each bot does, their personality, and which key size they use. Simplified the "How It Works" instructions from 7 steps to 4 clear steps with a prerequisite note. Updated the response card heading and toast messages to use the selected bot's name. Renamed buttons for clarity ("Send Encrypted Message", "Load into Send Box"). Updated bot system prompts to reference their names. No backend API changes beyond bot name/description fields.
 - **V1.17**: Added multiple practice bots with distinct personalities, keypairs, and per-bot conversation history. Three bots available via a dropdown selector on the practice page: **Practice Partner** (RSA-4096, casual chat — reuses the existing keypair), **Banana Seller** (RSA-2048, asks how many bananas and delivery address with a warning not to use real addresses), and **Apple Seller** (RSA-4096, asks how many apples and delivery address with same warning). Each bot has its own keypair stored in `server_config` and its own system prompt. Conversation history is now per-bot (new `bot_id` column in `practice_conversations` table), so resetting one bot doesn't lose another bot's chat. Updated `/api/practice/key`, `/api/practice/send`, and `/api/practice/reset` to accept a `bot` parameter. Replaced the key size dropdown with a bot selector dropdown on the practice page frontend. The encrypt box key size auto-syncs to the selected bot's key size.
@@ -116,5 +120,5 @@ Multi-page **PGP beginner practice / learning tool** with user accounts, persist
 
 ## File Structure
 - `server.py` — Flask backend
-- `index.html`, `encrypt.html`, `profile.html`, `saved-keys.html`, `practice.html` — frontend pages
+- `index.html`, `encrypt.html`, `profile.html`, `saved-keys.html`, `practice.html`, `fingerprint.html`, `password.html` — frontend pages
 - `intro.js` — reusable first-time introduction modal loaded on every page

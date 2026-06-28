@@ -34,10 +34,10 @@
                 width: 100%;
                 max-width: 720px;
                 max-height: 90vh;
-                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-                border: 1px solid rgba(157, 78, 221, 0.5);
+                background: linear-gradient(135deg, #ffffff 0%, #e6f2ff 100%);
+                border: 2px solid #99ccff;
                 border-radius: 20px;
-                box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+                box-shadow: 0 24px 80px rgba(0, 51, 102, 0.35);
                 display: flex;
                 flex-direction: column;
                 overflow: hidden;
@@ -50,29 +50,29 @@
             .pgp-intro-header {
                 padding: 1.6rem 2rem 1rem;
                 text-align: center;
-                border-bottom: 1px solid rgba(157, 78, 221, 0.2);
+                border-bottom: 2px solid #b3d7ff;
             }
             .pgp-intro-header h2 {
-                color: #9d4edd;
+                color: #0066cc;
                 font-size: 1.6rem;
                 margin: 0 0 0.4rem;
                 text-transform: uppercase;
                 letter-spacing: 2px;
             }
             .pgp-intro-header p {
-                color: #c77dff;
+                color: #003366;
                 font-size: 0.95rem;
                 margin: 0;
             }
             .pgp-intro-body {
                 padding: 1.5rem 2rem;
                 overflow-y: auto;
-                color: #ddd;
+                color: #003366;
                 font-size: 0.95rem;
                 line-height: 1.65;
             }
             .pgp-intro-body h3 {
-                color: #c77dff;
+                color: #0066cc;
                 font-size: 1rem;
                 margin: 1.3rem 0 0.5rem;
                 display: flex;
@@ -93,15 +93,15 @@
                 margin-bottom: 0.35rem;
             }
             .pgp-intro-body .warning-box {
-                background: rgba(255, 152, 0, 0.12);
-                border: 1px solid rgba(255, 152, 0, 0.35);
+                background: #fff4e6;
+                border: 2px solid #ffb74d;
                 border-radius: 10px;
                 padding: 12px 16px;
-                color: #ffb74d;
+                color: #8a4b00;
                 margin-top: 1rem;
             }
             .pgp-intro-body .warning-box strong {
-                color: #ff9800;
+                color: #cc6600;
             }
             .pgp-intro-body .step-grid {
                 display: grid;
@@ -110,8 +110,8 @@
                 margin: 1rem 0;
             }
             .pgp-intro-body .step-card {
-                background: rgba(157, 78, 221, 0.1);
-                border: 1px solid rgba(157, 78, 221, 0.25);
+                background: #f0f7ff;
+                border: 2px solid #b3d7ff;
                 border-radius: 10px;
                 padding: 14px;
                 text-align: center;
@@ -122,14 +122,14 @@
                 margin-bottom: 6px;
             }
         .pgp-intro-body .step-card .label {
-            color: #c77dff;
+            color: #0066cc;
             font-size: 0.85rem;
             font-weight: 600;
         }
         .pgp-intro-body .step-list {
             margin: 0 0 1rem 1.4rem;
             padding: 0;
-            color: #ccc;
+            color: #003366;
             font-size: 0.95rem;
             line-height: 1.7;
         }
@@ -143,10 +143,10 @@
                 flex-direction: column;
                 gap: 12px;
                 align-items: center;
-                border-top: 1px solid rgba(157, 78, 221, 0.2);
+                border-top: 2px solid #b3d7ff;
             }
             .pgp-intro-footer label {
-                color: #ccc;
+                color: #003366;
                 font-size: 0.9rem;
                 display: flex;
                 align-items: center;
@@ -156,12 +156,12 @@
             .pgp-intro-footer input[type="checkbox"] {
                 width: 16px;
                 height: 16px;
-                accent-color: #9d4edd;
+                accent-color: #0066cc;
                 cursor: pointer;
             }
             .pgp-intro-btn {
-                background: linear-gradient(90deg, #7b2cbf, #9d4edd);
-                border: none;
+                background: linear-gradient(90deg, #0066cc, #3399ff);
+                border: 2px outset #66a3ff;
                 border-radius: 10px;
                 color: #fff;
                 padding: 14px 32px;
@@ -173,9 +173,9 @@
                 transition: all 0.3s ease;
             }
             .pgp-intro-btn:hover {
-                background: linear-gradient(90deg, #9d4edd, #c77dff);
+                background: linear-gradient(90deg, #0052a3, #1a80e0);
                 transform: translateY(-2px);
-                box-shadow: 0 4px 15px rgba(157, 78, 221, 0.4);
+                box-shadow: 0 4px 15px rgba(0, 102, 204, 0.4);
             }
             @media (max-width: 600px) {
                 .pgp-intro-modal {
