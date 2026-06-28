@@ -469,6 +469,18 @@ def learn_page():
     return _html_response('learn.html')
 
 
+@app.route('/pgp-practice')
+@app.route('/pgp-practice.html')
+def pgp_practice_page():
+    return _html_response('pgp-practice.html')
+
+
+@app.route('/threat-model')
+@app.route('/threat-model.html')
+def threat_model_page():
+    return _html_response('threat-model.html')
+
+
 @app.route('/<path:filename>')
 def static_files(filename):
     """

@@ -3,14 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PGP Practice Tool - Encrypt / Decrypt</title>
+    <title>PGP Bot Practice - Practice Challenge</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
@@ -49,47 +44,35 @@
 
         /* Menu Button */
         .menu-btn {
-            position: fixed;
-            top: 20px;
-            left: 20px;
+            position: fixed; top: 20px; left: 20px;
             z-index: 1001;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
             border-radius: 10px;
             padding: 12px;
             cursor: pointer;
             backdrop-filter: blur(10px);
             transition: all 0.3s ease;
         }
-
-        .menu-btn:hover {
-            background: rgba(157, 78, 221, 0.3);
-            border-color: #9d4edd;
-        }
-
+        .menu-btn:hover { background: rgba(157,78,221,0.3); border-color: #9d4edd; }
         .menu-btn span {
             display: block;
-            width: 24px;
-            height: 2px;
+            width: 24px; height: 2px;
             background: #fff;
             margin: 5px 0;
             border-radius: 2px;
             transition: all 0.3s ease;
         }
-
-        .menu-btn.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+        .menu-btn.active span:nth-child(1) { transform: rotate(45deg) translate(5px,5px); }
         .menu-btn.active span:nth-child(2) { opacity: 0; }
-        .menu-btn.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+        .menu-btn.active span:nth-child(3) { transform: rotate(-45deg) translate(5px,-5px); }
 
         /* Sidebar */
         .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 350px;
-            height: 100vh;
-            background: rgba(22, 33, 62, 0.98);
-            border-right: 1px solid rgba(157, 78, 221, 0.3);
+            position: fixed; top: 0; left: 0;
+            width: 350px; height: 100vh;
+            background: rgba(22,33,62,0.98);
+            border-right: 1px solid rgba(157,78,221,0.3);
             padding: 80px 30px 30px 30px;
             transform: translateX(-100%);
             transition: transform 0.3s ease;
@@ -98,17 +81,14 @@
         }
         .sidebar.active { transform: translateX(0); }
         .sidebar-overlay {
-            position: fixed;
-            top: 0; left: 0;
+            position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0,0,0,0.5);
             z-index: 999;
-            opacity: 0;
-            visibility: hidden;
+            opacity: 0; visibility: hidden;
             transition: all 0.3s ease;
         }
         .sidebar-overlay.active { opacity: 1; visibility: visible; }
-
         .sidebar h2 {
             color: #9d4edd;
             font-size: 1.5rem;
@@ -116,17 +96,14 @@
             text-transform: uppercase;
             letter-spacing: 2px;
         }
-
         .tabs {
             display: flex;
             margin-bottom: 1.5rem;
-            border-bottom: 1px solid rgba(157, 78, 221, 0.3);
+            border-bottom: 1px solid rgba(157,78,221,0.3);
         }
         .tab-btn {
-            flex: 1;
-            padding: 12px;
-            background: none;
-            border: none;
+            flex: 1; padding: 12px;
+            background: none; border: none;
             color: #c77dff;
             cursor: pointer;
             font-size: 0.9rem;
@@ -137,45 +114,36 @@
         }
         .tab-btn.active { color: #9d4edd; border-bottom-color: #9d4edd; }
         .tab-btn:hover { color: #9d4edd; }
-
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-
         .form-group { margin-bottom: 1.2rem; }
         .form-group label {
-            display: block;
-            color: #c77dff;
+            display: block; color: #c77dff;
             margin-bottom: 0.5rem;
             font-size: 0.85rem;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
         .form-group input {
-            width: 100%;
-            padding: 12px 15px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(157, 78, 221, 0.3);
+            width: 100%; padding: 12px 15px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(157,78,221,0.3);
             border-radius: 8px;
-            color: #fff;
-            font-size: 1rem;
+            color: #fff; font-size: 1rem;
             outline: none;
             transition: all 0.3s ease;
         }
         .form-group input:focus {
             border-color: #9d4edd;
-            background: rgba(157, 78, 221, 0.1);
+            background: rgba(157,78,221,0.1);
         }
-        .form-group input::placeholder { color: rgba(255, 255, 255, 0.3); }
-
+        .form-group input::placeholder { color: rgba(255,255,255,0.3); }
         .submit-btn {
-            width: 100%;
-            padding: 14px;
+            width: 100%; padding: 14px;
             background: linear-gradient(180deg, #9d4edd 0%, #7b2cbf 100%);
             box-shadow: 0 5px 16px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18);
-            border: none;
-            border-radius: 8px;
-            color: #fff;
-            font-size: 1rem;
+            border: none; border-radius: 8px;
+            color: #fff; font-size: 1rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -185,19 +153,17 @@
         .submit-btn:hover {
             background: linear-gradient(90deg, #9d4edd, #c77dff);
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(157, 78, 221, 0.4);
+            box-shadow: 0 4px 15px rgba(157,78,221,0.4);
         }
-
         .message {
-            margin-top: 1rem;
-            padding: 10px;
+            margin-top: 1rem; padding: 10px;
             border-radius: 8px;
             font-size: 0.9rem;
             text-align: center;
             display: none;
         }
-        .message.success { display: block; background: rgba(76, 175, 80, 0.2); color: #81c784; border: 1px solid rgba(76, 175, 80, 0.3); }
-        .message.error { display: block; background: rgba(244, 67, 54, 0.2); color: #e57373; border: 1px solid rgba(244, 67, 54, 0.3); }
+        .message.success { display: block; background: rgba(76,175,80,0.2); color: #81c784; border: 1px solid rgba(76,175,80,0.3); }
+        .message.error { display: block; background: rgba(244,67,54,0.2); color: #e57373; border: 1px solid rgba(244,67,54,0.3); }
 
         /* Toast Notifications */
         .toast-container {
@@ -225,9 +191,9 @@
             cursor: default;
         }
         .toast.closing { animation: toastSlideOut 0.25s ease forwards; }
-        .toast.success { background: rgba(46, 125, 50, 0.92); border: 1px solid rgba(76, 175, 80, 0.6); }
-        .toast.error { background: rgba(183, 28, 28, 0.92); border: 1px solid rgba(244, 67, 54, 0.6); }
-        .toast.info { background: rgba(21, 101, 192, 0.92); border: 1px solid rgba(33, 150, 243, 0.6); }
+        .toast.success { background: rgba(46,125,50,0.92); border: 1px solid rgba(76,175,80,0.6); }
+        .toast.error { background: rgba(183,28,28,0.92); border: 1px solid rgba(244,67,54,0.6); }
+        .toast.info { background: rgba(21,101,192,0.92); border: 1px solid rgba(33,150,243,0.6); }
         .toast-close {
             margin-left: auto;
             background: none;
@@ -259,7 +225,7 @@
         .shake { animation: shake 0.4s ease; }
         .input-error {
             border-color: #f44336 !important;
-            background: rgba(244, 67, 54, 0.08) !important;
+            background: rgba(244,67,54,0.08) !important;
         }
 
         /* Button loading */
@@ -285,15 +251,15 @@
         .user-info {
             text-align: center;
             padding: 20px;
-            background: rgba(157, 78, 221, 0.1);
+            background: rgba(157,78,221,0.1);
             border-radius: 12px;
-            border: 1px solid rgba(157, 78, 221, 0.3);
+            border: 1px solid rgba(157,78,221,0.3);
         }
         .user-info h3 { color: #9d4edd; margin-bottom: 0.5rem; }
         .user-info p { color: #c77dff; font-size: 0.9rem; margin-bottom: 1.5rem; }
         .logout-btn {
-            background: rgba(244, 67, 54, 0.2);
-            border: 1px solid rgba(244, 67, 54, 0.4);
+            background: rgba(244,67,54,0.2);
+            border: 1px solid rgba(244,67,54,0.4);
             color: #e57373;
             padding: 10px 20px;
             border-radius: 8px;
@@ -301,15 +267,43 @@
             font-size: 0.9rem;
             transition: all 0.3s ease;
         }
-        .logout-btn:hover { background: rgba(244, 67, 54, 0.3); }
+        .logout-btn:hover { background: rgba(244,67,54,0.3); }
+
+        .sidebar-nav {
+            margin: 1.5rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+        .sidebar-nav a {
+            padding: 12px 16px;
+            background: rgba(157,78,221,0.1);
+            border: 1px solid rgba(157,78,221,0.25);
+            border-radius: 8px;
+            color: #c77dff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+        .sidebar-nav a:hover {
+            background: rgba(157,78,221,0.25);
+            border-color: #9d4edd;
+            color: #fff;
+        }
+        .sidebar-nav a.active {
+            background: linear-gradient(90deg, #7b2cbf, #9d4edd);
+            border-color: #9d4edd;
+            color: #fff;
+        }
 
         /* Main Content */
         .main-content {
-            max-width: 1000px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 40px 20px;
         }
-
         .page-header {
             text-align: center;
             padding: 2rem 0;
@@ -368,7 +362,6 @@
             box-shadow: 0 4px 16px rgba(157,78,221,0.5), inset 0 1px 0 rgba(255,255,255,0.2);
         }
 
-        /* Encrypt Page Cards */
         .card {
             background: linear-gradient(180deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.03) 100%);
             border: 1px solid rgba(199,125,255,0.22);
@@ -376,9 +369,8 @@
             padding: 2rem;
             margin-bottom: 2rem;
             backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
-
         .card h2 {
             color: #9d4edd;
             font-size: 1.3rem;
@@ -389,64 +381,106 @@
             align-items: center;
             gap: 10px;
         }
+        .card h2 .icon { font-size: 1.5rem; }
 
-        .card h2 .icon {
-            font-size: 1.5rem;
+        .instructions {
+            background: rgba(157,78,221,0.08);
+            border: 1px solid rgba(157,78,221,0.25);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .instructions h3 {
+            color: #c77dff;
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .instructions ol {
+            color: #ccc;
+            font-size: 0.92rem;
+            line-height: 1.7;
+            padding-left: 1.2rem;
+        }
+        .instructions ol li { margin-bottom: 0.4rem; }
+        .instructions .highlight {
+            color: #9d4edd;
+            font-weight: 600;
         }
 
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
+        .key-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 12px 15px;
+            padding-top: 45px;
+            background: rgba(0,0,0,0.25);
+            border: 2px solid rgba(157,78,221,0.5);
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.78rem;
+            color: #c77dff;
+            resize: vertical;
+            outline: none;
+            transition: all 0.3s ease;
         }
-
-        @media (max-width: 768px) {
-            .form-row { grid-template-columns: 1fr; }
+        .key-textarea.loaded {
+            border-color: #4caf50;
+            background: rgba(76,175,80,0.06);
+            color: #81c784;
+        }
+        .key-textarea:focus {
+            border-color: #9d4edd;
+        }
+        .key-box-wrapper {
+            position: relative;
+            margin-top: 1rem;
+        }
+        .key-box-wrapper .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(157,78,221,0.2);
+            border: 1px solid rgba(157,78,221,0.4);
+            color: #c77dff;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 2;
+        }
+        .key-box-wrapper .copy-btn:hover {
+            background: rgba(157,78,221,0.4);
+            color: #fff;
         }
 
         .form-group textarea {
             width: 100%;
             padding: 12px 15px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(157, 78, 221, 0.3);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(157,78,221,0.3);
             border-radius: 8px;
             color: #fff;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-family: 'Courier New', monospace;
             outline: none;
             transition: all 0.3s ease;
             resize: vertical;
-            min-height: 120px;
+            min-height: 200px;
         }
         .form-group textarea:focus {
             border-color: #9d4edd;
-            background: rgba(157, 78, 221, 0.1);
+            background: rgba(157,78,221,0.1);
         }
-        .form-group textarea::placeholder { color: rgba(255, 255, 255, 0.3); }
-
-        .key-size-select {
-            padding: 10px 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(157, 78, 221, 0.4);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 0.95rem;
-            outline: none;
-            cursor: pointer;
-            margin-bottom: 1.5rem;
-        }
-        .key-size-select option {
-            background: #16213e;
-            color: #fff;
-        }
-        .key-size-select:focus { border-color: #9d4edd; }
+        .form-group textarea::placeholder { color: rgba(255,255,255,0.3); }
 
         .action-btns {
             display: flex;
             gap: 1rem;
             flex-wrap: wrap;
+            margin-top: 1rem;
         }
-
         .btn {
             padding: 12px 28px;
             border: none;
@@ -466,27 +500,145 @@
         .btn-primary:hover {
             background: linear-gradient(90deg, #9d4edd, #c77dff);
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(157, 78, 221, 0.4);
+            box-shadow: 0 4px 15px rgba(157,78,221,0.4);
         }
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(157, 78, 221, 0.3);
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(157,78,221,0.3);
             color: #c77dff;
         }
         .btn-secondary:hover {
-            background: rgba(157, 78, 221, 0.2);
+            background: rgba(157,78,221,0.2);
             border-color: #9d4edd;
             color: #fff;
         }
-        .btn-success {
-            background: rgba(76, 175, 80, 0.2);
-            border: 1px solid rgba(76, 175, 80, 0.4);
-            color: #81c784;
+
+        .status-msg {
+            margin-top: 1rem;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            text-align: center;
+            display: none;
         }
-        .btn-success:hover {
-            background: rgba(76, 175, 80, 0.3);
+        .status-msg.show { display: block; }
+        .status-msg.ok { background: rgba(76,175,80,0.15); color: #81c784; border: 1px solid rgba(76,175,80,0.3); }
+        .status-msg.error { background: rgba(244,67,54,0.15); color: #e57373; border: 1px solid rgba(244,67,54,0.3); }
+        .status-msg.info { background: rgba(33,150,243,0.15); color: #64b5f6; border: 1px solid rgba(33,150,243,0.3); }
+        .status-msg.warning { background: rgba(255,152,0,0.15); color: #ffb74d; border: 1px solid rgba(255,152,0,0.3); }
+
+        .response-card {
+            background: rgba(0, 200, 83, 0.05);
+            border: 1px solid rgba(76, 175, 80, 0.25);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+        .response-card h3 {
+            color: #81c784;
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .response-card .plaintext {
+            color: #003366;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            white-space: pre-wrap;
+        }
+        .response-card .encrypted-output {
+            background: #f7fbff;
+            border: 2px solid #99ccff;
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.78rem;
+            color: #003366;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+            box-shadow: inset 1px 1px 3px rgba(0,0,0,0.08);
         }
 
+        .fail-card {
+            background: #ffdddd;
+            border: 2px solid #ee9999;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+        .fail-card h3 {
+            color: #660000;
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .fail-card .fail-msg {
+            color: #660000;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        /* Practice bot selector cards */
+        .bot-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.2rem;
+        }
+        .bot-card {
+            background: #f7fbff;
+            border: 2px solid #b8cce6;
+            border-radius: 10px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 3px 3px 0 #b8cce6;
+        }
+        .bot-card:hover {
+            border-color: #6699cc;
+            box-shadow: 4px 4px 0 #99bbdd;
+            transform: translate(-1px, -1px);
+        }
+        .bot-card.selected {
+            border-color: #0066cc;
+            background: #e6f2ff;
+            box-shadow: 3px 3px 0 #0066cc;
+        }
+        .bot-card h3 {
+            margin: 0 0 0.3rem;
+            font-size: 1.1rem;
+            color: #0066cc;
+        }
+        .bot-card .bot-role {
+            font-size: 0.78rem;
+            color: #6699cc;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0 0 0.5rem;
+        }
+        .bot-card .bot-keysize {
+            display: inline-block;
+            font-size: 0.72rem;
+            background: #0066cc;
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+        .bot-card .bot-tagline {
+            font-size: 0.82rem;
+            color: #003366;
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        /* Encrypt/Decrypt helper result boxes */
         .result-box {
             margin-top: 1.5rem;
             padding: 1.5rem;
@@ -498,14 +650,13 @@
             color: #003366;
             white-space: pre-wrap;
             word-break: break-word;
-            min-height: 100px;
+            min-height: 80px;
             display: none;
             box-shadow: inset 1px 1px 3px rgba(0,0,0,0.08);
         }
         .result-box.visible { display: block; }
         .result-box.error { border-color: #ee9999; color: #660000; }
         .result-box.success { border-color: #99cc99; color: #003366; }
-
         .result-label {
             color: #0066cc;
             font-size: 0.8rem;
@@ -516,46 +667,7 @@
         }
         .result-label.visible { display: block; }
 
-        .key-box {
-            margin-top: 1rem;
-            padding: 1rem;
-            background: #f7fbff;
-            border: 2px solid #99ccff;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.75rem;
-            color: #003366;
-            white-space: pre-wrap;
-            word-break: break-word;
-            max-height: 200px;
-            overflow-y: auto;
-            display: none;
-        }
-        .key-box.visible { display: block; }
-
-        .server-status {
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            z-index: 2000;
-            padding: 10px;
-            text-align: center;
-            font-size: 0.9rem;
-            font-weight: 500;
-            display: none;
-        }
-        .server-status.show { display: block; }
-        .server-status.ok {
-            background: #ddffdd;
-            color: #006600;
-            border-bottom: 2px solid #99cc99;
-        }
-        .server-status.error {
-            background: #ffdddd;
-            color: #660000;
-            border-bottom: 2px solid #ee9999;
-        }
-
-                /* Right Sidebar */
+                 /* Right Sidebar */
         .right-sidebar-toggle {
             position: fixed;
             top: 50%;
@@ -801,6 +913,30 @@
             font-size: 0.7rem;
             padding: 6px 10px;
         }
+
+        .key-size-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.8rem;
+        }
+        .key-size-row label {
+            color: #c77dff;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .key-size-row select {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(157,78,221,0.3);
+            border-radius: 6px;
+            color: #fff;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            outline: none;
+            cursor: pointer;
+        }
+        .key-size-row select:focus { border-color: #9d4edd; }
 
         .profile-content p {
             color: #ccc;
@@ -1060,6 +1196,12 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
 /* Readability fixes */
 .profile-content p { color: #003366 !important; }
 .profile-link { color: #0000cc !important; }
+
+/* Practice page "How It Works" box — match light blue/white theme */
+.instructions { background: #e6f2ff !important; border: 2px solid #99ccff !important; }
+.instructions h3 { color: #0066cc !important; }
+.instructions ol, .instructions ol li { color: #003366 !important; }
+.instructions .highlight { color: #0066cc !important; }
     
 /* Top-right profile link button */
 .profile-link-btn {
@@ -1093,14 +1235,12 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
 <link rel="stylesheet" href="/y2k-fun.css">
 </head>
 <body>
-    <div class="server-status" id="serverStatus"></div>
-
     <!-- Menu Button -->
     <button class="menu-btn" id="menuBtn" aria-label="Menu">
-        <span></span>
-        <span></span>
-        <span></span>
+        <span></span><span></span><span></span>
     </button>
+
+    <a href="/profile.html" class="profile-link-btn">My Profile</a>
 
     <!-- Sidebar Overlay -->
     <div class="sidebar-overlay" id="overlay"></div>
@@ -1142,14 +1282,15 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                 </form>
             </div>
         </div>
+
         <div class="user-info" id="userInfo" style="display: none;">
             <h3>Welcome!</h3>
             <p id="userName">User</p>
                         <nav class="sidebar-nav" id="sidebarNav">
                 <a href="/">Home</a>
-                <a href="/practice.html">Practice</a>
+                <a href="/practice.html" class="active">Practice</a>
                 <a href="/learn.html">Learn</a>
-                <a href="/encrypt.html" class="active">Encrypt / Decrypt</a>
+                <a href="/encrypt.html">Encrypt / Decrypt</a>
                 <a href="/saved-keys.html">Saved Keys</a>
                 <a href="/fingerprint.html">Fingerprint</a>
                 <a href="/password.html">Password Check</a>
@@ -1165,91 +1306,143 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
 
         <div class="page-header">
             <h1>PGP Practice Tool</h1>
-            <div class="subtitle">Encrypt / Decrypt Messages</div>
+            <div class="subtitle">Practice Challenge</div>
             <div class="practice-notice">
                 <strong>Learning Environment:</strong> This is a safe place to practice PGP.
-                Generated keys are saved to your profile so you can't lose them. Never use this app for real secrets.
+                Your keys are saved to your profile so you can decrypt replies. Never use this app for real secrets.
             </div>
                         <nav class="nav-tabs">
                 <a href="/" class="nav-tab">Home</a>
-                <a href="/practice.html" class="nav-tab">Practice</a>
+                <a href="/practice.html" class="nav-tab active">Practice</a>
                 <a href="/learn.html" class="nav-tab">Learn <span class="new-badge">NEW!</span></a>
-                <a href="/encrypt.html" class="nav-tab active">Encrypt / Decrypt</a>
+                <a href="/encrypt.html" class="nav-tab">Encrypt / Decrypt</a>
                 <a href="/saved-keys.html" class="nav-tab">Saved Keys</a>
                 <a href="/fingerprint.html" class="nav-tab">Fingerprint</a>
                 <a href="/password.html" class="nav-tab">Password Check</a>
             </nav>
         </div>
 
-        <!-- Key Generator -->
+        <!-- How It Works -->
         <div class="card">
-            <h2>Key Generator</h2>
-            <label style="color: #0066cc; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">RSA Key Size</label>
-            <select class="key-size-select" id="genKeySize">
-                <option value="4096" selected>RSA 4096 (Recommended)</option>
-                <option value="2048">RSA 2048</option>
-            </select>
-            <div class="action-btns">
-                <button class="btn btn-primary" id="generateKeysBtn">Generate Key Pair</button>
-                <button class="btn btn-secondary" id="copyPublicBtn" style="display:none;">Copy Public Key</button>
-                <button class="btn btn-secondary" id="copyPrivateBtn" style="display:none;">Copy Private Key</button>
-                <button class="btn btn-success" id="downloadKeysBtn" style="display:none;">Download Key Backup</button>
+            <h2>How It Works</h2>
+            <div class="instructions">
+                <h3>The PGP Practice Challenge</h3>
+                <ol>
+                    <li>Pick a practice partner below and copy their <span class="highlight">public key</span>.</li>
+                    <li>Type a message in the <span class="highlight">Encrypt</span> box and encrypt it using their key.</li>
+                    <li>Send the encrypted block to them with the <span class="highlight">Send</span> button.</li>
+                    <li>They will reply with an encrypted message — <span class="highlight">decrypt</span> it with your private key to read it!</li>
+                </ol>
+                <p style="margin-top:0.8rem;font-size:0.85rem;color:#003366;"><span class="highlight">Prerequisite:</span> You must be logged in and have saved a public key in <a href="/profile.html" style="color:#0000cc;">My Profile</a> so the bot can encrypt its reply to you.</p>
             </div>
-            <p style="margin-top:12px;font-size:0.8rem;color:rgba(255,255,255,0.5);">
-                <strong>Learning mode:</strong> Generated keys are automatically saved to your profile so you can decrypt messages later.
-                You can also copy or download a backup. Do not use these keys for real secrets.
-            </p>
-            <div class="key-box" id="publicKeyBox"></div>
-            <div class="key-box" id="privateKeyBox"></div>
-            <div class="status-msg" id="genStatus" style="margin-top:1rem; padding:10px; border-radius:8px; font-size:0.9rem; text-align:center; display:none;"></div>
         </div>
 
-        <!-- Encrypt -->
+        <!-- Choose Your Practice Partner -->
         <div class="card">
-            <h2>Encrypt Message</h2>
-            <label style="color: #0066cc; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">RSA Key Size</label>
-            <select class="key-size-select" id="encKeySize">
-                <option value="4096" selected>RSA 4096</option>
-                <option value="2048">RSA 2048</option>
-            </select>
+            <h2>Choose Your Practice Partner</h2>
+            <p style="font-size:0.88rem;margin-bottom:1rem;color:#003366;">Each partner has their own public key and personality. Click one to select them, then copy their key to encrypt your message.</p>
+
+            <div class="bot-cards">
+                <div class="bot-card selected" data-bot="chat" data-name="Tim">
+                    <h3>Tim</h3>
+                    <p class="bot-role">Practice Partner</p>
+                    <span class="bot-keysize">RSA-4096</span>
+                    <p class="bot-tagline">Friendly and easygoing. Perfect for beginners — just chat about anything and he will keep the conversation going.</p>
+                </div>
+                <div class="bot-card" data-bot="banana" data-name="Jim">
+                    <h3>Jim</h3>
+                    <p class="bot-role">Banana Seller</p>
+                    <span class="bot-keysize">RSA-2048</span>
+                    <p class="bot-tagline">Cheerful fruit seller who will ask how many bananas you want and where to deliver them. Use a fake address!</p>
+                </div>
+                <div class="bot-card" data-bot="apple" data-name="Dorothy">
+                    <h3>Dorothy</h3>
+                    <p class="bot-role">Investigative Journalist</p>
+                    <span class="bot-keysize">RSA-4096</span>
+                    <p class="bot-tagline">Seasoned journalist who handles sensitive tips. Hand her important information over an encrypted channel — she will treat it with care.</p>
+                </div>
+            </div>
+
+            <p id="botDescription" style="color:#003366;font-size:0.85rem;margin:0 0 1rem;line-height:1.5;"></p>
+
             <div class="form-group">
-                <label>Recipient Public Key</label>
-                <textarea id="encPublicKey" placeholder="Paste PGP public key block here..."></textarea>
+                <label>Selected Partner's Public PGP Key</label>
+                <div class="key-box-wrapper">
+                    <button class="copy-btn" id="copyPracticeKey">Copy Key</button>
+                    <textarea class="key-textarea" id="practiceKeyText" readonly>Loading key, please wait...</textarea>
+                </div>
             </div>
-            <div class="form-group">
-                <label>Message</label>
-                <textarea id="encMessage" placeholder="Type your secret message here..."></textarea>
-            </div>
-            <div class="action-btns">
-                <button class="btn btn-primary" id="encryptBtn">Encrypt</button>
-                <button class="btn btn-secondary" id="copyEncryptedBtn" style="display:none;">Copy Result</button>
-                <button class="btn btn-success" id="clearEncBtn">Clear</button>
-            </div>
-            <div class="result-label" id="encResultLabel">Encrypted Message</div>
-            <div class="result-box" id="encResult"></div>
         </div>
 
-        <!-- Decrypt -->
+        <!-- Encrypt / Decrypt Helper -->
         <div class="card">
-            <h2>Decrypt Message</h2>
+            <h2>Encrypt / Decrypt</h2>
+            <p style="font-size:0.88rem;margin-bottom:1rem;">Encrypt a message for the selected bot, or decrypt the bot's reply - without leaving this page.</p>
+
             <div class="form-group">
-                <label>Encrypted Message</label>
-                <textarea id="decMessage" placeholder="Paste PGP encrypted message block here..."></textarea>
+                <label for="encKeySizePractice">Key Size</label>
+                <select id="encKeySizePractice">
+                    <option value="4096" selected>RSA 4096</option>
+                    <option value="2048">RSA 2048</option>
+                </select>
             </div>
-            <p style="font-size:0.85rem;color:#003366;background:#e6f2ff;border:1px solid #99ccff;border-radius:6px;padding:0.6rem 0.8rem;margin-bottom:1rem;">Your saved private key from <a href="/profile.html" style="color:#0000cc;">My Profile</a> will be used automatically. Make sure you have generated and saved a key pair first.</p>
+            <div class="form-group">
+                <label>Recipient's Public Key</label>
+                <textarea id="encPublicKeyPractice" placeholder="The selected partner's public key is auto-filled here. You can also paste any PGP public key..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="encMessagePractice">Message to Encrypt</label>
+                <textarea id="encMessagePractice" placeholder="Type your secret message here..."></textarea>
+            </div>
             <div class="action-btns">
-                <button class="btn btn-primary" id="decryptBtn">Decrypt</button>
-                <button class="btn btn-secondary" id="copyDecryptedBtn" style="display:none;">Copy Result</button>
-                <button class="btn btn-success" id="clearDecBtn">Clear</button>
+                <button class="btn btn-primary" id="encryptBtnPractice">Encrypt</button>
+                <button class="btn btn-secondary" id="copyEncryptedBtnPractice" style="display:none;">Copy Result</button>
+                <button class="btn btn-success" id="sendEncryptedBtnPractice" style="display:none;">Load into Send Box</button>
+                <button class="btn btn-secondary" id="clearEncBtnPractice">Clear</button>
             </div>
-            <div class="result-label" id="decResultLabel">Decrypted Message</div>
-            <div class="result-box" id="decResult"></div>
+            <div class="result-label" id="encResultLabelPractice">Encrypted Message</div>
+            <div class="result-box" id="encResultPractice"></div>
+
+            <hr style="margin:1.5rem 0;border:none;border-top:2px dashed #99ccff;">
+
+            <p style="font-size:0.85rem;color:#003366;background:#e6f2ff;border:1px solid #99ccff;border-radius:6px;padding:0.6rem 0.8rem;margin-bottom:1rem;">Your saved private key from <a href="/profile.html" style="color:#0000cc;">My Profile</a> will be used automatically to decrypt replies.</p>
+            <div class="form-group">
+                <label for="decMessagePractice">Encrypted Message to Decrypt</label>
+                <textarea id="decMessagePractice" placeholder="-----BEGIN PGP MESSAGE-----&#10;Paste the partner's encrypted reply here...&#10;-----END PGP MESSAGE-----"></textarea>
+            </div>
+            <div class="action-btns">
+                <button class="btn btn-primary" id="decryptBtnPractice">Decrypt</button>
+                <button class="btn btn-secondary" id="copyDecryptedBtnPractice" style="display:none;">Copy Result</button>
+                <button class="btn btn-secondary" id="clearDecBtnPractice">Clear</button>
+            </div>
+            <div class="result-label" id="decResultLabelPractice">Decrypted Message</div>
+            <div class="result-box" id="decResultPractice"></div>
+        </div>
+
+        <!-- Send Message Card -->
+        <div class="card">
+            <h2>Send Encrypted Message</h2>
+            <div class="form-group">
+                <label for="practiceMessage">Paste your PGP-encrypted message here</label>
+                <textarea id="practiceMessage" placeholder="-----BEGIN PGP MESSAGE-----&#10;Paste the full PGP MESSAGE block you generated using the practice key...&#10;-----END PGP MESSAGE-----"></textarea>
+            </div>
+            <div class="action-btns">
+                <button class="btn btn-primary" id="sendBtn">Send Encrypted Message</button>
+                <button class="btn btn-secondary" id="clearBtn">Clear</button>
+                <button class="btn btn-secondary" id="resetConversationBtn">Reset Conversation</button>
+            </div>
+            <div class="status-msg" id="sendStatus"></div>
+        </div>
+
+        <!-- Response Area -->
+        <div class="card" id="responseCard" style="display:none;">
+            <h2 id="responseCardTitle">Response</h2>
+            <div id="responseContent"></div>
         </div>
     </div>
 
-    <div class="toast-container" id="toastContainer"></div>
-
-    <!-- Right Sidebar Toggle -->
+        <!-- Right Sidebar Toggle -->
+        <!-- Right Sidebar Toggle -->
     <button class="right-sidebar-toggle" id="rightSidebarToggle" aria-label="Tools">Tools</button>
 
     <!-- Right Sidebar Overlay -->
@@ -1299,12 +1492,14 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         </div>
     </aside>
 
+<!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
     <script>
-        // Menu Toggle (same as index)
+        // Menu Toggle
         const menuBtn = document.getElementById('menuBtn');
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('overlay');
-
         function toggleMenu() {
             menuBtn.classList.toggle('active');
             sidebar.classList.toggle('active');
@@ -1313,7 +1508,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         menuBtn.addEventListener('click', toggleMenu);
         overlay.addEventListener('click', toggleMenu);
 
-        // Sidebar Tabs
+        // Tab Switching
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -1328,23 +1523,17 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = 'toast ' + type;
-            toast.innerHTML = `<span style="flex:1">${escapeHtml(text)}</span><button class="toast-close">&times;</button>`;
+            toast.innerHTML = '<span style="flex:1">' + escapeHtml(text) + '</span><button class="toast-close">&times;</button>';
             container.appendChild(toast);
 
-            const closeBtn = toast.querySelector('.toast-close');
-            closeBtn.addEventListener('click', () => removeToast(toast));
-
-            if (duration > 0) {
-                setTimeout(() => removeToast(toast), duration);
-            }
+            toast.querySelector('.toast-close').addEventListener('click', () => removeToast(toast));
+            if (duration > 0) setTimeout(() => removeToast(toast), duration);
         }
-
         function removeToast(toast) {
             if (!toast.parentNode) return;
             toast.classList.add('closing');
             setTimeout(() => toast.remove(), 300);
         }
-
         function escapeHtml(str) {
             const div = document.createElement('div');
             div.textContent = str;
@@ -1381,44 +1570,24 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         }
 
         // ================= Field Validation =================
-        function clearFieldError(input) {
-            input.classList.remove('input-error', 'shake');
-        }
-
+        function clearFieldError(input) { input.classList.remove('input-error', 'shake'); }
         function setFieldError(input) {
             input.classList.add('input-error', 'shake');
             setTimeout(() => input.classList.remove('shake'), 400);
         }
-
         function validateUsername(input) {
             clearFieldError(input);
             const val = input.value.trim();
-            if (!val) {
-                setFieldError(input);
-                return 'Username is required.';
-            }
-            if (val.length < 3) {
-                setFieldError(input);
-                return 'Username must be at least 3 characters.';
-            }
-            if (!/^[a-zA-Z0-9_-]+$/.test(val)) {
-                setFieldError(input);
-                return 'Username can only contain letters, numbers, underscores, and hyphens.';
-            }
+            if (!val) { setFieldError(input); return 'Username is required.'; }
+            if (val.length < 3) { setFieldError(input); return 'Username must be at least 3 characters.'; }
+            if (!/^[a-zA-Z0-9_-]+$/.test(val)) { setFieldError(input); return 'Username can only contain letters, numbers, underscores, and hyphens.'; }
             return '';
         }
-
         function validatePassword(input) {
             clearFieldError(input);
             const val = input.value;
-            if (!val) {
-                setFieldError(input);
-                return 'Password is required.';
-            }
-            if (val.length < 6) {
-                setFieldError(input);
-                return 'Password must be at least 6 characters.';
-            }
+            if (!val) { setFieldError(input); return 'Password is required.'; }
+            if (val.length < 6) { setFieldError(input); return 'Password must be at least 6 characters.'; }
             return '';
         }
 
@@ -1439,61 +1608,49 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             try {
                 const res = await fetch('/api/me');
                 const data = await res.json();
-                if (data.logged_in) {
-                    showLoggedIn(data.username);
-                }
-            } catch (e) {
-                console.error('Auth check failed:', e);
-            }
+                if (data.logged_in) showLoggedIn(data.username);
+            } catch (err) { console.error('Auth check failed:', err); }
         }
-
         function showLoggedIn(username) {
             document.getElementById('authSection').style.display = 'none';
             document.getElementById('userInfo').style.display = 'block';
             document.getElementById('userName').textContent = username;
         }
-
         function showLoggedOut() {
             document.getElementById('authSection').style.display = 'block';
             document.getElementById('userInfo').style.display = 'none';
         }
-
         function showMessage(elementId, text, type) {
             const el = document.getElementById(elementId);
             el.textContent = text;
             el.className = 'message ' + (type === 'success' ? 'success' : 'error');
-            setTimeout(() => {
-                el.className = 'message';
-                el.textContent = '';
-            }, 4000);
+            setTimeout(() => { el.className = 'message'; el.textContent = ''; }, 4000);
         }
 
-        // ================= Register =================
+        // Register
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const usernameInput = document.getElementById('regUsername');
-            const passwordInput = document.getElementById('regPassword');
+            const uInp = document.getElementById('regUsername');
+            const pInp = document.getElementById('regPassword');
             const btn = e.submitter || e.target.querySelector('.submit-btn');
-
-            const uErr = validateUsername(usernameInput);
+            const uErr = validateUsername(uInp);
             if (uErr) { showToast(uErr, 'error'); return; }
-            const pErr = validatePassword(passwordInput);
+            const pErr = validatePassword(pInp);
             if (pErr) { showToast(pErr, 'error'); return; }
-
             setLoading(btn, true);
             try {
                 const res = await fetch('/api/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: usernameInput.value.trim(), password: passwordInput.value })
+                    body: JSON.stringify({ username: uInp.value.trim(), password: pInp.value })
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    showToast('Account created successfully! You can now log in.', 'success', 5000);
+                    showToast('Account created! You can now log in.', 'success', 5000);
                     document.getElementById('registerForm').reset();
                     document.querySelector('[data-tab="login"]').click();
                 } else if (res.status === 409) {
-                    setFieldError(usernameInput);
+                    setFieldError(uInp);
                     showToast(data.error || 'That username is already taken.', 'error');
                 } else if (res.status === 400) {
                     showToast(data.error || 'Invalid registration details.', 'error');
@@ -1506,29 +1663,25 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                 setLoading(btn, false);
             }
         });
-
-        // Clear field errors on input
         document.getElementById('regUsername').addEventListener('input', function() { clearFieldError(this); });
         document.getElementById('regPassword').addEventListener('input', function() { clearFieldError(this); });
 
-        // ================= Login =================
+        // Login
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const usernameInput = document.getElementById('loginUsername');
-            const passwordInput = document.getElementById('loginPassword');
+            const uInp = document.getElementById('loginUsername');
+            const pInp = document.getElementById('loginPassword');
             const btn = e.submitter || e.target.querySelector('.submit-btn');
-
-            const uErr = validateUsername(usernameInput);
+            const uErr = validateUsername(uInp);
             if (uErr) { showToast(uErr, 'error'); return; }
-            const pErr = validatePassword(passwordInput);
+            const pErr = validatePassword(pInp);
             if (pErr) { showToast(pErr, 'error'); return; }
-
             setLoading(btn, true);
             try {
                 const res = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: usernameInput.value.trim(), password: passwordInput.value })
+                    body: JSON.stringify({ username: uInp.value.trim(), password: pInp.value })
                 });
                 const data = await res.json();
                 if (res.ok) {
@@ -1536,8 +1689,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                     showLoggedIn(data.username);
                     document.getElementById('loginForm').reset();
                 } else if (res.status === 401) {
-                    setFieldError(usernameInput);
-                    setFieldError(passwordInput);
+                    setFieldError(uInp); setFieldError(pInp);
                     showToast(data.error || 'Invalid username or password.', 'error');
                 } else {
                     showToast(data.error || 'Login failed. Please try again.', 'error');
@@ -1548,16 +1700,14 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                 setLoading(btn, false);
             }
         });
-
         document.getElementById('loginUsername').addEventListener('input', function() { clearFieldError(this); });
         document.getElementById('loginPassword').addEventListener('input', function() { clearFieldError(this); });
 
-        // ================= Logout =================
+        // Logout
         document.getElementById('logoutBtn').addEventListener('click', async () => {
             const btn = document.getElementById('logoutBtn');
-            const originalText = btn.textContent;
-            btn.textContent = 'Logging out...';
-            btn.disabled = true;
+            const orig = btn.textContent;
+            btn.textContent = 'Logging out...'; btn.disabled = true;
             try {
                 const res = await fetch('/api/logout', { method: 'POST' });
                 if (res.ok) {
@@ -1567,38 +1717,122 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                     showToast('Logout failed. Please try again.', 'error');
                 }
             } catch (err) {
-                showToast('Network error during logout. Please try again.', 'error');
+                showToast('Network error during logout.', 'error');
             } finally {
-                btn.textContent = originalText;
-                btn.disabled = false;
+                btn.textContent = orig; btn.disabled = false;
             }
         });
 
-        checkAuth();
+        // ================= Practice Challenge =================
+        let practiceKey = '';
+        let practiceBot = 'chat';
+        let practiceBotName = 'Tim';
+        let practiceKeySize = 4096;
 
-        // Server status check
-        async function checkServerStatus() {
+        async function loadPracticeKey(retry = 0, bot = practiceBot) {
+            const keyText = document.getElementById('practiceKeyText');
+            practiceBot = bot;
             try {
-                const res = await fetch('/api/status');
+                const url = '/api/practice/key?bot=' + bot + '&_=' + Date.now();
+                const res = await fetch(url, { cache: 'no-store' });
                 const data = await res.json();
-                const banner = document.getElementById('serverStatus');
-                if (res.ok && data.crypto_available) {
-                    banner.textContent = 'Server ready — encryption enabled';
-                    banner.className = 'server-status show ok';
-                    setTimeout(() => { banner.className = 'server-status'; }, 3000);
-                } else {
-                    banner.textContent = 'Warning: encryption module not available. Please check server logs.';
-                    banner.className = 'server-status show error';
+                console.log('Practice key response:', res.status, JSON.stringify(data || {}).slice(0, 200));
+                if (res.ok && data.public_key) {
+                    practiceKey = data.public_key;
+                    practiceKeySize = data.key_size;
+                    keyText.value = practiceKey;
+                    keyText.classList.add('loaded');
+                    document.getElementById('botDescription').textContent = data.bot_description || '';
+                    document.getElementById('encKeySizePractice').value = practiceKeySize;
+                    syncPracticeKeyToEncryptBox();
+                    console.log('Practice key loaded OK, length:', practiceKey.length);
+                    return;
                 }
-            } catch (e) {
-                const banner = document.getElementById('serverStatus');
-                banner.textContent = 'Warning: unable to reach server. Some features may not work.';
-                banner.className = 'server-status show error';
+                console.warn('Practice key load failed attempt', retry + 1, 'status:', res.status, 'data:', data);
+            } catch (err) {
+                console.warn('Practice key fetch error attempt', retry + 1, err);
+            }
+
+            if (retry < 3) {
+                keyText.value = 'Loading practice key, retrying... (' + (retry + 1) + '/3)';
+                setTimeout(() => loadPracticeKey(retry + 1, bot), 1500 * (retry + 1));
+                return;
+            }
+
+            // XMLHttpRequest fallback
+            keyText.value = 'Trying alternate load method...';
+            try {
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', '/api/practice/key?bot=' + bot + '&_=' + Date.now(), true);
+                xhr.setRequestHeader('Cache-Control', 'no-cache');
+                xhr.setRequestHeader('Pragma', 'no-cache');
+                xhr.onload = function() {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        if (xhr.status === 200 && data.public_key) {
+                            practiceKey = data.public_key;
+                            practiceKeySize = data.key_size;
+                            keyText.value = practiceKey;
+                            keyText.classList.add('loaded');
+                            document.getElementById('botDescription').textContent = data.bot_description || '';
+                            document.getElementById('encKeySizePractice').value = practiceKeySize;
+                            syncPracticeKeyToEncryptBox();
+                            console.log('Practice key loaded via XMLHttpRequest OK');
+                        } else {
+                            console.error('XMLHttpRequest fallback also failed:', xhr.status, data);
+                            keyText.value = 'Error: unable to load practice public key. ' + (data.error || 'Please do a hard refresh: Ctrl+Shift+R (or Cmd+Shift+R on Mac) and try again.');
+                            keyText.classList.add('input-error');
+                        }
+                    } catch (e) {
+                        console.error('XMLHttpRequest response parse error:', e);
+                        keyText.value = 'Error: server returned an invalid response. Please hard-refresh and try again.';
+                        keyText.classList.add('input-error');
+                    }
+                };
+                xhr.onerror = function() {
+                    console.error('XMLHttpRequest network error');
+                    keyText.value = 'Error: network problem. Please check your connection and hard-refresh (Ctrl+Shift+R).';
+                    keyText.classList.add('input-error');
+                };
+                xhr.send();
+                return;
+            } catch (xhrErr) {
+                console.error('XMLHttpRequest setup error:', xhrErr);
+            }
+
+            keyText.value = 'Error: unable to load practice public key. Please do a hard refresh: Ctrl+Shift+R (or Cmd+Shift+R on Mac).';
+            keyText.classList.add('input-error');
+        }
+
+        document.querySelectorAll('.bot-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('.bot-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                practiceBot = card.dataset.bot;
+                practiceBotName = card.dataset.name;
+                document.getElementById('practiceKeyText').classList.remove('loaded');
+                loadPracticeKey(0, practiceBot);
+            });
+        });
+
+        function syncPracticeKeyToEncryptBox() {
+            const encKeyField = document.getElementById('encPublicKeyPractice');
+            if (practiceKey) {
+                encKeyField.value = practiceKey;
             }
         }
-        checkServerStatus();
 
-        // ==================== Encrypt / Decrypt Logic ====================
+        document.getElementById('copyPracticeKey').addEventListener('click', () => {
+            if (!practiceKey) { showToast('No key to copy', 'error'); return; }
+            copyToClipboard(practiceKey, 'Practice key copied!');
+        });
+
+        function showStatus(elementId, text, type) {
+            const el = document.getElementById(elementId);
+            el.textContent = text;
+            el.className = 'status-msg show ' + type;
+            setTimeout(() => { el.className = 'status-msg'; el.textContent = ''; }, 8000);
+        }
 
         function showResult(elementId, labelId, text, type) {
             const el = document.getElementById(elementId);
@@ -1613,114 +1847,19 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             document.getElementById(labelId).className = 'result-label';
         }
 
-        function showGenStatus(text, type) {
-            const el = document.getElementById('genStatus');
-            el.textContent = text;
-            el.style.display = 'block';
-            el.style.background = type === 'ok' ? '#ddffdd' : (type === 'error' ? '#ffdddd' : '#e6f2ff');
-            el.style.color = type === 'ok' ? '#006600' : (type === 'error' ? '#660000' : '#003366');
-            el.style.border = '2px solid ' + (type === 'ok' ? '#99cc99' : (type === 'error' ? '#ee9999' : '#99ccff'));
-            setTimeout(() => { el.style.display = 'none'; el.textContent = ''; }, 6000);
-        }
-
-        // Generate Keys
-        let generatedPublicKey = '';
-        let generatedPrivateKey = '';
-
-        function downloadKeyBackup(publicKey, privateKey, keySize) {
-            const blob = new Blob(
-                [`PUBLIC KEY (RSA-${keySize}):\n\n${publicKey}\n\nPRIVATE KEY (RSA-${keySize}):\n\n${privateKey}`],
-                { type: 'text/plain' }
-            );
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `pgp-practice-keys-rsa${keySize}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        document.getElementById('generateKeysBtn').addEventListener('click', async () => {
-            const btn = document.getElementById('generateKeysBtn');
-            btn.textContent = 'Generating...';
-            btn.disabled = true;
-            showGenStatus('Generating RSA key pair, please wait...', 'info');
-
-            try {
-                const res = await fetch('/api/generate-keys', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ key_size: parseInt(document.getElementById('genKeySize').value) })
-                });
-                const data = await res.json();
-
-                if (res.ok) {
-                    generatedPublicKey = data.public_key;
-                    generatedPrivateKey = data.private_key;
-
-                    const pubBox = document.getElementById('publicKeyBox');
-                    const privBox = document.getElementById('privateKeyBox');
-                    pubBox.textContent = data.public_key;
-                    privBox.textContent = data.private_key;
-                    pubBox.classList.add('visible');
-                    privBox.classList.add('visible');
-
-                    document.getElementById('copyPublicBtn').style.display = 'inline-block';
-                    document.getElementById('copyPrivateBtn').style.display = 'inline-block';
-                    document.getElementById('downloadKeysBtn').style.display = 'inline-block';
-
-                    // Auto-fill encrypt public key
-                    document.getElementById('encPublicKey').value = data.public_key;
-
-                    if (data.saved_to_profile) {
-                        showGenStatus(`RSA-${data.key_size} key pair generated and saved to your profile!`, 'ok');
-                    } else {
-                        showGenStatus(`RSA-${data.key_size} key pair generated! Log in to save it to your profile.`, 'info');
-                    }
-                } else if (res.status === 503) {
-                    showGenStatus(
-                        'Encryption module is not installed on this server. ' +
-                        'The server admin needs to add "cryptography" to requirements.txt and redeploy.',
-                        'error'
-                    );
-                } else {
-                    showGenStatus(data.error || 'Key generation failed: unknown error', 'error');
-                }
-            } catch (e) {
-                showGenStatus('Network error: could not connect to key generation server. Please refresh and try again.', 'error');
-            } finally {
-                btn.textContent = 'Generate Key Pair';
-                btn.disabled = false;
-            }
-        });
-
-        document.getElementById('copyPublicBtn').addEventListener('click', () => copyToClipboard(generatedPublicKey, 'Public key copied!'));
-        document.getElementById('copyPrivateBtn').addEventListener('click', () => copyToClipboard(generatedPrivateKey, 'Private key copied!'));
-        document.getElementById('downloadKeysBtn').addEventListener('click', () => {
-            if (!generatedPublicKey || !generatedPrivateKey) {
-                showToast('Generate a key pair first', 'error');
-                return;
-            }
-            downloadKeyBackup(generatedPublicKey, generatedPrivateKey, document.getElementById('genKeySize').value);
-            showToast('Key backup downloaded', 'success');
-        });
-
-        // Encrypt
-        document.getElementById('encryptBtn').addEventListener('click', async () => {
-            const publicKey = document.getElementById('encPublicKey').value.trim();
-            const message = document.getElementById('encMessage').value;
-            const keySize = parseInt(document.getElementById('encKeySize').value);
+        // ===== Encrypt / Decrypt on Practice Page =====
+        document.getElementById('encryptBtnPractice').addEventListener('click', async () => {
+            const publicKey = document.getElementById('encPublicKeyPractice').value.trim();
+            const message = document.getElementById('encMessagePractice').value;
+            const keySize = parseInt(document.getElementById('encKeySizePractice').value);
 
             if (!publicKey || !message) {
-                showResult('encResult', 'encResultLabel', 'Please provide both a public key and a message to encrypt.', 'error');
+                showResult('encResultPractice', 'encResultLabelPractice', 'Please provide both a public key and a message to encrypt.', 'error');
                 return;
             }
 
-            const btn = document.getElementById('encryptBtn');
-            btn.textContent = 'Encrypting...';
-            btn.disabled = true;
+            const btn = document.getElementById('encryptBtnPractice');
+            setLoading(btn, true);
 
             try {
                 const res = await fetch('/api/encrypt', {
@@ -1731,48 +1870,59 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                 const data = await res.json();
 
                 if (res.ok) {
-                    showResult('encResult', 'encResultLabel', data.encrypted, 'success');
-                    document.getElementById('copyEncryptedBtn').style.display = 'inline-block';
+                    showResult('encResultPractice', 'encResultLabelPractice', data.encrypted, 'success');
+                    document.getElementById('copyEncryptedBtnPractice').style.display = 'inline-block';
+                    document.getElementById('sendEncryptedBtnPractice').style.display = 'inline-block';
                 } else {
-                    showResult('encResult', 'encResultLabel', data.error || 'Encryption failed', 'error');
+                    showResult('encResultPractice', 'encResultLabelPractice', data.error || 'Encryption failed', 'error');
                 }
             } catch (e) {
-                showResult('encResult', 'encResultLabel', 'Network error during encryption', 'error');
+                showResult('encResultPractice', 'encResultLabelPractice', 'Network error during encryption', 'error');
             } finally {
-                btn.textContent = 'Encrypt';
-                btn.disabled = false;
+                setLoading(btn, false);
             }
         });
 
-        document.getElementById('copyEncryptedBtn').addEventListener('click', () => {
-            copyToClipboard(document.getElementById('encResult').textContent, 'Encrypted message copied!');
+        document.getElementById('copyEncryptedBtnPractice').addEventListener('click', () => {
+            copyToClipboard(document.getElementById('encResultPractice').textContent, 'Encrypted message copied!');
         });
 
-        document.getElementById('clearEncBtn').addEventListener('click', () => {
-            document.getElementById('encPublicKey').value = '';
-            document.getElementById('encMessage').value = '';
-            hideResult('encResult', 'encResultLabel');
-            document.getElementById('copyEncryptedBtn').style.display = 'none';
+        document.getElementById('sendEncryptedBtnPractice').addEventListener('click', () => {
+            const encryptedText = document.getElementById('encResultPractice').textContent.trim();
+            if (!encryptedText) {
+                showToast('Nothing to send - encrypt a message first.', 'error');
+                return;
+            }
+            document.getElementById('practiceMessage').value = encryptedText;
+            showToast('Encrypted message loaded into the Send box. Click "Send Encrypted Message" to send it.', 'info');
+            document.getElementById('practiceMessage').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+
+        document.getElementById('clearEncBtnPractice').addEventListener('click', () => {
+            document.getElementById('encPublicKeyPractice').value = '';
+            document.getElementById('encMessagePractice').value = '';
+            hideResult('encResultPractice', 'encResultLabelPractice');
+            document.getElementById('copyEncryptedBtnPractice').style.display = 'none';
+            document.getElementById('sendEncryptedBtnPractice').style.display = 'none';
         });
 
         // Decrypt
-        document.getElementById('decryptBtn').addEventListener('click', async () => {
-            const encryptedMessage = document.getElementById('decMessage').value.trim();
+        document.getElementById('decryptBtnPractice').addEventListener('click', async () => {
+            const encryptedMessage = document.getElementById('decMessagePractice').value.trim();
 
             if (!encryptedMessage) {
-                showResult('decResult', 'decResultLabel', 'Please paste an encrypted message to decrypt.', 'error');
+                showResult('decResultPractice', 'decResultLabelPractice', 'Please paste an encrypted message to decrypt.', 'error');
                 return;
             }
 
-            const btn = document.getElementById('decryptBtn');
-            btn.textContent = 'Decrypting...';
-            btn.disabled = true;
+            const btn = document.getElementById('decryptBtnPractice');
+            setLoading(btn, true);
 
             try {
                 const meRes = await fetch('/api/me');
                 const meData = await meRes.json();
                 if (!meData.logged_in || !meData.private_key) {
-                    showResult('decResult', 'decResultLabel', 'No saved private key found. Please log in and generate a key pair in My Profile first.', 'error');
+                    showResult('decResultPractice', 'decResultLabelPractice', 'No saved private key found. Please log in and generate a key pair in My Profile first.', 'error');
                     return;
                 }
 
@@ -1784,27 +1934,132 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                 const data = await res.json();
 
                 if (res.ok) {
-                    showResult('decResult', 'decResultLabel', data.decrypted, 'success');
-                    document.getElementById('copyDecryptedBtn').style.display = 'inline-block';
+                    showResult('decResultPractice', 'decResultLabelPractice', data.decrypted, 'success');
+                    document.getElementById('copyDecryptedBtnPractice').style.display = 'inline-block';
                 } else {
-                    showResult('decResult', 'decResultLabel', data.error || 'Decryption failed', 'error');
+                    showResult('decResultPractice', 'decResultLabelPractice', data.error || 'Decryption failed', 'error');
                 }
             } catch (e) {
-                showResult('decResult', 'decResultLabel', 'Network error during decryption', 'error');
+                showResult('decResultPractice', 'decResultLabelPractice', 'Network error during decryption', 'error');
             } finally {
-                btn.textContent = 'Decrypt';
-                btn.disabled = false;
+                setLoading(btn, false);
             }
         });
 
-        document.getElementById('copyDecryptedBtn').addEventListener('click', () => {
-            copyToClipboard(document.getElementById('decResult').textContent, 'Decrypted message copied!');
+        document.getElementById('copyDecryptedBtnPractice').addEventListener('click', () => {
+            copyToClipboard(document.getElementById('decResultPractice').textContent, 'Decrypted message copied!');
         });
 
-        document.getElementById('clearDecBtn').addEventListener('click', () => {
-            document.getElementById('decMessage').value = '';
-            hideResult('decResult', 'decResultLabel');
-            document.getElementById('copyDecryptedBtn').style.display = 'none';
+        document.getElementById('clearDecBtnPractice').addEventListener('click', () => {
+            document.getElementById('decMessagePractice').value = '';
+            hideResult('decResultPractice', 'decResultLabelPractice');
+            document.getElementById('copyDecryptedBtnPractice').style.display = 'none';
+        });
+
+        // Auto-fill the practice bot's public key into the encrypt box
+        document.getElementById('encKeySizePractice').addEventListener('change', () => {
+            if (practiceKey) {
+                document.getElementById('encPublicKeyPractice').value = practiceKey;
+            }
+        });
+
+        document.getElementById('sendBtn').addEventListener('click', async () => {
+            const msgInput = document.getElementById('practiceMessage');
+            const msg = msgInput.value.trim();
+            const btn = document.getElementById('sendBtn');
+
+            if (!msg) {
+                showToast('Please paste your PGP-encrypted message first.', 'error');
+                setFieldError(msgInput);
+                return;
+            }
+            clearFieldError(msgInput);
+            setLoading(btn, true);
+
+            try {
+                const res = await fetch('/api/practice/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: msg, bot: practiceBot })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.status === 'success') {
+                    showStatus('sendStatus', data.message || 'Successful encrypted message!', 'ok');
+                    const card = document.getElementById('responseCard');
+                    const content = document.getElementById('responseContent');
+                    const botName = data.bot_name || practiceBotName || 'Partner';
+                    document.getElementById('responseCardTitle').textContent = botName + "'s Response";
+                    card.style.display = 'block';
+
+                    let html = '<div class="response-card">';
+                    html += '<h3>Encrypted reply from ' + escapeHtml(botName) + ' (decrypt with your private key):</h3>';
+                    if (data.encrypted_response) {
+                        html += '<div class="key-box-wrapper" style="margin-top:0.5rem;">';
+                        html += '<button class="copy-btn" id="copyResponseBtn">Copy</button>';
+                        html += '<textarea class="key-textarea encrypted-output" id="responseEncryptedText" readonly style="min-height:160px;">' + escapeHtml(data.encrypted_response) + '</textarea>';
+                        html += '</div>';
+                    } else {
+                        html += '<div class="plaintext">No encrypted response was returned.</div>';
+                    }
+                    html += '</div>';
+                    content.innerHTML = html;
+
+                    if (data.encrypted_response) {
+                        document.getElementById('copyResponseBtn').addEventListener('click', () => {
+                            copyToClipboard(data.encrypted_response, 'Encrypted reply copied!');
+                        });
+                    }
+                    msgInput.value = '';
+                } else {
+                    // Failure states
+                    const card = document.getElementById('responseCard');
+                    const content = document.getElementById('responseContent');
+                    card.style.display = 'block';
+                    showStatus('sendStatus', 'Challenge failed!', 'error');
+
+                    let html = '<div class="fail-card">';
+                    html += '<h3>Challenge Failed!</h3>';
+                    html += '<div class="fail-msg">' + escapeHtml(data.message || data.error || 'Unknown error') + '</div>';
+                    html += '</div>';
+                    content.innerHTML = html;
+                }
+            } catch (err) {
+                showToast('Network error: unable to send message.', 'error');
+            } finally {
+                setLoading(btn, false);
+            }
+        });
+
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            document.getElementById('practiceMessage').value = '';
+            document.getElementById('responseCard').style.display = 'none';
+            document.getElementById('sendStatus').className = 'status-msg';
+            document.getElementById('sendStatus').textContent = '';
+        });
+
+        document.getElementById('resetConversationBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('resetConversationBtn');
+            setLoading(btn, true);
+            try {
+                const res = await fetch('/api/practice/reset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bot: practiceBot })
+                });
+                if (res.ok) {
+                    showToast('Conversation with ' + (practiceBotName || 'partner') + ' cleared. They will start fresh.', 'success');
+                    document.getElementById('responseCard').style.display = 'none';
+                    document.getElementById('sendStatus').className = 'status-msg';
+                    document.getElementById('sendStatus').textContent = '';
+                } else {
+                    showToast('Could not reset conversation. Are you logged in?', 'error');
+                }
+            } catch (err) {
+                showToast('Network error: unable to reset conversation.', 'error');
+            } finally {
+                setLoading(btn, false);
+            }
         });
 
         // Right Sidebar Toggle
@@ -1819,7 +2074,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         rightToggle.addEventListener('click', toggleRightSidebar);
         rightOverlay.addEventListener('click', toggleRightSidebar);
 
-        // Right Sidebar Tabs
+        // Right Sidebar Tab Switching
         document.querySelectorAll('.right-tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.right-tab-btn').forEach(b => b.classList.remove('active'));
@@ -1891,19 +2146,29 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                     renderNotesList();
                     if (notes.length > 0 && !currentNoteId) selectNote(notes[0].id);
                 } else if (res.status === 401) {
-                    notes = []; renderNotesList(); noteTitleInput.disabled = true; notesTextarea.disabled = true; newNoteBtn.disabled = true;
+                    notes = [];
                     notesList.innerHTML = '<li class="notes-empty">Log in to create and save notes.</li>';
-                } else { notesStatus.textContent = 'Could not load notes.'; }
+                    noteTitleInput.disabled = true;
+                    notesTextarea.disabled = true;
+                    newNoteBtn.disabled = true;
+                    notesStatus.innerHTML = '<span class="login-hint">Login required for persistent notes</span>';
+                } else {
+                    notesStatus.textContent = 'Could not load notes.';
+                }
             } catch (e) { notesStatus.textContent = 'Network error loading notes.'; }
         }
+
         function renderNotesList() {
             if (notes.length === 0) {
                 notesList.innerHTML = '<li class="notes-empty">No notes yet — just start typing below!</li>';
-                noteTitleInput.value = ''; notesTextarea.value = '';
-                noteTitleInput.disabled = false; notesTextarea.disabled = false;
+                noteTitleInput.value = '';
+                notesTextarea.value = '';
+                noteTitleInput.disabled = false;
+                notesTextarea.disabled = false;
                 noteTitleInput.placeholder = 'Give your note a title...';
                 notesTextarea.placeholder = 'Start typing to create your first note...';
-                currentNoteId = null; return;
+                currentNoteId = null;
+                return;
             }
             notesList.innerHTML = notes.map(n => {
                 const isActive = n.id === currentNoteId ? 'active' : '';
@@ -1911,17 +2176,32 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                 return '<li class="' + isActive + '" data-id="' + n.id + '"><span class="note-title">' + title + '</span><button class="note-del" title="Delete">&times;</button></li>';
             }).join('');
             notesList.querySelectorAll('li[data-id]').forEach(li => {
-                li.addEventListener('click', (e) => { if (e.target.classList.contains('note-del')) return; selectNote(parseInt(li.dataset.id)); });
+                li.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('note-del')) return;
+                    selectNote(parseInt(li.dataset.id));
+                });
                 const delBtn = li.querySelector('.note-del');
-                if (delBtn) delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteNote(parseInt(li.dataset.id)); });
+                if (delBtn) {
+                    delBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deleteNote(parseInt(li.dataset.id));
+                    });
+                }
             });
         }
+
         function selectNote(id) {
-            currentNoteId = id; const note = notes.find(n => n.id === id); if (!note) return;
-            noteTitleInput.value = note.title || ''; notesTextarea.value = note.content || '';
-            noteTitleInput.disabled = false; notesTextarea.disabled = false; noteTitleInput.style.display = ''; notesTextarea.style.display = '';
-            renderNotesList(); notesStatus.textContent = '';
+            currentNoteId = id;
+            const note = notes.find(n => n.id === id);
+            if (!note) return;
+            noteTitleInput.value = note.title || '';
+            notesTextarea.value = note.content || '';
+            noteTitleInput.disabled = false;
+            notesTextarea.disabled = false;
+            renderNotesList();
+            notesStatus.textContent = '';
         }
+
         async function saveCurrentNote() {
             if (!currentNoteId) {
                 var _title = noteTitleInput.value.trim() || 'New Note';
@@ -1946,66 +2226,59 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             notesSaveTimeout = setTimeout(async () => {
                 try {
                     const res = await fetch('/api/notes/' + currentNoteId, {
-                        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ title: noteTitleInput.value.trim(), content: notesTextarea.value })
                     });
-                    if (res.ok) { const note = notes.find(n => n.id === currentNoteId); if (note) { note.title = noteTitleInput.value.trim(); note.content = notesTextarea.value; } renderNotesList(); notesStatus.textContent = 'Saved.'; setTimeout(() => { if (notesStatus.textContent === 'Saved.') notesStatus.textContent = ''; }, 2000); }
-                    else { notesStatus.textContent = 'Save failed.'; }
+                    if (res.ok) {
+                        const note = notes.find(n => n.id === currentNoteId);
+                        if (note) { note.title = noteTitleInput.value.trim(); note.content = notesTextarea.value; }
+                        renderNotesList();
+                        notesStatus.textContent = 'Saved.';
+                        setTimeout(() => { if (notesStatus.textContent === 'Saved.') notesStatus.textContent = ''; }, 2000);
+                    } else { notesStatus.textContent = 'Save failed.'; }
                 } catch (e) { notesStatus.textContent = 'Network error saving.'; }
             }, 800);
         }
+
         async function createNewNote() {
             notesStatus.textContent = 'Creating...';
             try {
-                const res = await fetch('/api/notes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: 'New Note', content: '' }) });
+                const res = await fetch('/api/notes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title: 'New Note', content: '' })
+                });
                 const data = await res.json();
                 if (res.ok) {
                     notes.unshift({ id: data.id, title: data.title, content: '', updated_at: new Date().toISOString() });
-                    renderNotesList(); selectNote(data.id); noteTitleInput.style.display = ''; notesTextarea.style.display = '';
-                    notesStatus.textContent = 'Created.'; setTimeout(() => notesStatus.textContent = '', 2000);
+                    renderNotesList();
+                    selectNote(data.id);
+                    notesStatus.textContent = 'Created.';
+                    setTimeout(() => notesStatus.textContent = '', 2000);
                 } else { notesStatus.textContent = 'Failed to create note.'; }
             } catch (e) { notesStatus.textContent = 'Network error.'; }
         }
+
         async function deleteNote(id) {
             if (!confirm('Delete this note?')) return;
             try {
                 const res = await fetch('/api/notes/' + id, { method: 'DELETE' });
                 if (res.ok) {
                     notes = notes.filter(n => n.id !== id);
-                    if (currentNoteId === id) { currentNoteId = null; noteTitleInput.value = ''; notesTextarea.value = ''; noteTitleInput.style.display = 'none'; notesTextarea.style.display = 'none'; }
-                    renderNotesList(); if (notes.length > 0 && !currentNoteId) selectNote(notes[0].id);
-                    notesStatus.textContent = 'Deleted.'; setTimeout(() => notesStatus.textContent = '', 2000);
+                    if (currentNoteId === id) {
+                        currentNoteId = null;
+                        noteTitleInput.value = '';
+                        notesTextarea.value = '';
+                    }
+                    renderNotesList();
+                    if (notes.length > 0 && !currentNoteId) selectNote(notes[0].id);
+                    notesStatus.textContent = 'Deleted.';
+                    setTimeout(() => notesStatus.textContent = '', 2000);
                 } else { notesStatus.textContent = 'Delete failed.'; }
             } catch (e) { notesStatus.textContent = 'Network error.'; }
         }
 
-
-        async function decryptNoteContent() {
-            if (!currentNoteId) { showToast('Select a note first', 'error'); return; }
-            const content = notesTextarea.value.trim();
-            if (!content) { showToast('Note is empty', 'error'); return; }
-            if (!isPgpEncrypted(content)) { showToast('Note does not appear to be encrypted', 'error'); return; }
-            const privateKey = prompt('Paste your private key to decrypt:');
-            if (!privateKey) return;
-            const pubKeyText = await getUserPublicKey();
-            if (!pubKeyText) { showToast('No public key saved to profile', 'error'); return; }
-            showToast('Decrypting...', 'info');
-            try {
-                const res = await fetch('/api/decrypt', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: content, public_key: pubKeyText, private_key: privateKey })
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    notesTextarea.value = data.decrypted;
-                    saveCurrentNote();
-                    showToast('Note decrypted!', 'success');
-                } else {
-                    showToast(data.error || 'Decryption failed', 'error');
-                }
-            } catch (e) { showToast('Decryption failed: ' + e.message, 'error'); }
-        }
 
         function isPgpEncrypted(text) {
             return text.trim().includes('-----BEGIN PGP MESSAGE-----');
@@ -2043,6 +2316,33 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             } catch (e) { showToast('Encryption failed: ' + e.message, 'error'); }
         }
 
+        async function decryptNoteContent() {
+            if (!currentNoteId) { showToast('Select a note first', 'error'); return; }
+            const content = notesTextarea.value.trim();
+            if (!content) { showToast('Note is empty', 'error'); return; }
+            if (!isPgpEncrypted(content)) { showToast('Note does not appear to be encrypted', 'error'); return; }
+            const privateKey = prompt('Paste your private key to decrypt:');
+            if (!privateKey) return;
+            const pubKeyText = await getUserPublicKey();
+            if (!pubKeyText) { showToast('No public key saved to profile', 'error'); return; }
+            showToast('Decrypting...', 'info');
+            try {
+                const res = await fetch('/api/decrypt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: content, public_key: pubKeyText, private_key: privateKey })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    notesTextarea.value = data.decrypted;
+                    saveCurrentNote();
+                    showToast('Note decrypted!', 'success');
+                } else {
+                    showToast(data.error || 'Decryption failed', 'error');
+                }
+            } catch (e) { showToast('Decryption failed: ' + e.message, 'error'); }
+        }
+
         newNoteBtn.addEventListener('click', createNewNote);
         noteTitleInput.addEventListener('input', saveCurrentNote);
         notesTextarea.addEventListener('input', saveCurrentNote);
@@ -2054,7 +2354,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         });
         loadNotes();
 
-        // Saved Keys List (toolbar)
+        // Saved Keys List
         async function loadSavedKeysList() {
             const list = document.getElementById('savedKeysListItems');
             try {
@@ -2106,9 +2406,9 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         });
         loadProfileKey();
 
-        checkAuth();
+checkAuth();
+        loadPracticeKey();
     </script>
-
     <script src="/intro.js"></script>
     <div class="version-badge">V1.22</div>
 <script src="/y2k-fun.js"></script>

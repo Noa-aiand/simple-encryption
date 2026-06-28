@@ -1030,12 +1030,14 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
 .nav-tab:hover {
     background: #ffffff;
     color: #0066cc;
+    border-color: #0066cc;
     transform: translate(1px, 1px);
     box-shadow: 1px 1px 0 #8faecf;
 }
 .nav-tab.active {
     background: #0066cc;
     color: #ffffff;
+    border-color: #003399;
     border-style: inset;
     box-shadow: inset 1px 1px 3px rgba(0,0,0,0.3);
 }
@@ -1072,6 +1074,35 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
 /* Readability fixes */
 .profile-content p { color: #003366 !important; }
 .profile-link { color: #0000cc !important; }
+    
+/* Top-right profile link button */
+.profile-link-btn {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 1001;
+    background: linear-gradient(180deg, #e6f2ff 0%, #b3d7ff 100%);
+    border: 2px outset #ffffff;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-family: 'Verdana', sans-serif;
+    font-size: 0.82rem;
+    font-weight: bold;
+    color: #003366;
+    text-decoration: none;
+    box-shadow: 2px 2px 0 #8faecf;
+    transition: all 0.2s ease;
+}
+.profile-link-btn:hover {
+    background: #ffffff;
+    color: #0066cc;
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 #8faecf;
+}
+.profile-link-btn:active {
+    border-style: inset;
+}
+
     </style>
 <link rel="stylesheet" href="/y2k-fun.css">
 </head>
@@ -1080,6 +1111,8 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
     <button class="menu-btn" id="menuBtn" aria-label="Menu">
         <span></span><span></span><span></span>
     </button>
+
+    <a href="/profile.html" class="profile-link-btn">My Profile</a>
 
     <!-- Sidebar Overlay -->
     <div class="sidebar-overlay" id="overlay"></div>
@@ -1125,12 +1158,11 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         <div class="user-info" id="userInfo" style="display: none;">
             <h3>Welcome!</h3>
             <p id="userName">User</p>
-            <nav class="sidebar-nav" id="sidebarNav">
+                        <nav class="sidebar-nav" id="sidebarNav">
                 <a href="/">Home</a>
                 <a href="/practice.html">Practice</a>
                 <a href="/learn.html">Learn</a>
                 <a href="/encrypt.html">Encrypt / Decrypt</a>
-                <a href="/profile.html">My Profile</a>
                 <a href="/saved-keys.html">Saved Keys</a>
                 <a href="/fingerprint.html" class="active">Fingerprint</a>
                 <a href="/password.html">Password Check</a>
@@ -1151,12 +1183,11 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                 <strong>Learning Environment:</strong> This is a safe place to practice PGP.
                 A key's fingerprint is a short hash that uniquely identifies it. Compare fingerprints out-of-band to confirm you have the right key. Never use this app for real secrets.
             </div>
-            <nav class="nav-tabs">
+                        <nav class="nav-tabs">
                 <a href="/" class="nav-tab">Home</a>
                 <a href="/practice.html" class="nav-tab">Practice</a>
                 <a href="/learn.html" class="nav-tab">Learn <span class="new-badge">NEW!</span></a>
                 <a href="/encrypt.html" class="nav-tab">Encrypt / Decrypt</a>
-                <a href="/profile.html" class="nav-tab">My Profile</a>
                 <a href="/saved-keys.html" class="nav-tab">Saved Keys</a>
                 <a href="/fingerprint.html" class="nav-tab active">Fingerprint</a>
                 <a href="/password.html" class="nav-tab">Password Check</a>
@@ -1830,8 +1861,12 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         }
         function renderNotesList() {
             if (notes.length === 0) {
-                notesList.innerHTML = '<li class="notes-empty">No notes yet. Click + New to create one.</li>';
-                noteTitleInput.value = ''; notesTextarea.value = ''; noteTitleInput.disabled = true; notesTextarea.disabled = true; currentNoteId = null; return;
+                notesList.innerHTML = '<li class="notes-empty">No notes yet — just start typing below!</li>';
+                noteTitleInput.value = ''; notesTextarea.value = '';
+                noteTitleInput.disabled = false; notesTextarea.disabled = false;
+                noteTitleInput.placeholder = 'Give your note a title...';
+                notesTextarea.placeholder = 'Start typing to create your first note...';
+                currentNoteId = null; return;
             }
             notesList.innerHTML = notes.map(n => {
                 const isActive = n.id === currentNoteId ? 'active' : '';
@@ -1851,7 +1886,24 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             renderNotesList(); notesStatus.textContent = '';
         }
         async function saveCurrentNote() {
-            if (!currentNoteId) return;
+            if (!currentNoteId) {
+                var _title = noteTitleInput.value.trim() || 'New Note';
+                var _content = notesTextarea.value;
+                notesStatus.textContent = 'Creating...';
+                try {
+                    var res = await fetch('/api/notes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: _title, content: _content }) });
+                    var data = await res.json();
+                    if (res.ok) {
+                        notes.unshift({ id: data.id, title: _title, content: _content, updated_at: new Date().toISOString() });
+                        currentNoteId = data.id;
+                        renderNotesList();
+                        noteTitleInput.value = _title; notesTextarea.value = _content;
+                        noteTitleInput.disabled = false; notesTextarea.disabled = false;
+                        notesStatus.textContent = 'Saved.'; setTimeout(() => { if (notesStatus.textContent === 'Saved.') notesStatus.textContent = ''; }, 2000);
+                    } else { notesStatus.textContent = 'Failed to create note.'; }
+                } catch (e) { notesStatus.textContent = 'Network error.'; }
+                return;
+            }
             notesStatus.textContent = 'Saving...';
             clearTimeout(notesSaveTimeout);
             notesSaveTimeout = setTimeout(async () => {
@@ -2020,7 +2072,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
 
     </script>
     <script src="/intro.js"></script>
-    <div class="version-badge">V1.21</div>
+    <div class="version-badge">V1.22</div>
 <script src="/y2k-fun.js"></script>
 </body>
 </html>

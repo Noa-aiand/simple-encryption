@@ -3,14 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PGP Practice Tool - Encrypt / Decrypt</title>
+    <title>Threat Modeling Practice Tool</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
@@ -50,46 +45,35 @@
         /* Menu Button */
         .menu-btn {
             position: fixed;
-            top: 20px;
-            left: 20px;
+            top: 20px; left: 20px;
             z-index: 1001;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
             border-radius: 10px;
             padding: 12px;
             cursor: pointer;
             backdrop-filter: blur(10px);
             transition: all 0.3s ease;
         }
-
-        .menu-btn:hover {
-            background: rgba(157, 78, 221, 0.3);
-            border-color: #9d4edd;
-        }
-
+        .menu-btn:hover { background: rgba(157,78,221,0.3); border-color: #9d4edd; }
         .menu-btn span {
             display: block;
-            width: 24px;
-            height: 2px;
+            width: 24px; height: 2px;
             background: #fff;
             margin: 5px 0;
             border-radius: 2px;
             transition: all 0.3s ease;
         }
-
-        .menu-btn.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+        .menu-btn.active span:nth-child(1) { transform: rotate(45deg) translate(5px,5px); }
         .menu-btn.active span:nth-child(2) { opacity: 0; }
-        .menu-btn.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+        .menu-btn.active span:nth-child(3) { transform: rotate(-45deg) translate(5px,-5px); }
 
         /* Sidebar */
         .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 350px;
-            height: 100vh;
-            background: rgba(22, 33, 62, 0.98);
-            border-right: 1px solid rgba(157, 78, 221, 0.3);
+            position: fixed; top: 0; left: 0;
+            width: 350px; height: 100vh;
+            background: rgba(22,33,62,0.98);
+            border-right: 1px solid rgba(157,78,221,0.3);
             padding: 80px 30px 30px 30px;
             transform: translateX(-100%);
             transition: transform 0.3s ease;
@@ -98,17 +82,14 @@
         }
         .sidebar.active { transform: translateX(0); }
         .sidebar-overlay {
-            position: fixed;
-            top: 0; left: 0;
+            position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0,0,0,0.5);
             z-index: 999;
-            opacity: 0;
-            visibility: hidden;
+            opacity: 0; visibility: hidden;
             transition: all 0.3s ease;
         }
         .sidebar-overlay.active { opacity: 1; visibility: visible; }
-
         .sidebar h2 {
             color: #9d4edd;
             font-size: 1.5rem;
@@ -116,17 +97,14 @@
             text-transform: uppercase;
             letter-spacing: 2px;
         }
-
         .tabs {
             display: flex;
             margin-bottom: 1.5rem;
-            border-bottom: 1px solid rgba(157, 78, 221, 0.3);
+            border-bottom: 1px solid rgba(157,78,221,0.3);
         }
         .tab-btn {
-            flex: 1;
-            padding: 12px;
-            background: none;
-            border: none;
+            flex: 1; padding: 12px;
+            background: none; border: none;
             color: #c77dff;
             cursor: pointer;
             font-size: 0.9rem;
@@ -137,45 +115,53 @@
         }
         .tab-btn.active { color: #9d4edd; border-bottom-color: #9d4edd; }
         .tab-btn:hover { color: #9d4edd; }
-
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-
         .form-group { margin-bottom: 1.2rem; }
         .form-group label {
-            display: block;
-            color: #c77dff;
+            display: block; color: #c77dff;
             margin-bottom: 0.5rem;
             font-size: 0.85rem;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
         .form-group input {
-            width: 100%;
-            padding: 12px 15px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(157, 78, 221, 0.3);
+            width: 100%; padding: 12px 15px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(157,78,221,0.3);
             border-radius: 8px;
-            color: #fff;
-            font-size: 1rem;
+            color: #fff; font-size: 1rem;
             outline: none;
             transition: all 0.3s ease;
         }
         .form-group input:focus {
             border-color: #9d4edd;
-            background: rgba(157, 78, 221, 0.1);
+            background: rgba(157,78,221,0.1);
         }
-        .form-group input::placeholder { color: rgba(255, 255, 255, 0.3); }
-
+        .form-group input::placeholder { color: rgba(255,255,255,0.3); }
+        .form-group textarea {
+            width: 100%; padding: 12px 15px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(157,78,221,0.3);
+            border-radius: 8px;
+            color: #fff; font-size: 0.85rem;
+            font-family: 'Courier New', monospace;
+            outline: none;
+            transition: all 0.3s ease;
+            resize: vertical;
+            min-height: 100px;
+        }
+        .form-group textarea:focus {
+            border-color: #9d4edd;
+            background: rgba(157,78,221,0.1);
+        }
+        .form-group textarea::placeholder { color: rgba(255,255,255,0.3); }
         .submit-btn {
-            width: 100%;
-            padding: 14px;
+            width: 100%; padding: 14px;
             background: linear-gradient(180deg, #9d4edd 0%, #7b2cbf 100%);
             box-shadow: 0 5px 16px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18);
-            border: none;
-            border-radius: 8px;
-            color: #fff;
-            font-size: 1rem;
+            border: none; border-radius: 8px;
+            color: #fff; font-size: 1rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -185,19 +171,17 @@
         .submit-btn:hover {
             background: linear-gradient(90deg, #9d4edd, #c77dff);
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(157, 78, 221, 0.4);
+            box-shadow: 0 4px 15px rgba(157,78,221,0.4);
         }
-
         .message {
-            margin-top: 1rem;
-            padding: 10px;
+            margin-top: 1rem; padding: 10px;
             border-radius: 8px;
             font-size: 0.9rem;
             text-align: center;
             display: none;
         }
-        .message.success { display: block; background: rgba(76, 175, 80, 0.2); color: #81c784; border: 1px solid rgba(76, 175, 80, 0.3); }
-        .message.error { display: block; background: rgba(244, 67, 54, 0.2); color: #e57373; border: 1px solid rgba(244, 67, 54, 0.3); }
+        .message.success { display: block; background: rgba(76,175,80,0.2); color: #81c784; border: 1px solid rgba(76,175,80,0.3); }
+        .message.error { display: block; background: rgba(244,67,54,0.2); color: #e57373; border: 1px solid rgba(244,67,54,0.3); }
 
         /* Toast Notifications */
         .toast-container {
@@ -285,15 +269,15 @@
         .user-info {
             text-align: center;
             padding: 20px;
-            background: rgba(157, 78, 221, 0.1);
+            background: rgba(157,78,221,0.1);
             border-radius: 12px;
-            border: 1px solid rgba(157, 78, 221, 0.3);
+            border: 1px solid rgba(157,78,221,0.3);
         }
         .user-info h3 { color: #9d4edd; margin-bottom: 0.5rem; }
         .user-info p { color: #c77dff; font-size: 0.9rem; margin-bottom: 1.5rem; }
         .logout-btn {
-            background: rgba(244, 67, 54, 0.2);
-            border: 1px solid rgba(244, 67, 54, 0.4);
+            background: rgba(244,67,54,0.2);
+            border: 1px solid rgba(244,67,54,0.4);
             color: #e57373;
             padding: 10px 20px;
             border-radius: 8px;
@@ -301,7 +285,37 @@
             font-size: 0.9rem;
             transition: all 0.3s ease;
         }
-        .logout-btn:hover { background: rgba(244, 67, 54, 0.3); }
+        .logout-btn:hover { background: rgba(244,67,54,0.3); }
+
+        /* Sidebar Nav */
+        .sidebar-nav {
+            margin: 1.5rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+        .sidebar-nav a {
+            padding: 12px 16px;
+            background: rgba(157,78,221,0.1);
+            border: 1px solid rgba(157,78,221,0.25);
+            border-radius: 8px;
+            color: #c77dff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+        .sidebar-nav a:hover {
+            background: rgba(157,78,221,0.25);
+            border-color: #9d4edd;
+            color: #fff;
+        }
+        .sidebar-nav a.active {
+            background: linear-gradient(90deg, #7b2cbf, #9d4edd);
+            border-color: #9d4edd;
+            color: #fff;
+        }
 
         /* Main Content */
         .main-content {
@@ -309,7 +323,6 @@
             margin: 0 auto;
             padding: 40px 20px;
         }
-
         .page-header {
             text-align: center;
             padding: 2rem 0;
@@ -331,7 +344,6 @@
             letter-spacing: 3px;
             text-transform: uppercase;
         }
-
         .nav-tabs {
             display: flex;
             gap: 1rem;
@@ -368,7 +380,7 @@
             box-shadow: 0 4px 16px rgba(157,78,221,0.5), inset 0 1px 0 rgba(255,255,255,0.2);
         }
 
-        /* Encrypt Page Cards */
+        /* Cards */
         .card {
             background: linear-gradient(180deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.03) 100%);
             border: 1px solid rgba(199,125,255,0.22);
@@ -376,9 +388,8 @@
             padding: 2rem;
             margin-bottom: 2rem;
             backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
-
         .card h2 {
             color: #9d4edd;
             font-size: 1.3rem;
@@ -389,64 +400,95 @@
             align-items: center;
             gap: 10px;
         }
+        .card h2 .icon { font-size: 1.5rem; }
 
-        .card h2 .icon {
-            font-size: 1.5rem;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-        }
-
-        @media (max-width: 768px) {
-            .form-row { grid-template-columns: 1fr; }
-        }
-
-        .form-group textarea {
-            width: 100%;
-            padding: 12px 15px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(157, 78, 221, 0.3);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 0.9rem;
-            font-family: 'Courier New', monospace;
-            outline: none;
+        /* Saved Keys List */
+        .saved-key-item {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(157,78,221,0.25);
+            border-radius: 12px;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
             transition: all 0.3s ease;
-            resize: vertical;
-            min-height: 120px;
         }
-        .form-group textarea:focus {
-            border-color: #9d4edd;
-            background: rgba(157, 78, 221, 0.1);
+        .saved-key-item:hover {
+            border-color: rgba(157,78,221,0.5);
+            box-shadow: 0 4px 15px rgba(157,78,221,0.15);
         }
-        .form-group textarea::placeholder { color: rgba(255, 255, 255, 0.3); }
-
-        .key-size-select {
-            padding: 10px 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(157, 78, 221, 0.4);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 0.95rem;
-            outline: none;
+        .saved-key-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.8rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .saved-key-name {
+            color: #9d4edd;
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .saved-key-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .key-btn {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             cursor: pointer;
-            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
         }
-        .key-size-select option {
-            background: #16213e;
-            color: #fff;
+        .key-btn-copy {
+            background: rgba(76,175,80,0.15);
+            border: 1px solid rgba(76,175,80,0.3);
+            color: #81c784;
         }
-        .key-size-select:focus { border-color: #9d4edd; }
+        .key-btn-copy:hover { background: rgba(76,175,80,0.25); }
+        .key-btn-edit {
+            background: rgba(33,150,243,0.15);
+            border: 1px solid rgba(33,150,243,0.3);
+            color: #64b5f6;
+        }
+        .key-btn-edit:hover { background: rgba(33,150,243,0.25); }
+        .key-btn-delete {
+            background: rgba(244,67,54,0.15);
+            border: 1px solid rgba(244,67,54,0.3);
+            color: #e57373;
+        }
+        .key-btn-delete:hover { background: rgba(244,67,54,0.25); }
+        .saved-key-preview {
+            font-family: 'Courier New', monospace;
+            font-size: 0.78rem;
+            color: #c77dff;
+            background: rgba(0,0,0,0.25);
+            border-radius: 8px;
+            padding: 0.8rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 120px;
+            overflow-y: auto;
+        }
 
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: rgba(255,255,255,0.4);
+        }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
+
+        /* Action Buttons */
         .action-btns {
             display: flex;
             gap: 1rem;
             flex-wrap: wrap;
+            margin-top: 1rem;
         }
-
         .btn {
             padding: 12px 28px;
             border: none;
@@ -466,93 +508,65 @@
         .btn-primary:hover {
             background: linear-gradient(90deg, #9d4edd, #c77dff);
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(157, 78, 221, 0.4);
+            box-shadow: 0 4px 15px rgba(157,78,221,0.4);
         }
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(157, 78, 221, 0.3);
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(157,78,221,0.3);
             color: #c77dff;
         }
         .btn-secondary:hover {
-            background: rgba(157, 78, 221, 0.2);
+            background: rgba(157,78,221,0.2);
             border-color: #9d4edd;
             color: #fff;
         }
-        .btn-success {
-            background: rgba(76, 175, 80, 0.2);
-            border: 1px solid rgba(76, 175, 80, 0.4);
-            color: #81c784;
-        }
-        .btn-success:hover {
-            background: rgba(76, 175, 80, 0.3);
-        }
 
-        .result-box {
-            margin-top: 1.5rem;
-            padding: 1.5rem;
-            background: #f7fbff;
-            border: 2px solid #99ccff;
+        .status-msg {
+            margin-top: 1rem;
+            padding: 10px;
             border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-            color: #003366;
-            white-space: pre-wrap;
-            word-break: break-word;
-            min-height: 100px;
+            font-size: 0.9rem;
+            text-align: center;
             display: none;
-            box-shadow: inset 1px 1px 3px rgba(0,0,0,0.08);
         }
-        .result-box.visible { display: block; }
-        .result-box.error { border-color: #ee9999; color: #660000; }
-        .result-box.success { border-color: #99cc99; color: #003366; }
+        .status-msg.show { display: block; }
+        .status-msg.ok { background: rgba(76,175,80,0.15); color: #81c784; border: 1px solid rgba(76,175,80,0.3); }
+        .status-msg.error { background: rgba(244,67,54,0.15); color: #e57373; border: 1px solid rgba(244,67,54,0.3); }
+        .status-msg.info { background: rgba(33,150,243,0.15); color: #64b5f6; border: 1px solid rgba(33,150,243,0.3); }
 
-        .result-label {
-            color: #0066cc;
-            font-size: 0.8rem;
+        .modal-overlay {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: rgba(22,33,62,0.98);
+            border: 1px solid rgba(157,78,221,0.4);
+            border-radius: 16px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal h3 {
+            color: #9d4edd;
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
             text-transform: uppercase;
             letter-spacing: 2px;
-            margin-bottom: 0.5rem;
-            display: none;
         }
-        .result-label.visible { display: block; }
-
-        .key-box {
-            margin-top: 1rem;
-            padding: 1rem;
-            background: #f7fbff;
-            border: 2px solid #99ccff;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.75rem;
-            color: #003366;
-            white-space: pre-wrap;
-            word-break: break-word;
-            max-height: 200px;
-            overflow-y: auto;
-            display: none;
-        }
-        .key-box.visible { display: block; }
-
-        .server-status {
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            z-index: 2000;
-            padding: 10px;
-            text-align: center;
-            font-size: 0.9rem;
-            font-weight: 500;
-            display: none;
-        }
-        .server-status.show { display: block; }
-        .server-status.ok {
-            background: #ddffdd;
-            color: #006600;
-            border-bottom: 2px solid #99cc99;
-        }
-        .server-status.error {
-            background: #ffdddd;
-            color: #660000;
-            border-bottom: 2px solid #ee9999;
+        .modal-btns {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
         }
 
                 /* Right Sidebar */
@@ -1093,14 +1107,12 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
 <link rel="stylesheet" href="/y2k-fun.css">
 </head>
 <body>
-    <div class="server-status" id="serverStatus"></div>
-
     <!-- Menu Button -->
     <button class="menu-btn" id="menuBtn" aria-label="Menu">
-        <span></span>
-        <span></span>
-        <span></span>
+        <span></span><span></span><span></span>
     </button>
+
+    <a href="/profile.html" class="profile-link-btn">My Profile</a>
 
     <!-- Sidebar Overlay -->
     <div class="sidebar-overlay" id="overlay"></div>
@@ -1142,14 +1154,15 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                 </form>
             </div>
         </div>
+
         <div class="user-info" id="userInfo" style="display: none;">
             <h3>Welcome!</h3>
             <p id="userName">User</p>
                         <nav class="sidebar-nav" id="sidebarNav">
                 <a href="/">Home</a>
-                <a href="/practice.html">Practice</a>
+                <a href="/practice.html" class="active">Practice</a>
                 <a href="/learn.html">Learn</a>
-                <a href="/encrypt.html" class="active">Encrypt / Decrypt</a>
+                <a href="/encrypt.html">Encrypt / Decrypt</a>
                 <a href="/saved-keys.html">Saved Keys</a>
                 <a href="/fingerprint.html">Fingerprint</a>
                 <a href="/password.html">Password Check</a>
@@ -1164,92 +1177,100 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
     <marquee class="top-marquee" scrollamount="6" behavior="scroll" direction="left">WELCOME TO SIMPLE ENCRYPTION -- Learn PGP the retro way -- Best viewed in 1024x768 -- Your keys are stored on the server for practice -- Do not use for real secrets -- Click around and have fun!</marquee>
 
         <div class="page-header">
-            <h1>PGP Practice Tool</h1>
-            <div class="subtitle">Encrypt / Decrypt Messages</div>
+            <h1>Threat Modeling Practice</h1>
+            <div class="subtitle">Think Like an OPSEC Pro</div>
             <div class="practice-notice">
-                <strong>Learning Environment:</strong> This is a safe place to practice PGP.
-                Generated keys are saved to your profile so you can't lose them. Never use this app for real secrets.
+                <strong>Learning Environment:</strong> This is a safe place to practice OPSEC.
+                Work through real-world scenarios and learn to identify what you are protecting, from whom, and what happens if you fail. Never use this app for real secrets.
             </div>
                         <nav class="nav-tabs">
                 <a href="/" class="nav-tab">Home</a>
-                <a href="/practice.html" class="nav-tab">Practice</a>
+                <a href="/practice.html" class="nav-tab active">Practice</a>
                 <a href="/learn.html" class="nav-tab">Learn <span class="new-badge">NEW!</span></a>
-                <a href="/encrypt.html" class="nav-tab active">Encrypt / Decrypt</a>
+                <a href="/encrypt.html" class="nav-tab">Encrypt / Decrypt</a>
                 <a href="/saved-keys.html" class="nav-tab">Saved Keys</a>
                 <a href="/fingerprint.html" class="nav-tab">Fingerprint</a>
                 <a href="/password.html" class="nav-tab">Password Check</a>
             </nav>
         </div>
 
-        <!-- Key Generator -->
+        <!-- Threat Modeling Practice Tool -->
+        <style>
+            .tm-scenario { background:linear-gradient(180deg,#ffffff 0%,#e6f2ff 100%); border:2px solid #99ccff; border-radius:12px; padding:1.2rem 1.4rem; margin-bottom:1.2rem; box-shadow:3px 3px 0 #b3d7ff; }
+            .tm-scenario h3 { color:#0066cc; font-size:1.1rem; margin:0 0 0.4rem; }
+            .tm-scenario .tm-situation { color:#003366; font-size:0.92rem; line-height:1.6; margin-bottom:1rem; }
+            .tm-question { margin:0.8rem 0; }
+            .tm-question .tm-q-text { font-weight:bold; color:#003366; font-size:0.9rem; margin-bottom:0.5rem; }
+            .tm-options { display:flex; flex-direction:column; gap:0.5rem; }
+            .tm-option { background:#f0f7ff; border:2px solid #b3d7ff; border-radius:8px; padding:0.6rem 0.9rem; cursor:pointer; font-size:0.88rem; color:#003366; transition:all 0.15s ease; }
+            .tm-option:hover { border-color:#0066cc; background:#e6f2ff; }
+            .tm-option.selected { border-color:#0066cc; background:#d6eaff; }
+            .tm-option.correct { border-color:#4caf50; background:#e8f5e9; }
+            .tm-option.wrong { border-color:#e07a7e; background:#fdeaea; }
+            .tm-feedback { margin-top:0.5rem; padding:0.6rem 0.9rem; border-radius:8px; font-size:0.85rem; line-height:1.5; display:none; }
+            .tm-feedback.show { display:block; }
+            .tm-feedback.correct { background:#e8f5e9; border:2px solid #4caf50; color:#1b5e20; }
+            .tm-feedback.wrong { background:#fdeaea; border:2px solid #e07a7e; color:#c62828; }
+            .tm-score-bar { display:flex; gap:1rem; align-items:center; justify-content:space-between; background:#0066cc; color:#fff; border-radius:10px; padding:0.6rem 1.2rem; margin-bottom:1rem; }
+            .tm-score-bar .tm-score-text { font-size:0.95rem; font-weight:bold; }
+            .tm-progress { flex:1; height:8px; background:rgba(255,255,255,0.3); border-radius:4px; overflow:hidden; margin:0 1rem; }
+            .tm-progress-fill { height:100%; background:#4caf50; width:0%; transition:width 0.3s ease; }
+            .tm-actions { display:flex; gap:0.6rem; margin-top:1rem; }
+            .tm-result { display:none; text-align:center; padding:1.5rem; }
+            .tm-result.show { display:block; }
+        </style>
+
         <div class="card">
-            <h2>Key Generator</h2>
-            <label style="color: #0066cc; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">RSA Key Size</label>
-            <select class="key-size-select" id="genKeySize">
-                <option value="4096" selected>RSA 4096 (Recommended)</option>
-                <option value="2048">RSA 2048</option>
-            </select>
-            <div class="action-btns">
-                <button class="btn btn-primary" id="generateKeysBtn">Generate Key Pair</button>
-                <button class="btn btn-secondary" id="copyPublicBtn" style="display:none;">Copy Public Key</button>
-                <button class="btn btn-secondary" id="copyPrivateBtn" style="display:none;">Copy Private Key</button>
-                <button class="btn btn-success" id="downloadKeysBtn" style="display:none;">Download Key Backup</button>
+            <h2>Threat Modeling Practice</h2>
+            <p style="font-size:0.88rem;margin-bottom:1rem;color:#003366;">Read each scenario carefully, then choose the best answer. Each question teaches a core OPSEC principle. New to this? Read the <a href="/learn.html" style="color:#0000cc;">Threat Modeling 101</a> guide first.</p>
+
+            <div class="tm-score-bar">
+                <span class="tm-score-text" id="tmScoreText">Question 1 of 5</span>
+                <div class="tm-progress"><div class="tm-progress-fill" id="tmProgressFill"></div></div>
+                <span class="tm-score-text" id="tmScoreCount">0 / 0</span>
             </div>
-            <p style="margin-top:12px;font-size:0.8rem;color:rgba(255,255,255,0.5);">
-                <strong>Learning mode:</strong> Generated keys are automatically saved to your profile so you can decrypt messages later.
-                You can also copy or download a backup. Do not use these keys for real secrets.
-            </p>
-            <div class="key-box" id="publicKeyBox"></div>
-            <div class="key-box" id="privateKeyBox"></div>
-            <div class="status-msg" id="genStatus" style="margin-top:1rem; padding:10px; border-radius:8px; font-size:0.9rem; text-align:center; display:none;"></div>
+
+            <div id="tmQuiz">
+                <div class="tm-scenario" id="tmScenario">
+                    <h3 id="tmTitle">Loading...</h3>
+                    <p class="tm-situation" id="tmSituation"></p>
+                    <div class="tm-question">
+                        <div class="tm-q-text" id="tmQuestionText"></div>
+                        <div class="tm-options" id="tmOptions"></div>
+                    </div>
+                    <div class="tm-feedback" id="tmFeedback"></div>
+                    <div class="tm-actions">
+                        <button class="btn btn-primary" id="tmNextBtn" style="display:none;">Next Question &raquo;</button>
+                        <button class="btn btn-secondary" id="tmRestartBtn" style="display:none;">Restart Quiz</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tm-result" id="tmResult">
+                <h3 id="tmResultTitle">Quiz Complete!</h3>
+                <p id="tmResultScore" style="font-size:1.1rem;color:#003366;margin:0.5rem 0;"></p>
+                <p id="tmResultMessage" style="font-size:0.9rem;color:#003366;line-height:1.6;margin-bottom:1rem;"></p>
+                <button class="btn btn-primary" id="tmResultRestart">Try Again</button>
+                <a href="/learn.html" class="btn btn-secondary">Review the Guide</a>
+            </div>
         </div>
 
-        <!-- Encrypt -->
         <div class="card">
-            <h2>Encrypt Message</h2>
-            <label style="color: #0066cc; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">RSA Key Size</label>
-            <select class="key-size-select" id="encKeySize">
-                <option value="4096" selected>RSA 4096</option>
-                <option value="2048">RSA 2048</option>
-            </select>
-            <div class="form-group">
-                <label>Recipient Public Key</label>
-                <textarea id="encPublicKey" placeholder="Paste PGP public key block here..."></textarea>
+            <h2>Quick Reference</h2>
+            <div class="instructions">
+                <h3>The 3 Questions of Threat Modeling</h3>
+                <ol class="step-list">
+                    <li><strong>What am I protecting?</strong> — Identify the asset (data, identity, access).</li>
+                    <li><strong>Who am I protecting it from?</strong> — Identify the adversary and their resources.</li>
+                    <li><strong>What happens if I fail?</strong> — Assess the consequence (embarrassment, financial, legal, physical).</li>
+                </ol>
+                <p style="margin-top:0.6rem;color:#003366;">Your answers determine which tools you need and how much effort to invest. <a href="/learn.html" style="color:#0000cc;">Read the full guide &raquo;</a></p>
             </div>
-            <div class="form-group">
-                <label>Message</label>
-                <textarea id="encMessage" placeholder="Type your secret message here..."></textarea>
-            </div>
-            <div class="action-btns">
-                <button class="btn btn-primary" id="encryptBtn">Encrypt</button>
-                <button class="btn btn-secondary" id="copyEncryptedBtn" style="display:none;">Copy Result</button>
-                <button class="btn btn-success" id="clearEncBtn">Clear</button>
-            </div>
-            <div class="result-label" id="encResultLabel">Encrypted Message</div>
-            <div class="result-box" id="encResult"></div>
-        </div>
-
-        <!-- Decrypt -->
-        <div class="card">
-            <h2>Decrypt Message</h2>
-            <div class="form-group">
-                <label>Encrypted Message</label>
-                <textarea id="decMessage" placeholder="Paste PGP encrypted message block here..."></textarea>
-            </div>
-            <p style="font-size:0.85rem;color:#003366;background:#e6f2ff;border:1px solid #99ccff;border-radius:6px;padding:0.6rem 0.8rem;margin-bottom:1rem;">Your saved private key from <a href="/profile.html" style="color:#0000cc;">My Profile</a> will be used automatically. Make sure you have generated and saved a key pair first.</p>
-            <div class="action-btns">
-                <button class="btn btn-primary" id="decryptBtn">Decrypt</button>
-                <button class="btn btn-secondary" id="copyDecryptedBtn" style="display:none;">Copy Result</button>
-                <button class="btn btn-success" id="clearDecBtn">Clear</button>
-            </div>
-            <div class="result-label" id="decResultLabel">Decrypted Message</div>
-            <div class="result-box" id="decResult"></div>
         </div>
     </div>
 
-    <div class="toast-container" id="toastContainer"></div>
-
-    <!-- Right Sidebar Toggle -->
+        <!-- Right Sidebar Toggle -->
+        <!-- Right Sidebar Toggle -->
     <button class="right-sidebar-toggle" id="rightSidebarToggle" aria-label="Tools">Tools</button>
 
     <!-- Right Sidebar Overlay -->
@@ -1299,12 +1320,14 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         </div>
     </aside>
 
+<!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
     <script>
-        // Menu Toggle (same as index)
+        // Menu Toggle
         const menuBtn = document.getElementById('menuBtn');
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('overlay');
-
         function toggleMenu() {
             menuBtn.classList.toggle('active');
             sidebar.classList.toggle('active');
@@ -1313,7 +1336,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         menuBtn.addEventListener('click', toggleMenu);
         overlay.addEventListener('click', toggleMenu);
 
-        // Sidebar Tabs
+        // Tab Switching
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -1468,6 +1491,13 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             }, 4000);
         }
 
+        function showStatus(elementId, text, type) {
+            const el = document.getElementById(elementId);
+            el.textContent = text;
+            el.className = 'status-msg show ' + type;
+            setTimeout(() => { el.className = 'status-msg'; el.textContent = ''; }, 5000);
+        }
+
         // ================= Register =================
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -1574,238 +1604,161 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             }
         });
 
-        checkAuth();
+        // ==================== Threat Modeling Quiz ====================
 
-        // Server status check
-        async function checkServerStatus() {
-            try {
-                const res = await fetch('/api/status');
-                const data = await res.json();
-                const banner = document.getElementById('serverStatus');
-                if (res.ok && data.crypto_available) {
-                    banner.textContent = 'Server ready — encryption enabled';
-                    banner.className = 'server-status show ok';
-                    setTimeout(() => { banner.className = 'server-status'; }, 3000);
-                } else {
-                    banner.textContent = 'Warning: encryption module not available. Please check server logs.';
-                    banner.className = 'server-status show error';
-                }
-            } catch (e) {
-                const banner = document.getElementById('serverStatus');
-                banner.textContent = 'Warning: unable to reach server. Some features may not work.';
-                banner.className = 'server-status show error';
+        const TM_SCENARIOS = [
+            {
+                title: 'The Journalist and the Source',
+                situation: 'A whistleblower wants to send you documents showing corporate fraud. They found your email on your news website and want to send the files as an email attachment. They are not technical and have never used encryption.',
+                question: 'What is the BEST first step to protect the source?',
+                options: [
+                    'Tell them to just email the documents — email is private enough.',
+                    'Set up a SecureDrop or encrypted channel and verify keys before any documents are shared.',
+                    'Ask them to mail a USB drive to your office.',
+                    'Post the documents on a public forum so no one person is singled out.'
+                ],
+                correct: 1,
+                explanation: 'Email is not secure by default and metadata (who contacted whom) is visible. A SecureDrop or PGP-encrypted channel protects both the content and the fact of communication. Always establish a secure channel BEFORE documents are shared, not after.'
+            },
+            {
+                title: 'The Shared Laptop',
+                situation: 'You use a shared family computer to manage your online banking, social media, and email. Your teenage sibling also uses it and installs games from various websites. You reuse the same password for everything.',
+                question: 'What is the HIGHEST priority fix?',
+                options: [
+                    'Get a password manager and use unique passwords for each account.',
+                    'Install antivirus software on the computer.',
+                    'Switch to a different browser.',
+                    'Delete the games your sibling installed.'
+                ],
+                correct: 0,
+                explanation: 'A compromised shared computer means any password typed on it may be stolen. A password manager with unique passwords limits the blast radius — if one password leaks, the others are safe. Antivirus helps but does not stop all threats. The root issue is a shared, untrusted device plus password reuse.'
+            },
+            {
+                title: 'The Cloud Backup',
+                situation: 'You store years of personal photos, tax documents, and scanned IDs in a cloud storage account. The account is protected by a 6-character password. You have not enabled two-factor authentication.',
+                question: 'What is the most important thing to do first?',
+                options: [
+                    'Download everything to a local hard drive and delete the cloud copy.',
+                    'Enable two-factor authentication and strengthen the password.',
+                    'Share the folder with a trusted friend as a backup.',
+                    'Switch to a different cloud provider.'
+                ],
+                correct: 1,
+                explanation: 'A 6-character password without 2FA is trivially crackable. Enabling 2FA and using a strong password immediately raises the cost of attack. Local-only backups risk data loss from hardware failure. The key principle: match your protection to the sensitivity of the asset and the capability of likely adversaries.'
+            },
+            {
+                title: 'The Activist Group Chat',
+                situation: 'You organize with a local activist group. The group coordinates in a popular messaging app using your real phone number. Your identity being linked to the group could lead to harassment or job loss.',
+                question: 'What is the core OPSEC mistake?',
+                options: [
+                    'Using a messaging app instead of meeting in person.',
+                    'Using your real phone number, which ties your identity to the group.',
+                    'Not having a group password.',
+                    'Organizing more than 10 people in one chat.'
+                ],
+                correct: 1,
+                explanation: 'The phone number is a direct link between your real identity and the group. An adversary who sees the group membership can identify you. The fix: use an app that supports pseudonymous accounts (like Signal with a burner number) or does not require a phone number. The tool is less important than the identity exposure.'
+            },
+            {
+                title: 'The Too-Perfect Solution',
+                situation: 'A colleague recommends a free app that claims to provide "military-grade encryption" for all your messages with "zero setup." It has no website, no source code available, and the company is registered in a country you have never heard of.',
+                question: 'What is the right OPSEC response?',
+                options: [
+                    'Try it — if it claims military-grade encryption, it must be secure.',
+                    'Avoid it. Trust tools that are open-source, audited, and have a verifiable reputation.',
+                    'Use it but also keep using your old tools just in case.',
+                    'Check if it has more than 4 stars in the app store.'
+                ],
+                correct: 1,
+                explanation: 'Security claims without verifiable evidence are marketing, not protection. Open-source code, independent audits, and established reputation are how you verify a tool is trustworthy. "Military-grade" and "zero setup" are red flags — real security requires transparency, not secrecy and convenience.'
+            }
+        ];
+
+        let tmIndex = 0;
+        let tmScore = 0;
+        let tmAnswered = false;
+
+        function tmRender() {
+            const s = TM_SCENARIOS[tmIndex];
+            document.getElementById('tmTitle').textContent = s.title;
+            document.getElementById('tmSituation').textContent = s.situation;
+            document.getElementById('tmQuestionText').textContent = s.question;
+            document.getElementById('tmScoreText').textContent = 'Question ' + (tmIndex + 1) + ' of ' + TM_SCENARIOS.length;
+            document.getElementById('tmScoreCount').textContent = tmScore + ' / ' + tmIndex;
+            document.getElementById('tmProgressFill').style.width = ((tmIndex / TM_SCENARIOS.length) * 100) + '%';
+            document.getElementById('tmFeedback').className = 'tm-feedback';
+            document.getElementById('tmFeedback').textContent = '';
+            document.getElementById('tmNextBtn').style.display = 'none';
+            tmAnswered = false;
+
+            const optsEl = document.getElementById('tmOptions');
+            optsEl.innerHTML = '';
+            s.options.forEach((opt, i) => {
+                const el = document.createElement('div');
+                el.className = 'tm-option';
+                el.textContent = opt;
+                el.addEventListener('click', () => tmAnswer(i, el));
+                optsEl.appendChild(el);
+            });
+        }
+
+        function tmAnswer(i, el) {
+            if (tmAnswered) return;
+            tmAnswered = true;
+            const s = TM_SCENARIOS[tmIndex];
+            const fb = document.getElementById('tmFeedback');
+            const opts = document.getElementById('tmOptions').children;
+
+            if (i === s.correct) {
+                tmScore++;
+                el.classList.add('correct');
+                fb.className = 'tm-feedback show correct';
+                fb.innerHTML = '<strong>Correct!</strong> ' + s.explanation;
+            } else {
+                el.classList.add('wrong');
+                opts[s.correct].classList.add('correct');
+                fb.className = 'tm-feedback show wrong';
+                fb.innerHTML = '<strong>Not quite.</strong> ' + s.explanation;
+            }
+
+            document.getElementById('tmScoreCount').textContent = tmScore + ' / ' + (tmIndex + 1);
+            if (tmIndex < TM_SCENARIOS.length - 1) {
+                document.getElementById('tmNextBtn').style.display = 'inline-block';
+            } else {
+                document.getElementById('tmNextBtn').style.display = 'none';
+                setTimeout(tmShowResult, 600);
             }
         }
-        checkServerStatus();
 
-        // ==================== Encrypt / Decrypt Logic ====================
-
-        function showResult(elementId, labelId, text, type) {
-            const el = document.getElementById(elementId);
-            const label = document.getElementById(labelId);
-            el.textContent = text;
-            el.className = 'result-box visible ' + type;
-            label.className = 'result-label visible';
+        function tmShowResult() {
+            document.getElementById('tmScenario').style.display = 'none';
+            const result = document.getElementById('tmResult');
+            result.classList.add('show');
+            const pct = Math.round((tmScore / TM_SCENARIOS.length) * 100);
+            document.getElementById('tmResultScore').textContent = tmScore + ' / ' + TM_SCENARIOS.length + ' correct (' + pct + '%)';
+            let msg;
+            if (pct === 100) msg = 'Perfect! You have a strong grasp of threat modeling fundamentals. You are ready to apply these principles to your own situations.';
+            else if (pct >= 60) msg = 'Good work! You understand the basics. Review the explanations for the questions you missed, and read the full guide to fill in any gaps.';
+            else msg = 'Keep practicing! Threat modeling is a skill that takes time to develop. Read the Threat Modeling 101 guide, then try the quiz again.';
+            document.getElementById('tmResultMessage').textContent = msg;
         }
 
-        function hideResult(elementId, labelId) {
-            document.getElementById(elementId).className = 'result-box';
-            document.getElementById(labelId).className = 'result-label';
+        function tmRestart() {
+            tmIndex = 0;
+            tmScore = 0;
+            document.getElementById('tmScenario').style.display = 'block';
+            document.getElementById('tmResult').classList.remove('show');
+            tmRender();
         }
 
-        function showGenStatus(text, type) {
-            const el = document.getElementById('genStatus');
-            el.textContent = text;
-            el.style.display = 'block';
-            el.style.background = type === 'ok' ? '#ddffdd' : (type === 'error' ? '#ffdddd' : '#e6f2ff');
-            el.style.color = type === 'ok' ? '#006600' : (type === 'error' ? '#660000' : '#003366');
-            el.style.border = '2px solid ' + (type === 'ok' ? '#99cc99' : (type === 'error' ? '#ee9999' : '#99ccff'));
-            setTimeout(() => { el.style.display = 'none'; el.textContent = ''; }, 6000);
-        }
-
-        // Generate Keys
-        let generatedPublicKey = '';
-        let generatedPrivateKey = '';
-
-        function downloadKeyBackup(publicKey, privateKey, keySize) {
-            const blob = new Blob(
-                [`PUBLIC KEY (RSA-${keySize}):\n\n${publicKey}\n\nPRIVATE KEY (RSA-${keySize}):\n\n${privateKey}`],
-                { type: 'text/plain' }
-            );
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `pgp-practice-keys-rsa${keySize}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        document.getElementById('generateKeysBtn').addEventListener('click', async () => {
-            const btn = document.getElementById('generateKeysBtn');
-            btn.textContent = 'Generating...';
-            btn.disabled = true;
-            showGenStatus('Generating RSA key pair, please wait...', 'info');
-
-            try {
-                const res = await fetch('/api/generate-keys', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ key_size: parseInt(document.getElementById('genKeySize').value) })
-                });
-                const data = await res.json();
-
-                if (res.ok) {
-                    generatedPublicKey = data.public_key;
-                    generatedPrivateKey = data.private_key;
-
-                    const pubBox = document.getElementById('publicKeyBox');
-                    const privBox = document.getElementById('privateKeyBox');
-                    pubBox.textContent = data.public_key;
-                    privBox.textContent = data.private_key;
-                    pubBox.classList.add('visible');
-                    privBox.classList.add('visible');
-
-                    document.getElementById('copyPublicBtn').style.display = 'inline-block';
-                    document.getElementById('copyPrivateBtn').style.display = 'inline-block';
-                    document.getElementById('downloadKeysBtn').style.display = 'inline-block';
-
-                    // Auto-fill encrypt public key
-                    document.getElementById('encPublicKey').value = data.public_key;
-
-                    if (data.saved_to_profile) {
-                        showGenStatus(`RSA-${data.key_size} key pair generated and saved to your profile!`, 'ok');
-                    } else {
-                        showGenStatus(`RSA-${data.key_size} key pair generated! Log in to save it to your profile.`, 'info');
-                    }
-                } else if (res.status === 503) {
-                    showGenStatus(
-                        'Encryption module is not installed on this server. ' +
-                        'The server admin needs to add "cryptography" to requirements.txt and redeploy.',
-                        'error'
-                    );
-                } else {
-                    showGenStatus(data.error || 'Key generation failed: unknown error', 'error');
-                }
-            } catch (e) {
-                showGenStatus('Network error: could not connect to key generation server. Please refresh and try again.', 'error');
-            } finally {
-                btn.textContent = 'Generate Key Pair';
-                btn.disabled = false;
-            }
+        document.getElementById('tmNextBtn').addEventListener('click', () => {
+            tmIndex++;
+            tmRender();
         });
+        document.getElementById('tmRestartBtn').addEventListener('click', tmRestart);
+        document.getElementById('tmResultRestart').addEventListener('click', tmRestart);
 
-        document.getElementById('copyPublicBtn').addEventListener('click', () => copyToClipboard(generatedPublicKey, 'Public key copied!'));
-        document.getElementById('copyPrivateBtn').addEventListener('click', () => copyToClipboard(generatedPrivateKey, 'Private key copied!'));
-        document.getElementById('downloadKeysBtn').addEventListener('click', () => {
-            if (!generatedPublicKey || !generatedPrivateKey) {
-                showToast('Generate a key pair first', 'error');
-                return;
-            }
-            downloadKeyBackup(generatedPublicKey, generatedPrivateKey, document.getElementById('genKeySize').value);
-            showToast('Key backup downloaded', 'success');
-        });
-
-        // Encrypt
-        document.getElementById('encryptBtn').addEventListener('click', async () => {
-            const publicKey = document.getElementById('encPublicKey').value.trim();
-            const message = document.getElementById('encMessage').value;
-            const keySize = parseInt(document.getElementById('encKeySize').value);
-
-            if (!publicKey || !message) {
-                showResult('encResult', 'encResultLabel', 'Please provide both a public key and a message to encrypt.', 'error');
-                return;
-            }
-
-            const btn = document.getElementById('encryptBtn');
-            btn.textContent = 'Encrypting...';
-            btn.disabled = true;
-
-            try {
-                const res = await fetch('/api/encrypt', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ public_key: publicKey, message: message, key_size: keySize })
-                });
-                const data = await res.json();
-
-                if (res.ok) {
-                    showResult('encResult', 'encResultLabel', data.encrypted, 'success');
-                    document.getElementById('copyEncryptedBtn').style.display = 'inline-block';
-                } else {
-                    showResult('encResult', 'encResultLabel', data.error || 'Encryption failed', 'error');
-                }
-            } catch (e) {
-                showResult('encResult', 'encResultLabel', 'Network error during encryption', 'error');
-            } finally {
-                btn.textContent = 'Encrypt';
-                btn.disabled = false;
-            }
-        });
-
-        document.getElementById('copyEncryptedBtn').addEventListener('click', () => {
-            copyToClipboard(document.getElementById('encResult').textContent, 'Encrypted message copied!');
-        });
-
-        document.getElementById('clearEncBtn').addEventListener('click', () => {
-            document.getElementById('encPublicKey').value = '';
-            document.getElementById('encMessage').value = '';
-            hideResult('encResult', 'encResultLabel');
-            document.getElementById('copyEncryptedBtn').style.display = 'none';
-        });
-
-        // Decrypt
-        document.getElementById('decryptBtn').addEventListener('click', async () => {
-            const encryptedMessage = document.getElementById('decMessage').value.trim();
-
-            if (!encryptedMessage) {
-                showResult('decResult', 'decResultLabel', 'Please paste an encrypted message to decrypt.', 'error');
-                return;
-            }
-
-            const btn = document.getElementById('decryptBtn');
-            btn.textContent = 'Decrypting...';
-            btn.disabled = true;
-
-            try {
-                const meRes = await fetch('/api/me');
-                const meData = await meRes.json();
-                if (!meData.logged_in || !meData.private_key) {
-                    showResult('decResult', 'decResultLabel', 'No saved private key found. Please log in and generate a key pair in My Profile first.', 'error');
-                    return;
-                }
-
-                const res = await fetch('/api/decrypt', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ private_key: meData.private_key, encrypted_message: encryptedMessage })
-                });
-                const data = await res.json();
-
-                if (res.ok) {
-                    showResult('decResult', 'decResultLabel', data.decrypted, 'success');
-                    document.getElementById('copyDecryptedBtn').style.display = 'inline-block';
-                } else {
-                    showResult('decResult', 'decResultLabel', data.error || 'Decryption failed', 'error');
-                }
-            } catch (e) {
-                showResult('decResult', 'decResultLabel', 'Network error during decryption', 'error');
-            } finally {
-                btn.textContent = 'Decrypt';
-                btn.disabled = false;
-            }
-        });
-
-        document.getElementById('copyDecryptedBtn').addEventListener('click', () => {
-            copyToClipboard(document.getElementById('decResult').textContent, 'Decrypted message copied!');
-        });
-
-        document.getElementById('clearDecBtn').addEventListener('click', () => {
-            document.getElementById('decMessage').value = '';
-            hideResult('decResult', 'decResultLabel');
-            document.getElementById('copyDecryptedBtn').style.display = 'none';
-        });
+        tmRender();
 
         // Right Sidebar Toggle
         const rightToggle = document.getElementById('rightSidebarToggle');
@@ -1979,34 +1932,6 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             } catch (e) { notesStatus.textContent = 'Network error.'; }
         }
 
-
-        async function decryptNoteContent() {
-            if (!currentNoteId) { showToast('Select a note first', 'error'); return; }
-            const content = notesTextarea.value.trim();
-            if (!content) { showToast('Note is empty', 'error'); return; }
-            if (!isPgpEncrypted(content)) { showToast('Note does not appear to be encrypted', 'error'); return; }
-            const privateKey = prompt('Paste your private key to decrypt:');
-            if (!privateKey) return;
-            const pubKeyText = await getUserPublicKey();
-            if (!pubKeyText) { showToast('No public key saved to profile', 'error'); return; }
-            showToast('Decrypting...', 'info');
-            try {
-                const res = await fetch('/api/decrypt', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: content, public_key: pubKeyText, private_key: privateKey })
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    notesTextarea.value = data.decrypted;
-                    saveCurrentNote();
-                    showToast('Note decrypted!', 'success');
-                } else {
-                    showToast(data.error || 'Decryption failed', 'error');
-                }
-            } catch (e) { showToast('Decryption failed: ' + e.message, 'error'); }
-        }
-
         function isPgpEncrypted(text) {
             return text.trim().includes('-----BEGIN PGP MESSAGE-----');
         }
@@ -2041,6 +1966,33 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                     showToast(data.error || 'Encryption failed', 'error');
                 }
             } catch (e) { showToast('Encryption failed: ' + e.message, 'error'); }
+        }
+
+        async function decryptNoteContent() {
+            if (!currentNoteId) { showToast('Select a note first', 'error'); return; }
+            const content = notesTextarea.value.trim();
+            if (!content) { showToast('Note is empty', 'error'); return; }
+            if (!isPgpEncrypted(content)) { showToast('Note does not appear to be encrypted', 'error'); return; }
+            const privateKey = prompt('Paste your private key to decrypt:');
+            if (!privateKey) return;
+            const pubKeyText = await getUserPublicKey();
+            if (!pubKeyText) { showToast('No public key saved to profile', 'error'); return; }
+            showToast('Decrypting...', 'info');
+            try {
+                const res = await fetch('/api/decrypt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: content, public_key: pubKeyText, private_key: privateKey })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    notesTextarea.value = data.decrypted;
+                    saveCurrentNote();
+                    showToast('Note decrypted!', 'success');
+                } else {
+                    showToast(data.error || 'Decryption failed', 'error');
+                }
+            } catch (e) { showToast('Decryption failed: ' + e.message, 'error'); }
         }
 
         newNoteBtn.addEventListener('click', createNewNote);
@@ -2107,8 +2059,8 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         loadProfileKey();
 
         checkAuth();
-    </script>
 
+    </script>
     <script src="/intro.js"></script>
     <div class="version-badge">V1.22</div>
 <script src="/y2k-fun.js"></script>
