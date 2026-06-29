@@ -1214,16 +1214,33 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         </style>
 
         <div class="card">
-            <div class="learn-tabs">
+            <style>
+            .learn-tab-group { margin-bottom:0.3rem; }
+            .learn-tab-group-label { font-size:0.65rem; font-weight:bold; text-transform:uppercase; letter-spacing:1.5px; color:#0066cc; margin:0.6rem 0 0.2rem 0.3rem; }
+        </style>
+        <div class="learn-tabs">
+            <div class="learn-tab-group">
+                <div class="learn-tab-group-label">Beginner</div>
                 <button class="learn-tab-btn active" data-learn-tab="pgp">PGP Basics</button>
+                <button class="learn-tab-btn" data-learn-tab="passphrases">Passphrases</button>
+                <button class="learn-tab-btn" data-learn-tab="threat">Threat Modeling</button>
+                <button class="learn-tab-btn" data-learn-tab="sign">Sign vs. Encrypt</button>
+            </div>
+            <div class="learn-tab-group">
+                <div class="learn-tab-group-label">Intermediate</div>
                 <button class="learn-tab-btn" data-learn-tab="keys">Key Management</button>
                 <button class="learn-tab-btn" data-learn-tab="keytypes">Key Sizes &amp; Algorithms</button>
                 <button class="learn-tab-btn" data-learn-tab="servers">Key Servers</button>
-                <button class="learn-tab-btn" data-learn-tab="passphrases">Passphrases</button>
-                <button class="learn-tab-btn" data-learn-tab="sign">Sign vs. Encrypt</button>
-                <button class="learn-tab-btn" data-learn-tab="threat">Threat Modeling</button>
                 <button class="learn-tab-btn" data-learn-tab="opsec">General OPSEC</button>
+                <button class="learn-tab-btn" data-learn-tab="subkeys">Subkeys</button>
             </div>
+            <div class="learn-tab-group">
+                <div class="learn-tab-group-label">Advanced</div>
+                <button class="learn-tab-btn" data-learn-tab="external">External OS</button>
+                <button class="learn-tab-btn" data-learn-tab="airgap">Air-Gap Devices</button>
+                <button class="learn-tab-btn" data-learn-tab="advanced">Advanced OPSEC</button>
+            </div>
+        </div>
 
             <!-- Tab: PGP Basics -->
             <div class="learn-panel active" id="learn-pgp">
@@ -1624,6 +1641,73 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                         the flow.
                     </div>
 
+                    <h3>Speed &amp; Security Comparison</h3>
+                    <p>Below is a visual comparison of all supported key types. Bigger bars = faster. Greener = more practical for everyday use.</p>
+                    <style>
+                        .ks-table { width:100%; border-collapse:collapse; margin:1rem 0; font-size:0.85rem; }
+                        .ks-table th { background:#0066cc; color:#fff; padding:0.5rem; border:1px solid #99ccff; text-align:left; font-size:0.8rem; }
+                        .ks-table td { padding:0.5rem; border:1px solid #b3d7ff; color:#003366; }
+                        .ks-table tr:nth-child(even) { background:#e6f2ff; }
+                        .ks-bar-container { width:100%; height:18px; background:#d9e6f5; border-radius:4px; overflow:hidden; }
+                        .ks-bar { height:100%; border-radius:4px; }
+                        .ks-bar.green { background:#4caf50; }
+                        .ks-bar.yellow { background:#ffb74d; }
+                        .ks-bar.orange { background:#ff9800; }
+                        .ks-security { font-weight:bold; }
+                        .ks-security.high { color:#1b5e20; }
+                        .ks-security.medium { color:#cc6600; }
+                        .ks-security.low { color:#c62828; }
+                        .ks-note { font-size:0.78rem; color:#6699cc; margin-top:0.2rem; }
+                    </style>
+                    <table class="ks-table">
+                        <thead>
+                            <tr>
+                                <th>Key Type</th>
+                                <th>Security Level</th>
+                                <th>Relative Speed</th>
+                                <th>Best For</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>RSA-2048</strong></td>
+                                <td class="ks-security low">112 bits</td>
+                                <td><div class="ks-bar-container"><div class="ks-bar green" style="width:90%;"></div></div><div class="ks-note">Very fast</div></td>
+                                <td>Practice only</td>
+                            </tr>
+                            <tr>
+                                <td><strong>RSA-3072</strong></td>
+                                <td class="ks-security medium">128 bits</td>
+                                <td><div class="ks-bar-container"><div class="ks-bar yellow" style="width:65%;"></div></div><div class="ks-note">Moderate</div></td>
+                                <td>Everyday use</td>
+                            </tr>
+                            <tr>
+                                <td><strong>RSA-4096</strong></td>
+                                <td class="ks-security high">150 bits</td>
+                                <td><div class="ks-bar-container"><div class="ks-bar orange" style="width:45%;"></div></div><div class="ks-note">Slower</div></td>
+                                <td>Sensitive data</td>
+                            </tr>
+                            <tr>
+                                <td><strong>ECC-P256</strong></td>
+                                <td class="ks-security medium">128 bits (= RSA-3072)</td>
+                                <td><div class="ks-bar-container"><div class="ks-bar green" style="width:95%;"></div></div><div class="ks-note">Very fast (small key!)</div></td>
+                                <td>Recommended default</td>
+                            </tr>
+                            <tr>
+                                <td><strong>ECC-P384</strong></td>
+                                <td class="ks-security high">192 bits (= RSA-7680)</td>
+                                <td><div class="ks-bar-container"><div class="ks-bar yellow" style="width:80%;"></div></div><div class="ks-note">Fast</div></td>
+                                <td>Government / sensitive</td>
+                            </tr>
+                            <tr>
+                                <td><strong>ECC-P521</strong></td>
+                                <td class="ks-security high">256 bits (= RSA-15360)</td>
+                                <td><div class="ks-bar-container"><div class="ks-bar yellow" style="width:70%;"></div></div><div class="ks-note">Fast (overkill)</div></td>
+                                <td>Long-term archive</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
                     <h3>The "Store Now, Crack Later" Problem</h3>
                     <p>
                         An attacker can record your encrypted traffic today and store it for decades. If computers become
@@ -1899,8 +1983,376 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                     </p>
                 </div>
             </div>
-        </div>
-    </div>
+
+            <!-- Tab: Subkeys -->
+            <div class="learn-panel" id="learn-subkeys">
+                <div class="guide-body">
+                    <h3>What Are Subkeys?</h3>
+                    <p>
+                        In PGP, your key pair consists of a <strong>primary key</strong> (also called the master key)
+                        and one or more <strong>subkeys</strong>. The primary key's job is to create and revoke subkeys
+                        and to sign other people's keys (the Web of Trust). Subkeys do the everyday work: encrypting,
+                        decrypting, and signing messages.
+                    </p>
+                    <p>
+                        Think of it like a bank: the primary key is the vault (kept locked away), and subkeys are the
+                        ATM cards you carry around daily. If an ATM card is stolen, you cancel it — but the vault is
+                        never at risk. If a subkey is compromised, you revoke it and issue a new one using the primary
+                        key, without losing your identity or your certifications.
+                    </p>
+
+                    <h3>Why Use Subkeys?</h3>
+                    <p>The main reason is <span class="highlight">damage control</span>. If your single key is compromised, you lose everything — your identity, your signatures, your trust relationships. With subkeys:</p>
+                    <ul>
+                        <li>If a subkey is compromised, you revoke just that subkey. Your primary key identity stays intact.</li>
+                        <li>You can have separate subkeys on separate devices (laptop, phone, desktop) so a lost device only exposes one subkey.</li>
+                        <li>You can rotate subkeys periodically without changing your primary identity.</li>
+                        <li>Your primary key can be kept offline (on a USB drive in a safe), so even a fully compromised computer cannot forge your identity.</li>
+                    </ul>
+
+                    <div class="guide-do">
+                        <strong>DO:</strong> Keep your primary key offline. Generate separate subkeys for signing and
+                        encryption on your daily-use device. If a subkey is compromised, revoke it and issue a new one.
+                    </div>
+                    <div class="guide-dont">
+                        <strong>DON'T:</strong> Keep your primary key on a computer that connects to the internet. If
+                        that computer is compromised, your entire PGP identity can be forged — not just one subkey.
+                    </div>
+
+                    <h3>The Typical Setup</h3>
+                    <p>A well-configured PGP key looks like this:</p>
+                    <ul>
+                        <li><strong>Primary key (offline):</strong> RSA-4096 or ECC-P384, used only for creating subkeys and signing other people's keys. Stored on a USB drive in a safe.</li>
+                        <li><strong>Signing subkey:</strong> Used to sign messages and files. Lives on your daily device.</li>
+                        <li><strong>Encryption subkey:</strong> Used to decrypt messages sent to you. Lives on your daily device.</li>
+                        <li><strong>Authentication subkey (optional):</strong> Used for SSH authentication instead of a separate SSH key.</li>
+                    </ul>
+                    <p>
+                        When a subkey expires or is compromised, you plug in the USB drive with your primary key, revoke
+                        the old subkey, and generate a new one. Your identity (and everyone who signed your primary key)
+                        remains untouched.
+                    </p>
+
+                    <div class="guide-callout">
+                        <strong>Beginner note:</strong> This tool does not implement subkeys — it uses a single key pair
+                        for simplicity. But understanding subkeys is important for when you move to a real PGP tool like
+                        GnuPG, which fully supports them. Look up "GnuPG subkey rotation" when you are ready.
+                    </div>
+
+                    <h3>Key Rotation</h3>
+                    <p>
+                        Subkeys should have an <strong>expiry date</strong> — typically 1-2 years. When a subkey expires,
+                        you generate a new one using your primary key. This limits the value of a stolen subkey: even
+                        if an attacker steals it, they can only use it until it expires.
+                    </p>
+                    <p>
+                        Expiry does not magically make a stolen key safe — but it creates a deadline. It forces you to
+                        periodically refresh your setup, which is a good OPSEC habit on its own.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tab: External Operating Systems -->
+            <div class="learn-panel" id="learn-external">
+                <div class="guide-body">
+                    <h3>Why a Separate Operating System?</h3>
+                    <p>
+                        Your main operating system (Windows, macOS, or a daily Linux distro) accumulates malware,
+                        browser extensions, and background processes over time. If your computer is compromised, your
+                        PGP keys, passwords, and encrypted messages can all be stolen — no matter how strong your
+                        encryption is.
+                    </p>
+                    <p>
+                        An <strong>external OS</strong> is a clean, isolated operating system that you boot from a USB
+                        drive or live CD. It runs entirely in RAM, does not touch your main hard drive, and starts fresh
+                        every time you reboot. This makes it extremely difficult for malware to persist.
+                    </p>
+
+                    <div class="guide-callout">
+                        <strong>Key principle:</strong> Encryption protects data <em>at rest</em> and <em>in transit</em>.
+                        But if your <em>device</em> is compromised, the attacker can capture your keys and passwords
+                        <em>as you type them</em> — before encryption even happens. A clean OS prevents this.
+                    </div>
+
+                    <h3>Tails (The Amnesic Incognito Live System)</h3>
+                    <p>
+                        <strong>Tails</strong> is a portable operating system you boot from a USB drive. It is designed
+                        specifically for privacy and security:
+                    </p>
+                    <ul>
+                        <li><strong>Amnesic:</strong> Nothing is saved to disk. When you shut down, all data in RAM is gone. There is no trace left on the computer you used.</li>
+                        <li><strong>Incognito:</strong> All network traffic is routed through <strong>Tor</strong>, hiding your IP address and location.</li>
+                        <li><strong>Built-in tools:</strong> Comes with the Tor Browser, Thunderbird+Enigmail (PGP email), KeePassXC (password manager), and OnionShare (anonymous file sharing) pre-installed.</li>
+                        <li><strong>Persistent storage (optional):</strong> You can set up an encrypted persistent volume on the USB drive to save files, keys, and settings across reboots.</li>
+                    </ul>
+                    <p>
+                        Tails is used by journalists, activists, and whistleblowers worldwide. Edward Snowden used Tails
+                        to communicate with journalists. It is the gold standard for high-risk OPSEC on untrusted
+                        hardware.
+                    </p>
+
+                    <div class="guide-do">
+                        <strong>DO:</strong> Use Tails when handling sensitive communications on a computer you do not
+                        fully trust (hotel business center, shared laptop, etc.). Boot from USB, do your work, shut down.
+                        Nothing persists.
+                    </div>
+                    <div class="guide-dont">
+                        <strong>DON'T:</strong> Use Tails on a compromised computer and assume it is 100% safe. A
+                        sophisticated attacker with physical access could have installed a hardware keylogger. Tails
+                        protects against software threats, not hardware tampering.
+                    </div>
+
+                    <h3>Other Options</h3>
+                    <ul>
+                        <li><strong>Qubes OS:</strong> Not a live USB — it is a security-focused OS you install. It isolates every application in its own virtual machine ("qube"), so if one app is compromised, the others are safe. Used by Edward Snowden for daily use.</li>
+                        <li><strong>Whonix:</strong> Two virtual machines — a gateway (forces all traffic through Tor) and a workstation (where you do your work). Even if the workstation is compromised, the attacker cannot learn your real IP.</li>
+                        <li><strong>Live USB (Ubuntu/Fedora):</strong> A regular Linux distro booted from USB. Not as privacy-focused as Tails, but gives you a clean environment. Better than using a compromised main OS.</li>
+                        <li><strong>Virtual Machine:</strong> Running a VM (VirtualBox, KVM) gives you isolation from your main OS, but is less secure than a live USB because the host OS can still see what happens inside the VM.</li>
+                    </ul>
+
+                    <h3>When to Use an External OS</h3>
+                    <table style="width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.9rem;">
+                        <thead>
+                            <tr style="background:#0066cc;color:#fff;">
+                                <th style="padding:0.5rem;border:1px solid #99ccff;text-align:left;">Situation</th>
+                                <th style="padding:0.5rem;border:1px solid #99ccff;text-align:left;">Recommended Tool</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background:#e6f2ff;">
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">Checking email on your own laptop</td>
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">Normal OS + PGP is fine</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">Sending sensitive documents from a hotel computer</td>
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">Tails on USB</td>
+                            </tr>
+                            <tr style="background:#e6f2ff;">
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">Daily work as a journalist handling tips</td>
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">Qubes OS or Tails on a dedicated laptop</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">Quick anonymous browsing</td>
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">Tor Browser on your normal OS</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab: Air-Gap Devices -->
+            <div class="learn-panel" id="learn-airgap">
+                <div class="guide-body">
+                    <h3>What Is an Air-Gap?</h3>
+                    <p>
+                        An <strong>air-gap</strong> is a physical separation between a computer and any network.
+                        An air-gapped device has no WiFi, no Bluetooth, no Ethernet cable, no USB modem — no connection
+                        to the outside world at all. Data can only move on and off the device through physical media
+                        (USB drives, SD cards, CDs).
+                    </p>
+                    <p>
+                        The idea is simple: if a computer is not connected to the internet, an attacker on the internet
+                        cannot reach it. Air-gapping is used for the most sensitive operations: classified government
+                        systems, cryptocurrency cold storage, certificate authorities, and PGP primary key management.
+                    </p>
+
+                    <div class="guide-callout">
+                        <strong>Why air-gap your PGP primary key?</strong> Your primary key is your PGP identity. If it
+                        is stolen, an attacker can forge your signature, create new subkeys, and impersonate you
+                        indefinitely. By keeping the primary key on an air-gapped machine, you make it impossible for
+                        network-based attacks to reach it.
+                    </div>
+
+                    <h3>How Air-Gapped PGP Works</h3>
+                    <p>The typical air-gapped PGP workflow:</p>
+                    <ol>
+                        <li><strong>Generate the primary key</strong> on the air-gapped machine (never connected to a network).</li>
+                        <li><strong>Create subkeys</strong> for signing and encryption. Export them to a USB drive.</li>
+                        <li><strong>Import subkeys</strong> onto your daily-use (networked) machine. The primary key never leaves the air gap.</li>
+                        <li><strong>Daily use:</strong> Encrypt, decrypt, and sign messages using subkeys on your networked machine.</li>
+                        <li><strong>Key rotation:</strong> When subkeys expire, transfer a new subkey request to the air-gapped machine via USB, generate new subkeys, and transfer them back.</li>
+                        <li><strong>Emergency:</strong> If a subkey is compromised, transfer a revocation request to the air-gapped machine, generate the revocation, and transfer it back to publish.</li>
+                    </ol>
+
+                    <h3>Setting Up an Air-Gapped Machine</h3>
+                    <p>You do not need expensive hardware. Any old laptop will work:</p>
+                    <ul>
+                        <li>Use a dedicated, cheap laptop or mini PC. Do not use your daily machine.</li>
+                        <li>Install a minimal Linux distribution (Debian minimal, Alpine, or Tails in persistent mode).</li>
+                        <li>Physically remove or disable the WiFi card and Bluetooth module if possible.</li>
+                        <li>Never connect it to any network — not even once "just to install updates."</li>
+                        <li>Install GnuPG and generate your primary key on this machine.</li>
+                        <li>Use USB drives to transfer subkeys and signed data to/from your networked machine.</li>
+                    </ul>
+
+                    <div class="guide-do">
+                        <strong>DO:</strong> Use a dedicated device that has never been connected to the internet.
+                        Physically disable wireless hardware. Format USB drives before and after each transfer. Scan
+                        transferred files on a separate machine before plugging into the air gap.
+                    </div>
+                    <div class="guide-dont">
+                        <strong>DON'T:</strong> Connect the air-gapped machine to the internet "just for a moment" to
+                        install software or check something. The moment it touches a network, it is no longer air-gapped.
+                        Install software from offline packages or physical media only.
+                    </div>
+
+                    <h3>Air-Gap Attacks (Yes, They Exist)</h3>
+                    <p>
+                        Air-gaps are not invincible. Sophisticated attackers have demonstrated ways to bridge air-gaps:
+                    </p>
+                    <ul>
+                        <li><strong>USB malware (Stuxnet):</strong> Malware on a USB drive can execute on the air-gapped machine and exfiltrate data via the USB drive itself when it is later plugged into a networked machine.</li>
+                        <li><strong>Acoustic exfiltration:</strong> Some research malware can transmit data using ultrasonic sound waves between nearby computers' speakers and microphones.</li>
+                        <li><strong>Electromagnetic emanations:</strong> Compromised hardware can emit radio-frequency signals that a nearby receiver can pick up (TEMPEST attacks).</li>
+                        <li><strong>Supply chain attacks:</strong> Hardware or software could be compromised before you even receive it. Buy from reputable sources.</li>
+                    </ul>
+                    <p>
+                        These attacks require significant resources and physical proximity — they are the domain of
+                        nation-state intelligence agencies. For most users, an air-gap provides excellent protection
+                        against the far more common network-based attacks.
+                    </p>
+
+                    <div class="guide-callout">
+                        <strong>Practical advice:</strong> For most people, an air-gap is overkill for everyday PGP use.
+                        But if you are a journalist protecting a source, an activist in a dangerous environment, or
+                        managing cryptocurrency, keeping your primary key on an air-gapped machine is worth the effort.
+                        Start with subkeys on your daily machine, and add an air-gap when your threat model demands it.
+                    </div>
+
+                    <h3>Hardware Security Keys (YubiKey, etc.)</h3>
+                    <p>
+                        A <strong>hardware security key</strong> (like a YubiKey or Nitrokey) is a middle ground between
+                        full air-gapping and keeping keys on your daily machine. It is a small USB device that stores
+                        your private keys on a secure chip. The keys never leave the device — when you need to sign or
+                        decrypt, the data is sent to the key, processed on the key, and the result is returned.
+                    </p>
+                    <ul>
+                        <li>Keys are generated on the device and cannot be extracted — even if your computer is compromised.</li>
+                        <li>Requires physical touch/button press for each operation, preventing remote abuse.</li>
+                        <li>Supports OpenPGP, FIDO2/WebAuthn, and U2F — one device for PGP keys, 2FA, and passwordless login.</li>
+                        <li>Portable — move between devices without copying keys.</li>
+                    </ul>
+                    <p>
+                        For most intermediate-to-advanced users, a YubiKey is the sweet spot: stronger than keeping keys
+                        on a networked computer, simpler than maintaining a full air-gapped machine.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tab: Advanced OPSEC -->
+            <div class="learn-panel" id="learn-advanced">
+                <div class="guide-body">
+                    <h3>The Hard Truth: User Error Is the #1 Threat</h3>
+                    <p>
+                        No matter how strong your encryption, how long your keys, or how many tools you layer —
+                        <span class="highlight">user error will always be your biggest vulnerability</span>. Real-world
+                        breaches are almost never caused by broken cryptography. They are caused by:
+                    </p>
+                    <ul>
+                        <li>Reusing a password across accounts (the #1 cause of account takeovers).</li>
+                        <li>Clicking a phishing link because you were in a hurry.</li>
+                        <li>Leaving your laptop unlocked when you step away.</li>
+                        <li>Storing your private key in a cloud-synced folder "for convenience."</li>
+                        <li>Trusting a key without verifying its fingerprint.</li>
+                        <li>Disabling a security feature because it was "annoying."</li>
+                        <li>Sending an encrypted message to the wrong person.</li>
+                        <li>Forgetting to encrypt a message because you were tired.</li>
+                    </ul>
+
+                    <div class="guide-callout">
+                        <strong>The weakest link is you.</strong> A 4096-bit key is useless if you type your passphrase
+                        into a phishing page. Perfect OPSEC tools are useless if you do not use them consistently.
+                        The most dangerous attack is not a zero-day exploit — it is the moment you think "just this once,
+                        I'll skip encryption" because you are in a hurry.
+                    </div>
+
+                    <h3>OPSEC as a Habit</h3>
+                    <p>
+                        The goal is not to be perfect. The goal is to make good security practices <strong>automatic</strong>
+                        — something you do without thinking, like buckling your seatbelt. Habits are built through
+                        repetition, not through reading guides. Here is how to build OPSEC habits:
+                    </p>
+                    <ol>
+                        <li><strong>Start small.</strong> Pick ONE thing — enable 2FA on your email. Do it today. Not next week. Today.</li>
+                        <li><strong>Make it easy.</strong> Install a password manager so using strong passwords is easier than using weak ones. Set up Signal so encrypted messaging is the default, not a special effort.</li>
+                        <li><strong>Make it routine.</strong> Check your lock screen timeout. Set it to 1 minute. It will be annoying for two days, then it will be automatic.</li>
+                        <li><strong>Review periodically.</strong> Once a month, ask yourself: "What sensitive data did I handle this month? Did I protect it?" If not, figure out why and fix the process, not just the one incident.</li>
+                        <li><strong>Plan for failure.</strong> Assume you will make a mistake. What happens if your password is stolen? If your phone is lost? Having a recovery plan (backup codes, remote wipe, revocation certificate) turns a catastrophe into an inconvenience.</li>
+                    </ol>
+
+                    <h3>Common OPSEC Mistakes</h3>
+
+                    <div class="guide-dont">
+                        <strong>Mistake 1: "I have nothing to hide."</strong>
+                        Everyone has something to protect — bank access, personal communications, account credentials.
+                        The "nothing to hide" argument ignores that your data can be used to harm <em>others</em>
+                        (impersonating you to scam your contacts, using your accounts to launch further attacks).
+                    </div>
+
+                    <div class="guide-dont">
+                        <strong>Mistake 2: Trusting convenience over security.</strong>
+                        Saving your private key to your desktop "just for now." Disabling 2FA because it takes 5 extra
+                        seconds. These small conveniences are how most breaches happen. Security must be the default,
+                        not the opt-in.
+                    </div>
+
+                    <div class="guide-dont">
+                        <strong>Mistake 3: Security theater.</strong>
+                        Using a VPN that logs your traffic. Using a "military-grade encryption" app with no source
+                        code. Changing your password every 30 days to something slightly different (Password1,
+                        Password2...). These feel like security but provide none.
+                    </div>
+
+                    <div class="guide-dont">
+                        <strong>Mistake 4: All-or-nothing thinking.</strong>
+                        "If I cannot be 100% secure, why bother?" Perfect security does not exist. You lock your
+                        front door even though a determined burglar can pick the lock. The goal is to raise the cost
+                        of attack high enough that most adversaries move on. Every small improvement helps.
+                    </div>
+
+                    <h3>The OPSEC Mindset</h3>
+                    <p>Good OPSEC is not about paranoia — it is about <strong>awareness and consistency</strong>. Here are the core principles:</p>
+                    <ul>
+                        <li><strong>Assume breach.</strong> Do not ask "am I secure?" Ask "what happens when I am compromised?" Design your setup so that a single failure does not cascade into total compromise.</li>
+                        <li><strong>Least privilege.</strong> Only give access to what is needed. Only store data as long as needed. Only connect devices to networks when needed. Minimize your attack surface.</li>
+                        <li><strong>Defense in depth.</strong> Layer your protections. If your password is stolen, 2FA stops the attacker. If your device is stolen, disk encryption stops the attacker. If your network is monitored, Tor hides your traffic. No single layer is perfect.</li>
+                        <li><strong>Verify, do not trust.</strong> Verify fingerprints. Verify URLs. Verify sender addresses. Verify through a separate channel. Trust is earned through verification, not assumed by default.</li>
+                        <li><strong>Compartmentalize.</strong> Use different accounts, devices, or identities for different activities. If your work identity is compromised, your personal identity should be unaffected.</li>
+                    </ul>
+
+                    <div class="guide-do">
+                        <strong>DO:</strong> Make security a habit, not a chore. The moment good OPSEC feels automatic
+                        — like locking your door — is the moment you are genuinely safer. Not because the tools got
+                        better, but because you stopped making mistakes.
+                    </div>
+
+                    <div class="guide-callout">
+                        <strong>Remember:</strong> The best OPSEC tool is the one you will actually use consistently.
+                        A simple password manager you use every day beats a complex encryption setup you only remember
+                        half the time. Consistency beats complexity. Habits beat heroics.
+                    </div>
+
+                    <h3>Where to Go from Here</h3>
+                    <p>
+                        You have read the guides. Now practice. Try every tool on the
+                        <a href="/practice.html" style="color:#0000cc;">Practice</a> page — each one teaches a different
+                        skill. Make mistakes here, in a safe environment, so you do not make them in the real world.
+                    </p>
+                    <ul>
+                        <li><a href="/pgp-practice.html" style="color:#0000cc;">PGP Bot Practice</a> — full encrypt/decrypt loop with an AI partner.</li>
+                        <li><a href="/fingerprint.html" style="color:#0000cc;">Fingerprint Validator</a> — learn to spot tampered keys.</li>
+                        <li><a href="/sign-verify.html" style="color:#0000cc;">Sign &amp; Verify</a> — prove authenticity with signatures.</li>
+                        <li><a href="/threat-model.html" style="color:#0000cc;">Threat Modeling</a> — build your own threat model.</li>
+                        <li><a href="/social-engineering.html" style="color:#0000cc;">Social Engineering Quiz</a> — train your eye for red flags.</li>
+                    </ul>
+                    <p>
+                        Then move to real tools: <strong>GnuPG</strong> for PGP email, <strong>Signal</strong> for
+                        messaging, <strong>KeePassXC</strong> or <strong>Bitwarden</strong> for passwords, and
+                        <strong>Tor Browser</strong> for anonymous browsing. The transition from practice to real use
+                        should feel familiar — the concepts are the same.
+                    </p>
+                </div>
+            </div>
 
         <!-- Right Sidebar Toggle -->
         <!-- Right Sidebar Toggle -->
@@ -2551,7 +3003,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
 
     </script>
     <script src="/intro.js"></script>
-    <div class="version-badge">V1.31</div>
+    <div class="version-badge">V1.32</div>
 <script src="/y2k-fun.js"></script>
 </body>
 </html>
