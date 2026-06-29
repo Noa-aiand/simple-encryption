@@ -495,7 +495,7 @@ def init_practice_keys():
 
     # Generate Tim (chat bot) keypairs for all supported key types so users can
     # practice with RSA or ECC.
-    for kt in ('rsa-3072', 'ecc-256', 'ecc-384', 'ecc-521'):
+    for kt in ('rsa-2048', 'rsa-3072', 'rsa-4096', 'ecc-256', 'ecc-384', 'ecc-521'):
         pub_key_name = f'practice_public_key_{kt}'
         priv_key_name = f'practice_private_key_{kt}'
         db_execute(c, "SELECT value FROM server_config WHERE key = ?", (priv_key_name,))
@@ -1268,10 +1268,6 @@ def practice_send():
             )
         }), 400
 
-    _pub, priv_block, key_size = get_bot_keys(bot_id)
-    if not priv_block:
-        return jsonify({'error': 'Bot keypair not initialized'}), 500
-
     # ---- Decrypt the user's message ----
     try:
         b64_pem = parse_pgp_block(priv_block, 'PRIVATE KEY BLOCK')
@@ -1286,14 +1282,7 @@ def practice_send():
         nonce = payload[2+key_len:2+key_len+12]
         ciphertext = payload[2+key_len+12:]
 
-        aes_key = private_key.decrypt(
-            encrypted_key,
-            padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                algorithm=hashes.SHA256(),
-                label=None
-            )
-        )
+        aes_key = decrypt_with_private_key(private_key, encrypted_key)
 
         aesgcm = AESGCM(aes_key)
         plaintext = aesgcm.decrypt(nonce, ciphertext, None).decode('utf-8')
@@ -1353,14 +1342,30 @@ def practice_send():
         aesgcm = AESGCM(aes_key)
         ciphertext = aesgcm.encrypt(nonce, ai_response.encode('utf-8'), None)
 
-        encrypted_key = user_pubkey.encrypt(
-            aes_key,
-            padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                algorithm=hashes.SHA256(),
-                label=None
+        # Wrap the AES key with the user's public key (RSA-OAEP or ECDH)
+        if isinstance(user_pubkey, rsa.RSAPublicKey):
+            encrypted_key = user_pubkey.encrypt(
+                aes_key,
+                padding.OAEP(
+                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                    algorithm=hashes.SHA256(),
+                    label=None
+                )
             )
-        )
+        elif isinstance(user_pubkey, ec.EllipticCurvePublicKey):
+            ephemeral_private = ec.generate_private_key(user_pubkey.curve)
+            shared_key = ephemeral_private.exchange(ec.ECDH(), user_pubkey)
+            derived_key = hashes.Hash(hashes.SHA256())
+            derived_key.update(shared_key)
+            wrap_key = derived_key.finalize()
+            encrypted_key = base64.b64encode(
+                ephemeral_private.public_key().public_bytes(
+                    encoding=serialization.Encoding.PEM,
+                    format=serialization.PublicFormat.SubjectPublicKeyInfo
+                )
+            ) + b'||' + bytes(a ^ b for a, b in zip(aes_key, wrap_key[:32]))
+        else:
+            raise ValueError('Unsupported key type for reply encryption')
 
         key_len = len(encrypted_key)
         payload = key_len.to_bytes(2, 'big') + encrypted_key + nonce + ciphertext
