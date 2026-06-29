@@ -1175,6 +1175,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                     <a href="/threat-model.html">Threat Modeling</a>
                     <a href="/social-engineering.html">Social Engineering</a>
                     <a href="/eavesdropper.html">Eavesdropper View</a>
+                    <a href="/sign-verify.html">Sign &amp; Verify</a>
                 </div>
                 <div class="sidebar-nav-section">
                     <div class="sidebar-nav-header">Account</div>
@@ -1233,13 +1234,97 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
 
         <div class="card">
             <div class="learn-tabs">
-                <button class="learn-tab-btn active" data-learn-tab="threat">Threat Modeling 101</button>
-                <button class="learn-tab-btn" data-learn-tab="keys">Key Hygiene &amp; Management</button>
-                <button class="learn-tab-btn" data-learn-tab="sign">Sign vs. Encrypt vs. Both</button>
+                <button class="learn-tab-btn active" data-learn-tab="pgp">PGP Basics</button>
+                <button class="learn-tab-btn" data-learn-tab="keys">Key Management</button>
+                <button class="learn-tab-btn" data-learn-tab="keytypes">Key Sizes &amp; Algorithms</button>
+                <button class="learn-tab-btn" data-learn-tab="servers">Key Servers</button>
+                <button class="learn-tab-btn" data-learn-tab="passphrases">Passphrases</button>
+                <button class="learn-tab-btn" data-learn-tab="sign">Sign vs. Encrypt</button>
+                <button class="learn-tab-btn" data-learn-tab="threat">Threat Modeling</button>
+                <button class="learn-tab-btn" data-learn-tab="opsec">General OPSEC</button>
             </div>
 
-            <!-- Tab 1: Threat Modeling -->
-            <div class="learn-panel active" id="learn-threat">
+            <!-- Tab: PGP Basics -->
+            <div class="learn-panel active" id="learn-pgp">
+                <div class="guide-body">
+                    <h3>What Is PGP?</h3>
+                    <p>
+                        PGP (Pretty Good Privacy) is a system of <span class="highlight">public-key cryptography</span>.
+                        Instead of sharing one secret password, you create a <strong>key pair</strong>:
+                    </p>
+                    <ul>
+                        <li><strong>Public key</strong> — safe to share with anyone. It is used to encrypt messages <em>to</em> you.</li>
+                        <li><strong>Private key</strong> — kept secret. It is the only thing that can decrypt messages sent <em>to</em> you.</li>
+                    </ul>
+                    <p>
+                        The two keys are mathematically linked, but you cannot figure out the private key from the public key.
+                        This is what makes the system work: you can hand your public key to a stranger, and they can encrypt
+                        a message that only you can read — even if the message is intercepted.
+                    </p>
+
+                    <h3>What Does PGP Do?</h3>
+                    <p>PGP gives you three superpowers:</p>
+                    <ul>
+                        <li><strong>Confidentiality</strong> — only the intended recipient can read the message.</li>
+                        <li><strong>Authentication</strong> — you can prove a message really came from you (using signatures).</li>
+                        <li><strong>Integrity</strong> — you can detect if a message was tampered with in transit.</li>
+                    </ul>
+                    <p>
+                        In short, PGP turns readable text into scrambled ciphertext that only the right private key can
+                        unscramble. Think of it as the difference between sending a postcard (anyone can read it) and
+                        sending a locked safe (only the person with the key can open it).
+                    </p>
+
+                    <h3>The Basic Flow</h3>
+                    <p>Once you have a key pair, using PGP is a four-step process:</p>
+                    <ol>
+                        <li><strong>Generate</strong> a key pair on the <a href="/encrypt.html" style="color:#0000cc;">Encrypt / Decrypt</a> page.</li>
+                        <li><strong>Share your public key</strong> with friends or paste it into <a href="/profile.html" style="color:#0000cc;">My Profile</a>.</li>
+                        <li><strong>Encrypt</strong> a message using the recipient's public key.</li>
+                        <li><strong>Send</strong> the encrypted block however you like — email, chat, notes.</li>
+                    </ol>
+                    <p>
+                        When someone sends you an encrypted message, you use your <em>private</em> key to decrypt it.
+                        The sender used your <em>public</em> key to encrypt, and only your private key can reverse it.
+                    </p>
+
+                    <h3>When Should You Use PGP?</h3>
+                    <p>Use PGP whenever you want extra protection for information:</p>
+                    <ul>
+                        <li>Sending sensitive personal information over email or chat.</li>
+                        <li>Sharing passwords, account recovery codes, or financial details.</li>
+                        <li>Signing files or messages to prove they came from you.</li>
+                        <li>Protecting notes, backups, or files stored in the cloud.</li>
+                    </ul>
+                    <p>
+                        You do not need to encrypt everything — PGP is for the moments when privacy and trust matter most.
+                        Encrypting your lunch plans is overkill. Encrypting your tax documents is wise.
+                    </p>
+
+                    <div class="guide-callout">
+                        <strong>Key Insight:</strong> PGP protects the <em>contents</em> of your messages, not the <em>metadata</em>.
+                        An attacker watching your traffic still knows you sent a message, to whom, and when — they just cannot
+                        read what it says. For hiding the fact that you communicated at all, you need anonymity tools like Tor
+                        or Signal.
+                    </div>
+
+                    <h3>Practice Safely</h3>
+                    <p>
+                        <strong>This app is a learning environment.</strong> Your keys are stored on the server so beginners
+                        cannot lose them while practicing. That is convenient for learning, but it is <em>not</em> how real
+                        PGP tools work.
+                    </p>
+                    <p>
+                        Once you understand the basics, move to a real PGP tool (such as GnuPG, GPG Suite, or ProtonMail)
+                        and keep your private key only on your own device. Ready to try? Visit the
+                        <a href="/pgp-practice.html" style="color:#0000cc;">PGP Bot Practice</a> tool for a full
+                        end-to-end encryption loop.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tab: Threat Modeling -->
+            <div class="learn-panel" id="learn-threat">
                 <div class="guide-body">
                     <h3>What Is Threat Modeling?</h3>
                     <p>
@@ -1466,6 +1551,370 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                         to a practice partner and decrypt their reply. The <a href="/fingerprint.html" style="color:#0000cc;">
                         Fingerprint</a> tool lets you verify that the key you are encrypting to really belongs to who you
                         think it does — which is the foundation of knowing your signature will reach the right person.
+                        You can also try the <a href="/sign-verify.html" style="color:#0000cc;">Sign &amp; Verify</a>
+                        practice tool for hands-on experience with signatures.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tab: Key Sizes & Algorithms -->
+            <div class="learn-panel" id="learn-keytypes">
+                <div class="guide-body">
+                    <h3>Why Key Size Matters</h3>
+                    <p>
+                        A larger key means more possible combinations an attacker must try to guess your private key.
+                        But bigger is not always better — larger keys are slower to generate, encrypt, and decrypt.
+                        The goal is to find the sweet spot: strong enough to resist attacks, fast enough to be practical.
+                    </p>
+
+                    <h3>RSA Key Sizes</h3>
+                    <p>RSA is the most widely supported public-key algorithm. It is based on the difficulty of factoring large numbers.</p>
+                    <ul>
+                        <li><strong>RSA-2048</strong> — The practical minimum today. Fast to use, provides ~112 bits of security. Fine for low-stakes practice and learning.</li>
+                        <li><strong>RSA-3072</strong> — A middle ground. Provides ~128 bits of security. Recommended for most real-world use if you want extra margin without much speed cost.</li>
+                        <li><strong>RSA-4096</strong> — The gold standard for RSA. Provides ~150 bits of security. Slower to generate and use, but offers a strong safety margin. Recommended for sensitive communications.</li>
+                    </ul>
+
+                    <h3>ECC (Elliptic Curve Cryptography)</h3>
+                    <p>
+                        ECC is a newer algorithm that achieves the same security as RSA with much smaller keys.
+                        It is based on the mathematics of elliptic curves rather than factoring. Smaller keys mean
+                        faster operations and less storage — a big advantage on phones and embedded devices.
+                    </p>
+                    <ul>
+                        <li><strong>ECC-P256</strong> — Provides ~128 bits of security (comparable to RSA-3072). Fast and widely supported. A good default choice.</li>
+                        <li><strong>ECC-P384</strong> — Provides ~192 bits of security (comparable to RSA-7680). Used by the U.S. government for SECRET-level data.</li>
+                        <li><strong>ECC-P521</strong> — Provides ~256 bits of security (comparable to RSA-15360). Overkill for most purposes, but offers the highest margin.</li>
+                    </ul>
+
+                    <h3>Security Equivalence Table</h3>
+                    <table style="width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.9rem;">
+                        <thead>
+                            <tr style="background:#0066cc;color:#fff;">
+                                <th style="padding:0.5rem;border:1px solid #99ccff;text-align:left;">Security Level</th>
+                                <th style="padding:0.5rem;border:1px solid #99ccff;text-align:left;">RSA Equivalent</th>
+                                <th style="padding:0.5rem;border:1px solid #99ccff;text-align:left;">ECC Equivalent</th>
+                                <th style="padding:0.5rem;border:1px solid #99ccff;text-align:left;">Use Case</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background:#e6f2ff;">
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">112 bits</td>
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">RSA-2048</td>
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">ECC-224</td>
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">Practice / learning</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">128 bits</td>
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">RSA-3072</td>
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">ECC-256</td>
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">Standard use (recommended)</td>
+                            </tr>
+                            <tr style="background:#e6f2ff;">
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">192 bits</td>
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">RSA-7680</td>
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">ECC-384</td>
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">Sensitive data, government</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">256 bits</td>
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">RSA-15360</td>
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">ECC-521</td>
+                                <td style="padding:0.5rem;border:1px solid #b3d7ff;">Maximum security / long-term</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>How to Choose</h3>
+                    <div class="guide-do">
+                        <strong>DO:</strong> Use RSA-3072 or ECC-256 for everyday use. Use RSA-4096 or ECC-384 for sensitive
+                        communications like journalism, legal, or medical data. If you are unsure, RSA-4096 is always a safe choice.
+                    </div>
+                    <div class="guide-dont">
+                        <strong>DON'T:</strong> Use RSA-2048 for anything you care about long-term. It is acceptable for
+                        learning and practice (like this tool), but NIST recommends phasing it out by 2030. Also avoid
+                        ECC-521 unless you have a specific reason — it is slower than P384 with no practical security benefit.
+                    </div>
+
+                    <div class="guide-callout">
+                        <strong>Beginner tip:</strong> If you are just starting out, use RSA-4096. It is the most compatible
+                        and offers strong security. Once you are comfortable, consider switching to ECC-256 for speed. The
+                        security difference is negligible for practice purposes — what matters is that you understand
+                        the flow.
+                    </div>
+
+                    <h3>The "Store Now, Crack Later" Problem</h3>
+                    <p>
+                        An attacker can record your encrypted traffic today and store it for decades. If computers become
+                        fast enough to crack your key in the future, they can decrypt your old messages retroactively.
+                        This is why using strong keys matters even if you think your messages are not interesting today —
+                        they might be interesting to someone in 10 years.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tab: Key Servers -->
+            <div class="learn-panel" id="learn-servers">
+                <div class="guide-body">
+                    <h3>What Is a Key Server?</h3>
+                    <p>
+                        A key server is a public directory where people can publish their PGP public keys. Think of it as
+                        a phone book for encryption keys — anyone can look up your key by your email address and use it
+                        to send you an encrypted message.
+                    </p>
+
+                    <h3>Popular Key Servers</h3>
+                    <ul>
+                        <li><strong>keys.openpgp.org</strong> — The modern default. Clean, verified, and privacy-respecting. Requires email verification before publishing a key.</li>
+                        <li><strong>keyserver.ubuntu.com</strong> — Popular in the Linux community. Used for verifying software packages.</li>
+                        <li><strong>keys.mailvelope.com</strong> — Used by the Mailvelope browser extension for Gmail and Outlook.</li>
+                        <li><strong>pgp.mit.edu</strong> — One of the oldest keyservers. Still works but has spam and verification issues.</li>
+                    </ul>
+
+                    <h3>How Key Servers Work</h3>
+                    <p>The basic flow:</p>
+                    <ol>
+                        <li>You generate a key pair on your computer.</li>
+                        <li>You upload your <em>public</em> key to a key server.</li>
+                        <li>The key server verifies your email address (to prevent impersonation).</li>
+                        <li>Anyone can search for your email and download your public key.</li>
+                        <li>They verify the fingerprint matches what you told them (out-of-band verification).</li>
+                        <li>They encrypt a message to you using your public key.</li>
+                    </ol>
+
+                    <div class="guide-callout">
+                        <strong>Important:</strong> Never upload your <em>private</em> key to a key server. Key servers are
+                        for <em>public</em> keys only. Your private key should never leave your device.
+                    </div>
+
+                    <h3>The Verification Problem</h3>
+                    <p>
+                        Just because a key is on a key server does not mean it really belongs to the person it claims to.
+                        Anyone can upload a key claiming to be anyone. This is why <span class="highlight">fingerprint
+                        verification</span> is critical — you must compare the key's fingerprint through a trusted channel
+                        (in person, over the phone, on a business card) before trusting it.
+                    </p>
+
+                    <div class="guide-do">
+                        <strong>DO:</strong> Upload your public key to keys.openpgp.org after generating it. This makes it
+                        easy for people to find your key and send you encrypted messages.
+                    </div>
+                    <div class="guide-dont">
+                        <strong>DON'T:</strong> Trust a key from a server without verifying its fingerprint. A key server
+                        is a directory, not a certificate of identity. Use the <a href="/fingerprint.html" style="color:#0000cc;">Fingerprint Validator</a>
+                        to practice this skill.
+                    </div>
+
+                    <h3>Key Revocation</h3>
+                    <p>
+                        If your private key is compromised (or you lose it), you need to tell the world to stop using your
+                        public key. You do this with a <strong>revocation certificate</strong> — a special signed message
+                        that says "this key is no longer trustworthy." You upload it to the key server, and anyone who
+                        refreshes their copy will see the key is revoked.
+                    </p>
+                    <p>
+                        Generate a revocation certificate <em>when you create the key</em> and store it somewhere safe.
+                        If you wait until you need it, you may not have access to the key anymore.
+                    </p>
+
+                    <h3>The Web of Trust</h3>
+                    <p>
+                        The "Web of Trust" is a decentralized system where PGP users sign each other's keys to vouch for
+                        their identity. If Alice trusts Bob, and Bob has signed Charlie's key, Alice can have some
+                        confidence that Charlie's key really belongs to Charlie — even without meeting him.
+                    </p>
+                    <p>
+                        In practice, the Web of Trust has largely been replaced by simpler verification methods (email
+                        verification, in-person fingerprint comparison) because it was too complex for most users. But
+                        the principle remains: trust is built through verified connections, not blind assumptions.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tab: Passphrases -->
+            <div class="learn-panel" id="learn-passphrases">
+                <div class="guide-body">
+                    <h3>Passwords vs. Passphrases</h3>
+                    <p>
+                        A <strong>password</strong> is typically a short, complex string like <code>Xq7$mP2!</code>. It is
+                        hard to remember and easy to crack with automated tools. A <strong>passphrase</strong> is a
+                        sequence of random words like <code>purple-river-bicycle-mango</code>. It is longer, easier to
+                        remember, and much harder to crack.
+                    </p>
+
+                    <h3>Why Length Beats Complexity</h3>
+                    <p>
+                        Password strength is determined by <span class="highlight">entropy</span> — the number of possible
+                        combinations an attacker must try. Each character you add doubles the search space. A 8-character
+                        password using all character types has about 52 bits of entropy. A 4-word passphrase using common
+                        English words has about 52 bits too — but a 6-word passphrase has 78 bits, and it is still easy
+                        to type and remember.
+                    </p>
+                    <p>
+                        Modern GPUs can try billions of password guesses per second. An 8-character password can be
+                        cracked in hours. A 6-word passphrase would take centuries. Length is the single most important
+                        factor in password strength.
+                    </p>
+
+                    <div class="guide-callout">
+                        <strong>The math:</strong> There are about 7,000 common English words. A 4-word passphrase has
+                        7,000^4 = 2.4 trillion combinations (~41 bits). A 6-word passphrase has 7,000^6 = 118 quintillion
+                        combinations (~67 bits). Adding one word multiplies the difficulty by 7,000.
+                    </div>
+
+                    <h3>How to Create a Good Passphrase</h3>
+                    <ol>
+                        <li>Pick 4-6 random, unrelated words. Use a <a href="/password.html" style="color:#0000cc;">password strength checker</a> to test.</li>
+                        <li>Do not use famous quotes, song lyrics, or common phrases — those are in every cracking dictionary.</li>
+                        <li>Do not use personal information (names, dates, pets) — those are easy to guess or look up.</li>
+                        <li>Add a number or symbol if the service requires it, but do not substitute letters (P@ssw0rd is in every wordlist).</li>
+                        <li>Use a different passphrase for every account. A password manager makes this practical.</li>
+                    </ol>
+
+                    <div class="guide-do">
+                        <strong>DO:</strong> Use a passphrase like <code>correct-horse-battery-staple</code> for your
+                        password manager master password. Use the password manager to generate and store unique random
+                        passwords for every other account.
+                    </div>
+                    <div class="guide-dont">
+                        <strong>DON'T:</strong> Reuse passwords across accounts. If one service is breached, attackers
+                        will try the same password on every other service. This is the #1 way accounts get compromised.
+                    </div>
+
+                    <h3>Passphrases for PGP Keys</h3>
+                    <p>
+                        Your PGP private key should be protected by a passphrase. If someone steals your key file, the
+                        passphrase is the last line of defense. Without it, they cannot use the key.
+                    </p>
+                    <p>
+                        Use a strong passphrase (6+ random words) for your PGP key. Since you only need to type it when
+                        decrypting or signing, a long passphrase is not a daily burden. The security payoff is enormous:
+                        even if your computer is stolen, your private key remains protected.
+                    </p>
+
+                    <h3>Password Managers</h3>
+                    <p>
+                        A password manager (like Bitwarden, KeePassXC, or 1Password) generates and stores unique, random
+                        passwords for every account. You only need to remember one strong master passphrase. The manager
+                        handles the rest — auto-filling passwords, syncing across devices, and alerting you to breaches.
+                    </p>
+                    <p>
+                        Using a password manager is the single most impactful security habit you can adopt. It eliminates
+                        password reuse, generates strong passwords you could never remember, and saves time.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tab: General OPSEC -->
+            <div class="learn-panel" id="learn-opsec">
+                <div class="guide-body">
+                    <h3>What Is OPSEC?</h3>
+                    <p>
+                        OPSEC (Operational Security) is the practice of protecting sensitive information by identifying,
+                        controlling, and eliminating indicators that an adversary could use. It is not a single tool or
+                        setting — it is a mindset. Every decision you make about how you communicate, store data, and
+                        present yourself online is an OPSEC decision.
+                    </p>
+
+                    <h3>The OPSEC Process</h3>
+                    <ol>
+                        <li><strong>Identify what you are protecting.</strong> Data, identity, access, location, relationships.</li>
+                        <li><strong>Identify the threat.</strong> Who wants your data? What can they do? What resources do they have?</li>
+                        <li><strong>Analyze vulnerabilities.</strong> Where are the weak points in your current setup?</li>
+                        <li><strong>Assess risk.</strong> How likely is each threat? How bad is the consequence?</li>
+                        <li><strong>Apply countermeasures.</strong> Tools and habits that reduce the risk to an acceptable level.</li>
+                    </ol>
+
+                    <h3>Metadata: What You Leak Without Knowing</h3>
+                    <p>
+                        Even when your message content is encrypted, <span class="highlight">metadata</span> is often visible:
+                        who you talk to, when, how often, from where, and how large the messages are. Intelligence agencies
+                        have famously said "we kill people based on metadata." It reveals patterns and relationships that
+                        content encryption does not hide.
+                    </p>
+                    <p>What metadata leaks from common tools:</p>
+                    <ul>
+                        <li><strong>Email (even PGP-encrypted):</strong> Sender, recipient, subject line, timestamp, IP addresses, message size.</li>
+                        <li><strong>SMS / phone calls:</strong> Both phone numbers, tower location, duration, timestamp.</li>
+                        <li><strong>Signal:</strong> Minimal — sealed sender hides even the sender's identity from the server.</li>
+                        <li><strong>Web browsing:</strong> Every site you visit, DNS queries, browser fingerprint, IP address.</li>
+                    </ul>
+
+                    <div class="guide-callout">
+                        <strong>Key principle:</strong> Encryption protects <em>what</em> you say. Anonymity tools protect
+                        <em>that you said anything at all</em>. For most people, encryption is sufficient. For activists,
+                        journalists, and sources, anonymity may also be necessary.
+                    </div>
+
+                    <h3>Digital Footprint &amp; Data Minimization</h3>
+                    <p>
+                        Every account you create, every photo you post, every app you install leaves a trace. The
+                        principle of <strong>data minimization</strong> is simple: share as little as possible, delete
+                        what you no longer need, and assume anything you put online could become public.
+                    </p>
+                    <ul>
+                        <li>Audit your social media accounts. Delete old posts that reveal personal information.</li>
+                        <li>Use a separate email address for accounts you do not care about (shopping, newsletters).</li>
+                        <li>Check <a href="https://haveibeenpwned.com" style="color:#0000cc;">Have I Been Pwned</a> to see if your email appears in known breaches.</li>
+                        <li>Review app permissions on your phone. Does that flashlight app really need your contacts?</li>
+                        <li>When a service offers "sign in with Google/Facebook," consider whether you want them tracking that account.</li>
+                    </ul>
+
+                    <h3>Secure Communication Tools</h3>
+                    <p>Not all tools are created equal. Here is a quick comparison:</p>
+                    <ul>
+                        <li><strong>Signal</strong> — End-to-end encrypted messaging with minimal metadata. The gold standard for private chat. Free and open source.</li>
+                        <li><strong>PGP email</strong> — Encrypts content but leaks metadata (sender, recipient, subject). Good for long-form sensitive communication.</li>
+                        <li><strong>Tor Browser</strong> — Anonymizes your web browsing by routing through three volunteer-run servers. Hides your IP and location.</li>
+                        <li><strong>VPN</strong> — Encrypts your traffic between you and the VPN server. Hides traffic from your ISP and WiFi eavesdroppers. Does not provide anonymity (the VPN can see everything).</li>
+                        <li><strong>HTTPS</strong> — Encrypts traffic between you and a website. Essential but not sufficient — the website still sees your plaintext.</li>
+                    </ul>
+
+                    <div class="guide-do">
+                        <strong>DO:</strong> Use Signal for sensitive conversations, Tor for anonymous browsing, PGP for
+                        sensitive email, a VPN on public WiFi, and a password manager everywhere. Layer your tools —
+                        no single tool solves everything.
+                    </div>
+                    <div class="guide-dont">
+                        <strong>DON'T:</strong> Rely on a VPN alone for anonymity. The VPN provider can see your traffic
+                        and knows your real IP. A VPN hides you from your ISP and local network, not from the VPN company.
+                        For true anonymity, use Tor.
+                    </div>
+
+                    <h3>Device Security</h3>
+                    <p>Your devices are where your keys live. If a device is compromised, your keys are compromised.</p>
+                    <ul>
+                        <li>Enable full-disk encryption (FileVault on Mac, BitLocker on Windows, LUKS on Linux).</li>
+                        <li>Keep your operating system and apps updated. Updates patch security vulnerabilities.</li>
+                        <li>Use a screen lock (PIN, fingerprint, face unlock) with a reasonable timeout.</li>
+                        <li>Do not install apps from unknown sources. On Android, avoid sideloading unless you trust the source.</li>
+                        <li>On shared computers, assume everything you type can be captured (keyloggers). Never access sensitive accounts from a shared computer.</li>
+                    </ul>
+
+                    <h3>Social Engineering Awareness</h3>
+                    <p>
+                        The weakest link in any security system is the human. No amount of encryption helps if you
+                        willingly hand your password to someone who sounds trustworthy. Social engineering attacks exploit
+                        trust, urgency, authority, and fear to manipulate people into making bad decisions.
+                    </p>
+                    <p>
+                        Practice spotting the red flags with the
+                        <a href="/social-engineering.html" style="color:#0000cc;">Social Engineering Red Flags Quiz</a>.
+                        The golden rule: <strong>when in doubt, verify through a separate channel</strong>. If "IT" emails
+                        you, call them using the number from the company directory — not the one in the email.
+                    </p>
+
+                    <h3>OPSEC Is a Habit, Not a Checklist</h3>
+                    <p>
+                        Perfect security does not exist. The goal is not to be unhackable — it is to raise the cost of
+                        attack high enough that adversaries move on to easier targets. Every small improvement helps:
+                        enabling 2FA, using a password manager, switching to Signal, verifying a fingerprint.
+                    </p>
+                    <p>
+                        Start with one thing today. Then add another next week. Over time, these habits become second
+                        nature, and your overall security posture improves dramatically. The
+                        <a href="/threat-model.html" style="color:#0000cc;">Threat Modeling Practice Tool</a> can help
+                        you figure out where to start.
                     </p>
                 </div>
             </div>
@@ -2121,7 +2570,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
 
     </script>
     <script src="/intro.js"></script>
-    <div class="version-badge">V1.27</div>
+    <div class="version-badge">V1.28</div>
 <script src="/y2k-fun.js"></script>
 </body>
 </html>

@@ -1303,6 +1303,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                     <a href="/threat-model.html">Threat Modeling</a>
                     <a href="/social-engineering.html">Social Engineering</a>
                     <a href="/eavesdropper.html">Eavesdropper View</a>
+                    <a href="/sign-verify.html">Sign &amp; Verify</a>
                 </div>
                 <div class="sidebar-nav-section">
                     <div class="sidebar-nav-header">Account</div>
@@ -1400,7 +1401,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             </div>
             <div class="form-group">
                 <label>Recipient's Public Key</label>
-                <textarea id="encPublicKeyPractice" placeholder="The selected partner's public key is auto-filled here. You can also paste any PGP public key..."></textarea>
+                <textarea id="encPublicKeyPractice" placeholder="Copy the partner's public key above, then paste it here..."></textarea>
             </div>
             <div class="form-group">
                 <label for="encMessagePractice">Message to Encrypt</label>
@@ -1828,10 +1829,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         });
 
         function syncPracticeKeyToEncryptBox() {
-            const encKeyField = document.getElementById('encPublicKeyPractice');
-            if (practiceKey) {
-                encKeyField.value = practiceKey;
-            }
+            // Removed auto-fill: users copy and paste the key manually for a hands-on learning experience.
         }
 
         document.getElementById('copyPracticeKey').addEventListener('click', () => {
@@ -1968,11 +1966,8 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             document.getElementById('copyDecryptedBtnPractice').style.display = 'none';
         });
 
-        // Auto-fill the practice bot's public key into the encrypt box
+        // Key size change — no auto-fill, users paste the key manually
         document.getElementById('encKeySizePractice').addEventListener('change', () => {
-            if (practiceKey) {
-                document.getElementById('encPublicKeyPractice').value = practiceKey;
-            }
         });
 
         document.getElementById('sendBtn').addEventListener('click', async () => {
@@ -2422,7 +2417,7 @@ checkAuth();
         loadPracticeKey();
     </script>
     <script src="/intro.js"></script>
-    <div class="version-badge">V1.27</div>
+    <div class="version-badge">V1.28</div>
 <script src="/y2k-fun.js"></script>
 </body>
 </html>

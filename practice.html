@@ -1303,6 +1303,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                     <a href="/threat-model.html">Threat Modeling</a>
                     <a href="/social-engineering.html">Social Engineering</a>
                     <a href="/eavesdropper.html">Eavesdropper View</a>
+                    <a href="/sign-verify.html">Sign &amp; Verify</a>
                 </div>
                 <div class="sidebar-nav-section">
                     <div class="sidebar-nav-header">Account</div>
@@ -1387,10 +1388,17 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                 </a>
                 <a href="/eavesdropper.html" class="tool-card">
                     <div class="tool-icon">&#128092;</div>
-                    <h3>What the Eavesdropper Sees <span class="new-badge">NEW!</span></h3>
+                    <h3>What the Eavesdropper Sees</h3>
                     <p class="tool-role">Visualize the Difference</p>
                     <p class="tool-desc">Type a message and see exactly what an attacker can read on an unencrypted connection vs. an encrypted one. Eye-opening.</p>
                     <span class="tool-btn">See for Yourself</span>
+                </a>
+                <a href="/sign-verify.html" class="tool-card">
+                    <div class="tool-icon">&#9999;</div>
+                    <h3>Sign &amp; Verify <span class="new-badge">NEW!</span></h3>
+                    <p class="tool-role">Prove Authenticity</p>
+                    <p class="tool-desc">Sign a message with your private key and verify signatures. Learn the difference between signing and encrypting. Try tampering to see verification fail.</p>
+                    <span class="tool-btn">Start Signing</span>
                 </a>
             </div>
         </div>
@@ -2025,7 +2033,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
 checkAuth();
     </script>
     <script src="/intro.js"></script>
-    <div class="version-badge">V1.27</div>
+    <div class="version-badge">V1.28</div>
 <script src="/y2k-fun.js"></script>
 </body>
 </html>

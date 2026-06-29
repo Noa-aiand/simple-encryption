@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>What the Eavesdropper Sees - Visualizer</title>
+    <title>Sign &amp; Verify Practice Tool</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -1192,11 +1192,11 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
 
 <div class="main-content">
         <div class="page-header">
-            <h1>What the Eavesdropper Sees</h1>
-            <div class="subtitle">Visualize Why Encryption Matters</div>
+            <h1>Sign &amp; Verify</h1>
+            <div class="subtitle">Prove a Message Came From You</div>
             <div class="practice-notice">
-                <strong>Learning Environment:</strong> This is a safe place to practice OPSEC.
-                Type a message and see exactly what an attacker can read on an unencrypted connection vs. an encrypted one. Never use this app for real secrets.
+                <strong>Learning Environment:</strong> This is a safe place to practice PGP.
+                Signing proves authenticity and integrity — the message came from you and was not tampered with. Never use this app for real secrets.
             </div>
             <nav class="nav-tabs">
                 <a href="/" class="nav-tab">Home</a>
@@ -1207,155 +1207,103 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             </nav>
         </div>
 
-        <!-- What the Eavesdropper Sees Visualizer -->
+        <!-- Sign & Verify Practice Tool -->
         <style>
-            .ev-input { width:100%; min-height:80px; padding:0.7rem; border:2px inset #8faecf; border-radius:6px; font-family:'Courier New',monospace; font-size:0.9rem; color:#003366; background:#f8fbff; resize:vertical; }
-            .ev-input:focus { outline:none; border-color:#0066cc; background:#fff; }
-            .ev-packet { border:2px solid; border-radius:10px; padding:0.8rem 1rem; margin:0.5rem 0; font-family:'Courier New',monospace; font-size:0.82rem; line-height:1.6; word-break:break-all; }
-            .ev-packet .ev-label { font-family:'Verdana',sans-serif; font-size:0.75rem; font-weight:bold; text-transform:uppercase; letter-spacing:1px; margin-bottom:0.3rem; display:block; }
-            .ev-packet.unencrypted { background:#fdeaea; border-color:#e07a7e; color:#c62828; }
-            .ev-packet.encrypted { background:#e8f5e9; border-color:#4caf50; color:#1b5e20; }
-            .ev-packet .ev-content { background:rgba(255,255,255,0.5); border-radius:4px; padding:0.3rem 0.5rem; margin-top:0.2rem; }
-            .ev-packet .ev-hidden { color:#999; font-style:italic; }
-            .ev-packet .ev-redacted { background:#333; color:#333; border-radius:3px; padding:0 4px; }
-            .ev-toggle-row { display:flex; gap:0.6rem; align-items:center; margin:1rem 0; }
-            .ev-toggle { display:inline-flex; align-items:center; gap:0.4rem; padding:0.5rem 1rem; border-radius:8px; border:2px solid #99ccff; background:#e6f2ff; cursor:pointer; font-size:0.85rem; font-weight:bold; color:#003366; transition:all 0.2s ease; }
-            .ev-toggle.active { background:#0066cc; color:#fff; border-color:#003399; }
-            .ev-toggle:hover { border-color:#0066cc; }
-            .ev-attacker-box { background:#1a1a2e; border:2px solid #e07a7e; border-radius:12px; padding:1.2rem; margin-top:1rem; }
-            .ev-attacker-box h3 { color:#ff6b6b; font-size:1rem; margin:0 0 0.6rem; font-family:'Courier New',monospace; }
-            .ev-attacker-box .ev-attacker-note { color:#aaa; font-size:0.8rem; line-height:1.5; }
-            .ev-metadata { display:grid; grid-template-columns:auto 1fr; gap:0.3rem 0.8rem; font-size:0.8rem; margin:0.5rem 0; }
-            .ev-metadata .ev-md-key { color:#ff9800; font-weight:bold; }
-            .ev-metadata .ev-md-val { color:#ccc; word-break:break-all; }
-            .ev-metadata .ev-md-hidden { color:#666; font-style:italic; }
-            .ev-compare { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1rem; }
-            @media (max-width:700px) { .ev-compare { grid-template-columns:1fr; } }
-            .ev-compare-col h4 { text-align:center; font-size:0.9rem; margin-bottom:0.5rem; padding:0.4rem; border-radius:6px; }
-            .ev-compare-col.unencrypted h4 { background:#fdeaea; color:#c62828; border:2px solid #e07a7e; }
-            .ev-compare-col.encrypted h4 { background:#e8f5e9; color:#1b5e20; border:2px solid #4caf50; }
-            .ev-summary { background:#e6f2ff; border:2px solid #99ccff; border-radius:8px; padding:0.8rem 1rem; margin-top:1rem; font-size:0.88rem; color:#003366; line-height:1.6; }
+            .sv-section { background:#f0f7ff; border:2px solid #b3d7ff; border-radius:10px; padding:1rem 1.2rem; margin-bottom:1rem; }
+            .sv-section h3 { color:#0066cc; font-size:1rem; margin:0 0 0.6rem; }
+            .sv-result { border-radius:8px; padding:0.7rem 1rem; margin-top:0.6rem; font-size:0.88rem; line-height:1.5; display:none; }
+            .sv-result.show { display:block; }
+            .sv-result.success { background:#e8f5e9; border:2px solid #4caf50; color:#1b5e20; }
+            .sv-result.error { background:#fdeaea; border:2px solid #e07a7e; color:#c62828; }
+            .sv-result.info { background:#e6f2ff; border:2px solid #99ccff; color:#003366; }
+            .sv-keybtn { background:linear-gradient(180deg,#e6f2ff 0%,#b3d7ff 100%); border:2px outset #ffffff; border-radius:6px; padding:0.4rem 0.8rem; font-size:0.82rem; font-weight:bold; color:#003366; cursor:pointer; box-shadow:2px 2px 0 #8faecf; margin:0.3rem 0; }
+            .sv-keybtn:hover { background:#fff; color:#0066cc; }
+            .sv-keybtn:active { border-style:inset; }
+            .sv-status { font-size:0.85rem; color:#003366; margin:0.3rem 0; }
         </style>
 
         <div class="card">
-            <h2>Type a Message</h2>
-            <p style="font-size:0.88rem;margin-bottom:1rem;color:#003366;">Type any message below. The visualizer will show what an eavesdropper can see when it is sent unencrypted vs. encrypted with PGP. Nothing is sent to the server.</p>
-            <textarea class="ev-input" id="evMessage" placeholder="Type a secret message here, like: 'Meet me at the parking garage at 9pm with the documents.'"></textarea>
-            <div class="ev-toggle-row">
-                <button class="ev-toggle active" id="evToggleUnencrypted" data-mode="unencrypted">Unencrypted (HTTP)</button>
-                <button class="ev-toggle" id="evToggleEncrypted" data-mode="encrypted">Encrypted (PGP)</button>
-                <button class="ev-toggle" id="evToggleBoth" data-mode="both">Compare Both</button>
+            <h2>How Signing Works</h2>
+            <div class="instructions">
+                <p style="color:#003366;">When you <strong>sign</strong> a message, you use your <span class="highlight">private key</span> to create a cryptographic signature. Anyone with your <span class="highlight">public key</span> can <strong>verify</strong> that the signature matches — proving the message came from you and was not tampered with.</p>
+                <p style="margin-top:0.5rem;color:#003366;">Unlike encryption (which hides the message), signing is about <strong>authenticity and integrity</strong>. The message itself stays readable.</p>
             </div>
         </div>
 
-        <div class="card" id="evVisualization">
-            <h2>What the Eavesdropper Sees</h2>
-            <div id="evViewUnencrypted">
-                <div class="ev-attacker-box">
-                    <h3>[ATTACKER INTERCEPTING NETWORK TRAFFIC]</h3>
-                    <div class="ev-attacker-note">The attacker is on the same WiFi network (coffee shop, hotel, airport). They can see every packet that passes through.</div>
-                    <div class="ev-packet unencrypted" style="margin-top:0.8rem;">
-                        <span class="ev-label">Packet 1 — TCP Metadata</span>
-                        <div class="ev-content">
-                            <div class="ev-metadata">
-                                <span class="ev-md-key">Source IP:</span><span class="ev-md-val" id="evSrcIp1">192.168.1.42</span>
-                                <span class="ev-md-key">Destination:</span><span class="ev-md-val">mail.example.com:25 (SMTP)</span>
-                                <span class="ev-md-key">Protocol:</span><span class="ev-md-val">TCP Plaintext</span>
-                                <span class="ev-md-key">Timestamp:</span><span class="ev-md-val" id="evTimestamp1">2024-01-15 14:32:07</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="ev-packet unencrypted">
-                        <span class="ev-label">Packet 2 — Message Content</span>
-                        <div class="ev-content" id="evContent1">[your message here]</div>
-                    </div>
-                    <div class="ev-packet unencrypted">
-                        <span class="ev-label">Packet 3 — SMTP Headers</span>
-                        <div class="ev-content">
-                            <div class="ev-metadata">
-                                <span class="ev-md-key">From:</span><span class="ev-md-val">you@example.com</span>
-                                <span class="ev-md-key">To:</span><span class="ev-md-val">contact@recipient.com</span>
-                                <span class="ev-md-key">Subject:</span><span class="ev-md-val">[visible]</span>
-                                <span class="ev-md-key">Message-ID:</span><span class="ev-md-val">&lt;abc123@example.com&gt;</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="ev-summary">
-                    <strong>The attacker can read:</strong> your full message, who you are, who you are contacting, the subject line, and the exact time you sent it. They can also modify the message in transit without you knowing. This is what sending an unencrypted email or HTTP request looks like to anyone on the same network.
-                </div>
+        <div class="card">
+            <h2>Step 1: Get a Key Pair</h2>
+            <p style="font-size:0.88rem;margin-bottom:0.8rem;color:#003366;">You need a key pair to sign. Generate one below or load your saved profile key.</p>
+            <div class="action-btns">
+                <button class="btn btn-primary" id="svGenKeyBtn">Generate Key Pair</button>
+                <button class="btn btn-secondary" id="svLoadKeyBtn">Load My Profile Key</button>
             </div>
-
-            <div id="evViewEncrypted" style="display:none;">
-                <div class="ev-attacker-box" style="border-color:#4caf50;">
-                    <h3 style="color:#81c784;">[ATTACKER INTERCEPTING NETWORK TRAFFIC]</h3>
-                    <div class="ev-attacker-note">Same attacker, same network. But this time the message is encrypted with PGP before sending.</div>
-                    <div class="ev-packet encrypted" style="margin-top:0.8rem;">
-                        <span class="ev-label">Packet 1 — TCP Metadata</span>
-                        <div class="ev-content">
-                            <div class="ev-metadata">
-                                <span class="ev-md-key">Source IP:</span><span class="ev-md-val">192.168.1.42</span>
-                                <span class="ev-md-key">Destination:</span><span class="ev-md-val">mail.example.com:25 (SMTP)</span>
-                                <span class="ev-md-key">Protocol:</span><span class="ev-md-val">TCP Plaintext (transport not encrypted)</span>
-                                <span class="ev-md-key">Timestamp:</span><span class="ev-md-val" id="evTimestamp2">2024-01-15 14:32:07</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="ev-packet encrypted">
-                        <span class="ev-label">Packet 2 — PGP-Encrypted Message</span>
-                        <div class="ev-content" id="evContent2">-----BEGIN PGP MESSAGE-----<br>[encrypted ciphertext — unreadable]</div>
-                    </div>
-                    <div class="ev-packet encrypted">
-                        <span class="ev-label">Packet 3 — SMTP Headers</span>
-                        <div class="ev-content">
-                            <div class="ev-metadata">
-                                <span class="ev-md-key">From:</span><span class="ev-md-val">you@example.com</span>
-                                <span class="ev-md-key">To:</span><span class="ev-md-val">contact@recipient.com</span>
-                                <span class="ev-md-key">Subject:</span><span class="ev-md-val">[visible unless also encrypted]</span>
-                                <span class="ev-md-key">Message-ID:</span><span class="ev-md-val">&lt;abc123@example.com&gt;</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="ev-summary" style="background:#e8f5e9;border-color:#4caf50;">
-                    <strong>The attacker CANNOT read:</strong> your message content — it is ciphertext that requires the recipient's private key to decrypt. However, <strong>metadata is still visible</strong>: who you are, who you are contacting, when, and the size of the message. This is why PGP is powerful but not a complete solution — it protects content, not the fact that you communicated. For full anonymity, you also need tools like Tor or Signal.
-                </div>
+            <div class="sv-status" id="svKeyStatus">No key pair loaded yet.</div>
+            <div class="form-group" style="margin-top:0.6rem;">
+                <label>Your Private Key (for signing)</label>
+                <textarea class="key-textarea" id="svPrivateKey" placeholder="Your private key will appear here..." style="min-height:80px;"></textarea>
             </div>
+            <div class="form-group">
+                <label>Your Public Key (for sharing / verification)</label>
+                <textarea class="key-textarea" id="svPublicKey" placeholder="Your public key will appear here..." style="min-height:80px;"></textarea>
+                <button class="sv-keybtn" id="svCopyPubBtn">Copy Public Key</button>
+            </div>
+        </div>
 
-            <div id="evViewBoth" style="display:none;">
-                <div class="ev-compare">
-                    <div class="ev-compare-col unencrypted">
-                        <h4>Unencrypted</h4>
-                        <div class="ev-packet unencrypted">
-                            <span class="ev-label">Message Content</span>
-                            <div class="ev-content" id="evContentBoth1">[your message]</div>
-                        </div>
-                    </div>
-                    <div class="ev-compare-col encrypted">
-                        <h4>PGP Encrypted</h4>
-                        <div class="ev-packet encrypted">
-                            <span class="ev-label">Message Content</span>
-                            <div class="ev-content">-----BEGIN PGP MESSAGE-----<br>[encrypted ciphertext]</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="ev-summary">
-                    <strong>The difference:</strong> On the left, the attacker reads your message instantly. On the right, they see only random-looking ciphertext. Even if they store it for years, they cannot decrypt it without the private key. This is why encryption is not just for "hiding things" — it is the difference between a postcard and a sealed letter.
+        <div class="card">
+            <h2>Step 2: Sign a Message</h2>
+            <p style="font-size:0.88rem;margin-bottom:0.8rem;color:#003366;">Type a message and sign it with your private key. The signature can be shared alongside the message so anyone can verify it came from you.</p>
+            <div class="form-group">
+                <label for="svSignMessage">Message to Sign</label>
+                <textarea id="svSignMessage" placeholder="Type a message to sign..."></textarea>
+            </div>
+            <div class="action-btns">
+                <button class="btn btn-primary" id="svSignBtn">Sign Message</button>
+                <button class="btn btn-secondary" id="svClearSignBtn">Clear</button>
+            </div>
+            <div class="sv-result" id="svSignResult"></div>
+            <div class="form-group" id="svSigBox" style="display:none;margin-top:0.6rem;">
+                <label>Signature (PGP Signature Block)</label>
+                <div class="key-box-wrapper">
+                    <button class="copy-btn" id="svCopySigBtn">Copy</button>
+                    <textarea class="key-textarea" id="svSignature" readonly style="min-height:80px;"></textarea>
                 </div>
             </div>
         </div>
 
         <div class="card">
-            <h2>Key Takeaways</h2>
+            <h2>Step 3: Verify a Signature</h2>
+            <p style="font-size:0.88rem;margin-bottom:0.8rem;color:#003366;">Paste a public key, the original message, and a signature to check if they match. Try tampering with the message to see verification fail!</p>
+            <div class="form-group">
+                <label for="svVerifyPubKey">Signer's Public Key</label>
+                <textarea id="svVerifyPubKey" placeholder="Paste the signer's public key block..."></textarea>
+                <button class="sv-keybtn" id="svLoadOwnPubBtn">Load My Public Key</button>
+            </div>
+            <div class="form-group">
+                <label for="svVerifyMessage">Message</label>
+                <textarea id="svVerifyMessage" placeholder="Paste the original message..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="svVerifySig">Signature</label>
+                <textarea id="svVerifySig" placeholder="Paste the PGP SIGNATURE block..."></textarea>
+                <button class="sv-keybtn" id="svLoadOwnSigBtn">Load My Signature</button>
+            </div>
+            <div class="action-btns">
+                <button class="btn btn-primary" id="svVerifyBtn">Verify Signature</button>
+                <button class="btn btn-secondary" id="svTamperBtn">Tamper with Message</button>
+                <button class="btn btn-secondary" id="svClearVerifyBtn">Clear</button>
+            </div>
+            <div class="sv-result" id="svVerifyResult"></div>
+        </div>
+
+        <div class="card">
+            <h2>When to Sign vs. Encrypt vs. Both</h2>
             <div class="instructions">
                 <ol class="step-list">
-                    <li><strong>Encryption protects content, not metadata.</strong> Even with PGP, an attacker knows you communicated, with whom, and when.</li>
-                    <li><strong>Unencrypted = postcard.</strong> Anyone handling it can read it. Encrypted = sealed letter. Only the recipient can open it.</li>
-                    <li><strong>WiFi is not private.</strong> Public WiFi lets anyone on the same network see unencrypted traffic.</li>
-                    <li><strong>HTTPS helps but is not enough.</strong> It encrypts transport, but the server still sees your plaintext. PGP protects end-to-end.</li>
-                    <li><strong>Store now, crack later.</strong> An attacker can store encrypted traffic today and try to break it years from now. Use strong keys.</li>
+                    <li><strong>Sign only:</strong> When the message is public but you need to prove authorship (e.g. software releases, public statements).</li>
+                    <li><strong>Encrypt only:</strong> When the message must be secret but the recipient does not need to verify the sender.</li>
+                    <li><strong>Sign then encrypt (recommended):</strong> For private, verifiable messages. Sign the plaintext first, then encrypt the signed message. This prevents signature substitution attacks.</li>
                 </ol>
-                <p style="margin-top:0.6rem;color:#003366;">Ready to actually encrypt a message? Try the <a href="/pgp-practice.html" style="color:#0000cc;">PGP Bot Practice</a> tool.</p>
+                <p style="margin-top:0.5rem;color:#003366;">Learn more in the <a href="/learn.html" style="color:#0000cc;">Sign vs. Encrypt vs. Both</a> guide.</p>
             </div>
         </div>
     </div>
@@ -1695,44 +1643,165 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             }
         });
 
-        // ==================== Eavesdropper Visualizer ====================
+        // ==================== Sign & Verify Tool ====================
 
-        const evInput = document.getElementById('evMessage');
-        const evContent1 = document.getElementById('evContent1');
-        const evContentBoth1 = document.getElementById('evContentBoth1');
-
-        function evUpdate() {
-            const msg = evInput.value || '[your message here]';
-            evContent1.textContent = msg;
-            evContentBoth1.textContent = msg;
-            const ts = new Date().toISOString().replace('T', ' ').substring(0, 19);
-            const ts1 = document.getElementById('evTimestamp1');
-            const ts2 = document.getElementById('evTimestamp2');
-            if (ts1) ts1.textContent = ts;
-            if (ts2) ts2.textContent = ts;
-        }
-
-        evInput.addEventListener('input', evUpdate);
-        evUpdate();
-
-        function evShowMode(mode) {
-            document.getElementById('evViewUnencrypted').style.display = (mode === 'unencrypted' || mode === 'both') ? 'block' : 'none';
-            document.getElementById('evViewEncrypted').style.display = (mode === 'encrypted' || mode === 'both') ? 'block' : 'none';
-            document.getElementById('evViewBoth').style.display = (mode === 'both') ? 'block' : 'none';
-
-            if (mode === 'both') {
-                document.getElementById('evViewUnencrypted').style.display = 'none';
-                document.getElementById('evViewEncrypted').style.display = 'none';
+        async function svGenerateKey() {
+            const status = document.getElementById('svKeyStatus');
+            const btn = document.getElementById('svGenKeyBtn');
+            const orig = btn.textContent;
+            btn.textContent = 'Generating...'; btn.disabled = true;
+            status.textContent = 'Generating RSA-4096 key pair...';
+            try {
+                const res = await fetch('/api/generate-keys', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key_type: 'rsa-4096' })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    document.getElementById('svPrivateKey').value = data.private_key;
+                    document.getElementById('svPublicKey').value = data.public_key;
+                    status.textContent = data.key_type + ' key pair generated' + (data.saved_to_profile ? ' and saved to your profile!' : '!');
+                    showToast('Key pair generated!', 'success');
+                } else {
+                    status.textContent = data.error || 'Generation failed.';
+                    showToast('Generation failed', 'error');
+                }
+            } catch (e) {
+                status.textContent = 'Network error: ' + e.message;
+                showToast('Network error', 'error');
+            } finally {
+                btn.textContent = orig; btn.disabled = false;
             }
-
-            document.querySelectorAll('.ev-toggle').forEach(t => t.classList.remove('active'));
-            const btnMap = { 'unencrypted': 'evToggleUnencrypted', 'encrypted': 'evToggleEncrypted', 'both': 'evToggleBoth' };
-            document.getElementById(btnMap[mode]).classList.add('active');
         }
 
-        document.getElementById('evToggleUnencrypted').addEventListener('click', () => evShowMode('unencrypted'));
-        document.getElementById('evToggleEncrypted').addEventListener('click', () => evShowMode('encrypted'));
-        document.getElementById('evToggleBoth').addEventListener('click', () => evShowMode('both'));
+        async function svLoadProfileKey() {
+            const status = document.getElementById('svKeyStatus');
+            try {
+                const res = await fetch('/api/me');
+                const data = await res.json();
+                if (data.logged_in && data.public_key) {
+                    document.getElementById('svPublicKey').value = data.public_key;
+                    const privRes = await fetch('/api/profile');
+                    const privData = await privRes.json();
+                    if (privData.private_key) {
+                        document.getElementById('svPrivateKey').value = privData.private_key;
+                    }
+                    status.textContent = 'Loaded your profile key.';
+                    showToast('Profile key loaded!', 'success');
+                } else {
+                    status.textContent = 'No saved key found. Generate one or save a key in My Profile.';
+                    showToast('No profile key found', 'error');
+                }
+            } catch (e) {
+                status.textContent = 'Could not load profile key.';
+                showToast('Load failed', 'error');
+            }
+        }
+
+        document.getElementById('svGenKeyBtn').addEventListener('click', svGenerateKey);
+        document.getElementById('svLoadKeyBtn').addEventListener('click', svLoadProfileKey);
+
+        document.getElementById('svCopyPubBtn').addEventListener('click', () => {
+            const text = document.getElementById('svPublicKey').value.trim();
+            if (text) copyToClipboard(text, 'Public key copied!');
+            else showToast('No public key to copy', 'error');
+        });
+
+        // Sign
+        document.getElementById('svSignBtn').addEventListener('click', async () => {
+            const privKey = document.getElementById('svPrivateKey').value.trim();
+            const message = document.getElementById('svSignMessage').value.trim();
+            const result = document.getElementById('svSignResult');
+            if (!privKey) { showToast('Load or generate a key pair first', 'error'); return; }
+            if (!message) { showToast('Type a message to sign', 'error'); return; }
+            showToast('Signing...', 'info');
+            try {
+                const res = await fetch('/api/sign', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ private_key: privKey, message })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    document.getElementById('svSignature').value = data.signature;
+                    document.getElementById('svSigBox').style.display = 'block';
+                    result.className = 'sv-result show success';
+                    result.innerHTML = '<strong>Signed!</strong> Algorithm: ' + data.algorithm + '. Copy the signature and your public key to share with someone who wants to verify.';
+                } else {
+                    result.className = 'sv-result show error';
+                    result.textContent = data.error || 'Signing failed.';
+                }
+            } catch (e) {
+                result.className = 'sv-result show error';
+                result.textContent = 'Network error: ' + e.message;
+            }
+        });
+
+        document.getElementById('svClearSignBtn').addEventListener('click', () => {
+            document.getElementById('svSignMessage').value = '';
+            document.getElementById('svSignature').value = '';
+            document.getElementById('svSigBox').style.display = 'none';
+            document.getElementById('svSignResult').className = 'sv-result';
+        });
+
+        document.getElementById('svCopySigBtn').addEventListener('click', () => {
+            const text = document.getElementById('svSignature').value.trim();
+            if (text) copyToClipboard(text, 'Signature copied!');
+            else showToast('No signature to copy', 'error');
+        });
+
+        // Verify
+        document.getElementById('svVerifyBtn').addEventListener('click', async () => {
+            const pubKey = document.getElementById('svVerifyPubKey').value.trim();
+            const message = document.getElementById('svVerifyMessage').value.trim();
+            const sig = document.getElementById('svVerifySig').value.trim();
+            const result = document.getElementById('svVerifyResult');
+            if (!pubKey || !message || !sig) { showToast('Fill in all three fields', 'error'); return; }
+            showToast('Verifying...', 'info');
+            try {
+                const res = await fetch('/api/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ public_key: pubKey, message, signature: sig })
+                });
+                const data = await res.json();
+                result.className = 'sv-result show ' + (data.valid ? 'success' : 'error');
+                result.innerHTML = data.valid
+                    ? '<strong>VALID!</strong> ' + data.message
+                    : '<strong>INVALID!</strong> ' + data.message;
+            } catch (e) {
+                result.className = 'sv-result show error';
+                result.textContent = 'Network error: ' + e.message;
+            }
+        });
+
+        document.getElementById('svLoadOwnPubBtn').addEventListener('click', () => {
+            const pub = document.getElementById('svPublicKey').value.trim();
+            if (pub) { document.getElementById('svVerifyPubKey').value = pub; showToast('Public key loaded', 'success'); }
+            else showToast('Generate a key first', 'error');
+        });
+
+        document.getElementById('svLoadOwnSigBtn').addEventListener('click', () => {
+            const sig = document.getElementById('svSignature').value.trim();
+            if (sig) { document.getElementById('svVerifySig').value = sig; showToast('Signature loaded', 'success'); }
+            else showToast('Sign a message first', 'error');
+        });
+
+        document.getElementById('svTamperBtn').addEventListener('click', () => {
+            const msg = document.getElementById('svVerifyMessage').value;
+            if (!msg) { showToast('No message to tamper with', 'error'); return; }
+            const tampered = msg + ' [TAMPERED]';
+            document.getElementById('svVerifyMessage').value = tampered;
+            showToast('Message tampered! Try verifying now.', 'info');
+        });
+
+        document.getElementById('svClearVerifyBtn').addEventListener('click', () => {
+            document.getElementById('svVerifyPubKey').value = '';
+            document.getElementById('svVerifyMessage').value = '';
+            document.getElementById('svVerifySig').value = '';
+            document.getElementById('svVerifyResult').className = 'sv-result';
+        });
 
         const rightToggle = document.getElementById('rightSidebarToggle');
         const rightSidebar = document.getElementById('rightSidebar');

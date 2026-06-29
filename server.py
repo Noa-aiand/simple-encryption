@@ -103,7 +103,7 @@ PRACTICE_BOTS = {
 
 # Optional cryptography module (check for graceful degradation)
 try:
-    from cryptography.hazmat.primitives.asymmetric import rsa, padding
+    from cryptography.hazmat.primitives.asymmetric import rsa, padding, ec
     from cryptography.hazmat.primitives import hashes, serialization
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
     CRYPTO_AVAILABLE = True
@@ -111,6 +111,131 @@ try:
 except ImportError as e:
     logger.warning("cryptography module not available: %s", e)
     CRYPTO_AVAILABLE = False
+
+# ============== Key Algorithm Helpers ==============
+
+# Supported key types: (algorithm, size_or_curve, display_label)
+KEY_SPECS = {
+    'rsa-2048':  {'algo': 'rsa', 'size': 2048, 'label': 'RSA-2048'},
+    'rsa-3072':  {'algo': 'rsa', 'size': 3072, 'label': 'RSA-3072'},
+    'rsa-4096':  {'algo': 'rsa', 'size': 4096, 'label': 'RSA-4096'},
+    'ecc-256':   {'algo': 'ecc', 'curve': ec.SECP256R1(), 'label': 'ECC-P256'},
+    'ecc-384':   {'algo': 'ecc', 'curve': ec.SECP384R1(), 'label': 'ECC-P384'},
+    'ecc-521':   {'algo': 'ecc', 'curve': ec.SECP521R1(), 'label': 'ECC-P521'},
+}
+
+# Backwards-compatible: accept bare integers (2048, 3072, 4096) as RSA
+def resolve_key_type(key_type):
+    """Resolve a user-supplied key_type string into a KEY_SPECS entry."""
+    if not key_type:
+        return KEY_SPECS['rsa-4096']
+    key_type = str(key_type).strip().lower()
+    # Bare integer = RSA
+    if key_type in ('2048', '3072', '4096'):
+        key_type = f'rsa-{key_type}'
+    if key_type in KEY_SPECS:
+        return KEY_SPECS[key_type]
+    return None
+
+
+def generate_keypair(key_type_str):
+    """Generate a keypair for the given key type. Returns (private_key, public_key, spec)."""
+    spec = resolve_key_type(key_type_str)
+    if not spec:
+        raise ValueError(f'Unsupported key type: {key_type_str}')
+    if spec['algo'] == 'rsa':
+        private_key = rsa.generate_private_key(public_exponent=65537, key_size=spec['size'])
+    elif spec['algo'] == 'ecc':
+        private_key = ec.generate_private_key(spec['curve'])
+    else:
+        raise ValueError(f'Unknown algorithm: {spec["algo"]}')
+    return private_key, private_key.public_key(), spec
+
+
+def serialize_public_key(public_key):
+    """Serialize a public key to PEM string."""
+    return public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    ).decode('utf-8')
+
+
+def serialize_private_key(private_key):
+    """Serialize a private key to PEM string."""
+    return private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
+    ).decode('utf-8')
+
+
+def encrypt_with_public_key(public_key, plaintext_bytes):
+    """Encrypt data using a public key (RSA-OAEP or EC cannot directly encrypt,
+    so we use hybrid: AES-GCM session key wrapped by RSA, or ECDH for ECC).
+    Returns (encrypted_key, nonce, ciphertext)."""
+    aes_key = secrets.token_bytes(32)
+    nonce = secrets.token_bytes(12)
+    aesgcm = AESGCM(aes_key)
+    ciphertext = aesgcm.encrypt(nonce, plaintext_bytes, None)
+
+    if isinstance(public_key, rsa.RSAPublicKey):
+        encrypted_key = public_key.encrypt(
+            aes_key,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        )
+    elif isinstance(public_key, ec.EllipticCurvePublicKey):
+        # For ECC, use ECDH (ECIES-style): generate ephemeral key, derive shared secret
+        ephemeral_private = ec.generate_private_key(public_key.curve)
+        shared_key = ephemeral_private.exchange(ec.ECDH(), public_key)
+        # Derive a wrapping key from the shared secret
+        derived_key = hashes.Hash(hashes.SHA256())
+        derived_key.update(shared_key)
+        wrap_key = derived_key.finalize()
+        # XOR the AES key with the derived key (simple wrapping)
+        encrypted_key = bytes(a ^ b for a, b in zip(aes_key, wrap_key[:32]))
+        # Prepend the ephemeral public key (serialized) so decryptor can derive the same secret
+        ephemeral_pub_bytes = ephemeral_private.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+        encrypted_key = base64.b64encode(ephemeral_pub_bytes) + b'||' + encrypted_key
+    else:
+        raise ValueError(f'Unsupported key type: {type(public_key)}')
+
+    return encrypted_key, nonce, ciphertext
+
+
+def decrypt_with_private_key(private_key, encrypted_key):
+    """Decrypt an AES session key using a private key. Returns the AES key."""
+    if isinstance(private_key, rsa.RSAPrivateKey):
+        return private_key.decrypt(
+            encrypted_key,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        )
+    elif isinstance(private_key, ec.EllipticCurvePrivateKey):
+        # Split ephemeral public key and wrapped key
+        parts = encrypted_key.split(b'||', 1)
+        if len(parts) != 2:
+            raise ValueError('Invalid ECC encrypted key format')
+        ephemeral_pub_bytes = base64.b64decode(parts[0])
+        wrapped_key = parts[1]
+        ephemeral_pub = serialization.load_pem_public_key(ephemeral_pub_bytes)
+        shared_key = private_key.exchange(ec.ECDH(), ephemeral_pub)
+        derived_key = hashes.Hash(hashes.SHA256())
+        derived_key.update(shared_key)
+        wrap_key = derived_key.finalize()
+        aes_key = bytes(a ^ b for a, b in zip(wrapped_key, wrap_key[:32]))
+        return aes_key
+    else:
+        raise ValueError(f'Unsupported key type: {type(private_key)}')
 
 # Database backend setup
 try:
@@ -293,22 +418,10 @@ init_db()
 
 def _generate_practice_keypair(size):
     """Generate a practice RSA keypair of the requested size and return armored blocks."""
-    private_key = rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=size
-    )
-    public_key = private_key.public_key()
+    private_key, public_key, spec = generate_keypair(f'rsa-{size}')
 
-    public_pem = public_key.public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo
-    ).decode('utf-8')
-
-    private_pem = private_key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption()
-    ).decode('utf-8')
+    public_pem = serialize_public_key(public_key)
+    private_pem = serialize_private_key(private_key)
 
     public_b64 = base64.b64encode(public_pem.encode()).decode()
     private_b64 = base64.b64encode(private_pem.encode()).decode()
@@ -491,6 +604,12 @@ def social_engineering_page():
 @app.route('/eavesdropper.html')
 def eavesdropper_page():
     return _html_response('eavesdropper.html')
+
+
+@app.route('/sign-verify')
+@app.route('/sign-verify.html')
+def sign_verify_page():
+    return _html_response('sign-verify.html')
 
 
 @app.route('/<path:filename>')
@@ -1275,35 +1394,24 @@ def generate_keys():
         }), 503
 
     data = request.get_json() or {}
-    key_size = data.get('key_size', 4096)
+    key_type = data.get('key_type') or data.get('key_size', 4096)
 
-    if key_size not in (2048, 4096):
-        return jsonify({'error': 'Key size must be 2048 or 4096'}), 400
+    spec = resolve_key_type(key_type)
+    if not spec:
+        return jsonify({'error': f'Unsupported key type: {key_type}. Supported: rsa-2048, rsa-3072, rsa-4096, ecc-256, ecc-384, ecc-521'}), 400
 
     try:
-        logger.info("Generating RSA-%d key pair...", key_size)
-        private_key = rsa.generate_private_key(
-            public_exponent=65537,
-            key_size=key_size
-        )
-        public_key = private_key.public_key()
+        logger.info("Generating %s key pair...", spec['label'])
+        private_key, public_key, spec = generate_keypair(key_type)
 
-        public_pem = public_key.public_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo
-        ).decode('utf-8')
-
-        private_pem = private_key.private_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption()
-        ).decode('utf-8')
+        public_pem = serialize_public_key(public_key)
+        private_pem = serialize_private_key(private_key)
 
         public_b64 = base64.b64encode(public_pem.encode()).decode()
         private_b64 = base64.b64encode(private_pem.encode()).decode()
 
-        public_block = make_pgp_block('PUBLIC KEY BLOCK', public_b64, f'RSA-{key_size}')
-        private_block = make_pgp_block('PRIVATE KEY BLOCK', private_b64, f'RSA-{key_size}')
+        public_block = make_pgp_block('PUBLIC KEY BLOCK', public_b64, spec['label'])
+        private_block = make_pgp_block('PRIVATE KEY BLOCK', private_b64, spec['label'])
 
         # Optionally persist the keypair to the logged-in user's profile so
         # beginners do not lose their keys while practicing. We still return
@@ -1318,15 +1426,16 @@ def generate_keys():
                 conn.commit()
                 conn.close()
                 saved_to_profile = True
-                logger.info("RSA-%d key pair saved to user %s profile", key_size, session['user_id'])
+                logger.info("%s key pair saved to user %s profile", spec['label'], session['user_id'])
             except Exception as e:
                 logger.warning("Could not save generated keys to profile: %s", e)
 
-        logger.info("RSA-%d key pair generated successfully", key_size)
+        logger.info("%s key pair generated successfully", spec['label'])
         return jsonify({
             'public_key': public_block,
             'private_key': private_block,
-            'key_size': key_size,
+            'key_size': spec.get('size'),
+            'key_type': spec['label'],
             'saved_to_profile': saved_to_profile
         }), 200
     except Exception as e:
@@ -1346,42 +1455,30 @@ def encrypt_message():
     data = request.get_json() or {}
     public_key_block = data.get('public_key', '')
     message = data.get('message', '')
-    key_size = data.get('key_size', 4096)
+    key_type = data.get('key_type') or data.get('key_size', 4096)
 
     if not public_key_block or not message:
         return jsonify({'error': 'Public key and message are required'}), 400
 
     try:
-        logger.info("Encrypting message with RSA-%d...", key_size)
+        spec = resolve_key_type(key_type)
+        logger.info("Encrypting message with %s...", spec['label'] if spec else key_type)
         b64_pem = parse_pgp_block(public_key_block, 'PUBLIC KEY BLOCK')
         pem_bytes = base64.b64decode(b64_pem)
         public_key = serialization.load_pem_public_key(pem_bytes)
 
-        aes_key = secrets.token_bytes(32)
-        nonce = secrets.token_bytes(12)
-
-        aesgcm = AESGCM(aes_key)
-        ciphertext = aesgcm.encrypt(nonce, message.encode('utf-8'), None)
-
-        encrypted_key = public_key.encrypt(
-            aes_key,
-            padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                algorithm=hashes.SHA256(),
-                label=None
-            )
-        )
+        encrypted_key, nonce, ciphertext = encrypt_with_public_key(public_key, message.encode('utf-8'))
 
         key_len = len(encrypted_key)
         payload = key_len.to_bytes(2, 'big') + encrypted_key + nonce + ciphertext
         payload_b64 = base64.b64encode(payload).decode()
 
-        encrypted_block = make_pgp_block('MESSAGE', payload_b64, f'RSA-{key_size} Encrypted')
+        encrypted_block = make_pgp_block('MESSAGE', payload_b64, f'{spec["label"]} Encrypted' if spec else 'Encrypted')
 
         logger.info("Message encrypted successfully")
         return jsonify({
             'encrypted': encrypted_block,
-            'key_size': key_size
+            'key_type': spec['label'] if spec else 'Unknown'
         }), 200
     except Exception as e:
         logger.exception("Encryption failed")
@@ -1418,14 +1515,7 @@ def decrypt_message():
         nonce = payload[2+key_len:2+key_len+12]
         ciphertext = payload[2+key_len+12:]
 
-        aes_key = private_key.decrypt(
-            encrypted_key,
-            padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                algorithm=hashes.SHA256(),
-                label=None
-            )
-        )
+        aes_key = decrypt_with_private_key(private_key, encrypted_key)
 
         aesgcm = AESGCM(aes_key)
         plaintext = aesgcm.decrypt(nonce, ciphertext, None).decode('utf-8')
@@ -1435,6 +1525,95 @@ def decrypt_message():
     except Exception as e:
         logger.exception("Decryption failed")
         return jsonify({'error': f'Decryption failed: {str(e)}'}), 500
+
+
+# ============== Sign & Verify ==============
+
+@app.route('/api/sign', methods=['POST'])
+def sign_message():
+    """Sign a message with a private key. Returns a detached PGP signature block."""
+    if not CRYPTO_AVAILABLE:
+        return jsonify({'error': 'The cryptography module is not available on this server.'}), 503
+
+    data = request.get_json() or {}
+    private_key_block = data.get('private_key', '')
+    message = data.get('message', '')
+
+    if not private_key_block or not message:
+        return jsonify({'error': 'Private key and message are required'}), 400
+
+    try:
+        logger.info("Signing message...")
+        b64_pem = parse_pgp_block(private_key_block, 'PRIVATE KEY BLOCK')
+        pem_bytes = base64.b64decode(b64_pem)
+        private_key = serialization.load_pem_private_key(pem_bytes, password=None)
+
+        if isinstance(private_key, rsa.RSAPrivateKey):
+            signature = private_key.sign(
+                message.encode('utf-8'),
+                padding.PSS(mgf=padding.MGF1(hashes.SHA256()), salt_length=padding.PSS.MAX_LENGTH),
+                hashes.SHA256()
+            )
+            algo_label = 'RSA-PSS-SHA256'
+        elif isinstance(private_key, ec.EllipticCurvePrivateKey):
+            signature = private_key.sign(message.encode('utf-8'), ec.ECDSA(hashes.SHA256()))
+            algo_label = 'ECDSA-SHA256'
+        else:
+            return jsonify({'error': 'Unsupported key type for signing'}), 400
+
+        sig_b64 = base64.b64encode(signature).decode()
+        sig_block = make_pgp_block('SIGNATURE', sig_b64, algo_label)
+
+        logger.info("Message signed successfully with %s", algo_label)
+        return jsonify({
+            'signature': sig_block,
+            'algorithm': algo_label
+        }), 200
+    except Exception as e:
+        logger.exception("Signing failed")
+        return jsonify({'error': f'Signing failed: {str(e)}'}), 500
+
+
+@app.route('/api/verify', methods=['POST'])
+def verify_signature():
+    """Verify a detached signature against a message using a public key."""
+    if not CRYPTO_AVAILABLE:
+        return jsonify({'error': 'The cryptography module is not available on this server.'}), 503
+
+    data = request.get_json() or {}
+    public_key_block = data.get('public_key', '')
+    message = data.get('message', '')
+    signature_block = data.get('signature', '')
+
+    if not public_key_block or not message or not signature_block:
+        return jsonify({'error': 'Public key, message, and signature are required'}), 400
+
+    try:
+        logger.info("Verifying signature...")
+        b64_pem = parse_pgp_block(public_key_block, 'PUBLIC KEY BLOCK')
+        pem_bytes = base64.b64decode(b64_pem)
+        public_key = serialization.load_pem_public_key(pem_bytes)
+
+        b64_sig = parse_pgp_block(signature_block, 'SIGNATURE')
+        signature = base64.b64decode(b64_sig)
+
+        if isinstance(public_key, rsa.RSAPublicKey):
+            public_key.verify(
+                signature,
+                message.encode('utf-8'),
+                padding.PSS(mgf=padding.MGF1(hashes.SHA256()), salt_length=padding.PSS.MAX_LENGTH),
+                hashes.SHA256()
+            )
+        elif isinstance(public_key, ec.EllipticCurvePublicKey):
+            public_key.verify(signature, message.encode('utf-8'), ec.ECDSA(hashes.SHA256()))
+        else:
+            return jsonify({'error': 'Unsupported key type for verification'}), 400
+
+        logger.info("Signature verified successfully")
+        return jsonify({'valid': True, 'message': 'Signature is valid. The message was signed by the holder of the matching private key and was not tampered with.'}), 200
+    except Exception as e:
+        logger.info("Signature verification failed: %s", e)
+        return jsonify({'valid': False, 'message': 'Signature verification failed. The signature does not match this message and/or key pair. The message may have been tampered with, or the key does not match the signer.'}), 200
 
 
 # ============== Fingerprint ==============
