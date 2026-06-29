@@ -1362,6 +1362,18 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
 
             <p id="botDescription" style="color:#003366;font-size:0.85rem;margin:0 0 1rem;line-height:1.5;"></p>
 
+            <div class="form-group" id="timKeyTypeRow" style="margin-bottom:1rem;">
+                <label for="timKeyType" style="color:#0066cc;font-size:0.85rem;">Tim's Key Type (try ECC for speed!)</label>
+                <select id="timKeyType" class="key-size-select" style="width:100%;padding:0.5rem;border:2px inset #8faecf;border-radius:6px;font-size:0.85rem;color:#003366;background:#f8fbff;">
+                    <option value="rsa-4096" selected>RSA 4096</option>
+                    <option value="rsa-3072">RSA 3072</option>
+                    <option value="rsa-2048">RSA 2048</option>
+                    <option value="ecc-256">ECC P-256 (Fast)</option>
+                    <option value="ecc-384">ECC P-384</option>
+                    <option value="ecc-521">ECC P-521</option>
+                </select>
+            </div>
+
             <div class="form-group">
                 <label>Selected Partner's Public PGP Key</label>
                 <div class="key-box-wrapper">
@@ -1377,10 +1389,14 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             <p style="font-size:0.88rem;margin-bottom:1rem;">Encrypt a message for the selected bot, or decrypt the bot's reply - without leaving this page.</p>
 
             <div class="form-group">
-                <label for="encKeySizePractice">Key Size</label>
+                <label for="encKeySizePractice">Key Type</label>
                 <select id="encKeySizePractice">
-                    <option value="4096" selected>RSA 4096</option>
-                    <option value="2048">RSA 2048</option>
+                    <option value="rsa-4096" selected>RSA 4096</option>
+                    <option value="rsa-3072">RSA 3072</option>
+                    <option value="rsa-2048">RSA 2048</option>
+                    <option value="ecc-256">ECC P-256</option>
+                    <option value="ecc-384">ECC P-384</option>
+                    <option value="ecc-521">ECC P-521</option>
                 </select>
             </div>
             <div class="form-group">
@@ -1725,22 +1741,30 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         let practiceBot = 'chat';
         let practiceBotName = 'Tim';
         let practiceKeySize = 4096;
+        let practiceKeyType = 'rsa-4096';
 
         async function loadPracticeKey(retry = 0, bot = practiceBot) {
             const keyText = document.getElementById('practiceKeyText');
             practiceBot = bot;
+            // Show/hide the key type selector (only for Tim)
+            const timRow = document.getElementById('timKeyTypeRow');
+            if (timRow) timRow.style.display = (bot === 'chat') ? 'block' : 'none';
             try {
-                const url = '/api/practice/key?bot=' + bot + '&_=' + Date.now();
+                let url = '/api/practice/key?bot=' + bot + '&_=' + Date.now();
+                if (bot === 'chat') {
+                    practiceKeyType = document.getElementById('timKeyType').value;
+                    url += '&key_type=' + practiceKeyType;
+                }
                 const res = await fetch(url, { cache: 'no-store' });
                 const data = await res.json();
                 console.log('Practice key response:', res.status, JSON.stringify(data || {}).slice(0, 200));
                 if (res.ok && data.public_key) {
                     practiceKey = data.public_key;
                     practiceKeySize = data.key_size;
+                    practiceKeyType = data.key_type || practiceKeyType;
                     keyText.value = practiceKey;
                     keyText.classList.add('loaded');
                     document.getElementById('botDescription').textContent = data.bot_description || '';
-                    document.getElementById('encKeySizePractice').value = practiceKeySize;
                     syncPracticeKeyToEncryptBox();
                     console.log('Practice key loaded OK, length:', practiceKey.length);
                     return;
@@ -1760,7 +1784,11 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             keyText.value = 'Trying alternate load method...';
             try {
                 const xhr = new XMLHttpRequest();
-                xhr.open('GET', '/api/practice/key?bot=' + bot + '&_=' + Date.now(), true);
+                let xhrUrl = '/api/practice/key?bot=' + bot + '&_=' + Date.now();
+                if (bot === 'chat') {
+                    xhrUrl += '&key_type=' + practiceKeyType;
+                }
+                xhr.open('GET', xhrUrl, true);
                 xhr.setRequestHeader('Cache-Control', 'no-cache');
                 xhr.setRequestHeader('Pragma', 'no-cache');
                 xhr.onload = function() {
@@ -1772,7 +1800,6 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                             keyText.value = practiceKey;
                             keyText.classList.add('loaded');
                             document.getElementById('botDescription').textContent = data.bot_description || '';
-                            document.getElementById('encKeySizePractice').value = practiceKeySize;
                             syncPracticeKeyToEncryptBox();
                             console.log('Practice key loaded via XMLHttpRequest OK');
                         } else {
@@ -1845,7 +1872,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         document.getElementById('encryptBtnPractice').addEventListener('click', async () => {
             const publicKey = document.getElementById('encPublicKeyPractice').value.trim();
             const message = document.getElementById('encMessagePractice').value;
-            const keySize = parseInt(document.getElementById('encKeySizePractice').value);
+            const keyType = document.getElementById('encKeySizePractice').value;
 
             if (!publicKey || !message) {
                 showResult('encResultPractice', 'encResultLabelPractice', 'Please provide both a public key and a message to encrypt.', 'error');
@@ -1859,7 +1886,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                 const res = await fetch('/api/encrypt', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ public_key: publicKey, message: message, key_size: keySize })
+                    body: JSON.stringify({ public_key: publicKey, message: message, key_type: keyType })
                 });
                 const data = await res.json();
 
@@ -1954,6 +1981,12 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         document.getElementById('encKeySizePractice').addEventListener('change', () => {
         });
 
+        document.getElementById('timKeyType').addEventListener('change', () => {
+            if (practiceBot === 'chat') {
+                loadPracticeKey(0, 'chat');
+            }
+        });
+
         document.getElementById('sendBtn').addEventListener('click', async () => {
             const msgInput = document.getElementById('practiceMessage');
             const msg = msgInput.value.trim();
@@ -1971,7 +2004,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                 const res = await fetch('/api/practice/send', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: msg, bot: practiceBot })
+                    body: JSON.stringify({ message: msg, bot: practiceBot, key_type: practiceBot === 'chat' ? practiceKeyType : '' })
                 });
                 const data = await res.json();
 
@@ -2401,7 +2434,7 @@ checkAuth();
         loadPracticeKey();
     </script>
     <script src="/intro.js"></script>
-    <div class="version-badge">V1.29</div>
+    <div class="version-badge">V1.30</div>
 <script src="/y2k-fun.js"></script>
 </body>
 </html>

@@ -1181,10 +1181,14 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         <!-- Key Generator -->
         <div class="card">
             <h2>Key Generator</h2>
-            <label style="color: #0066cc; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">RSA Key Size</label>
+            <label style="color: #0066cc; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Key Type</label>
             <select class="key-size-select" id="genKeySize">
-                <option value="4096" selected>RSA 4096 (Recommended)</option>
-                <option value="2048">RSA 2048</option>
+                <option value="rsa-4096" selected>RSA 4096 (Recommended)</option>
+                <option value="rsa-3072">RSA 3072</option>
+                <option value="rsa-2048">RSA 2048</option>
+                <option value="ecc-256">ECC P-256 (Fast, 128-bit security)</option>
+                <option value="ecc-384">ECC P-384 (192-bit security)</option>
+                <option value="ecc-521">ECC P-521 (256-bit security)</option>
             </select>
             <div class="action-btns">
                 <button class="btn btn-primary" id="generateKeysBtn">Generate Key Pair</button>
@@ -1204,10 +1208,14 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         <!-- Encrypt -->
         <div class="card">
             <h2>Encrypt Message</h2>
-            <label style="color: #0066cc; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">RSA Key Size</label>
+            <label style="color: #0066cc; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Key Type</label>
             <select class="key-size-select" id="encKeySize">
-                <option value="4096" selected>RSA 4096</option>
-                <option value="2048">RSA 2048</option>
+                <option value="rsa-4096" selected>RSA 4096</option>
+                <option value="rsa-3072">RSA 3072</option>
+                <option value="rsa-2048">RSA 2048</option>
+                <option value="ecc-256">ECC P-256</option>
+                <option value="ecc-384">ECC P-384</option>
+                <option value="ecc-521">ECC P-521</option>
             </select>
             <div class="form-group">
                 <label>Recipient Public Key</label>
@@ -1624,15 +1632,15 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         let generatedPublicKey = '';
         let generatedPrivateKey = '';
 
-        function downloadKeyBackup(publicKey, privateKey, keySize) {
+        function downloadKeyBackup(publicKey, privateKey, keyType) {
             const blob = new Blob(
-                [`PUBLIC KEY (RSA-${keySize}):\n\n${publicKey}\n\nPRIVATE KEY (RSA-${keySize}):\n\n${privateKey}`],
+                [`PUBLIC KEY (${keyType}):\n\n${publicKey}\n\nPRIVATE KEY (${keyType}):\n\n${privateKey}`],
                 { type: 'text/plain' }
             );
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `pgp-practice-keys-rsa${keySize}.txt`;
+            a.download = `pgp-practice-keys-${keyType}.txt`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -1643,13 +1651,13 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             const btn = document.getElementById('generateKeysBtn');
             btn.textContent = 'Generating...';
             btn.disabled = true;
-            showGenStatus('Generating RSA key pair, please wait...', 'info');
+            showGenStatus('Generating key pair, please wait...', 'info');
 
             try {
                 const res = await fetch('/api/generate-keys', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ key_size: parseInt(document.getElementById('genKeySize').value) })
+                    body: JSON.stringify({ key_type: document.getElementById('genKeySize').value })
                 });
                 const data = await res.json();
 
@@ -1672,9 +1680,9 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                     document.getElementById('encPublicKey').value = data.public_key;
 
                     if (data.saved_to_profile) {
-                        showGenStatus(`RSA-${data.key_size} key pair generated and saved to your profile!`, 'ok');
+                        showGenStatus(`${data.key_type} key pair generated and saved to your profile!`, 'ok');
                     } else {
-                        showGenStatus(`RSA-${data.key_size} key pair generated! Log in to save it to your profile.`, 'info');
+                        showGenStatus(`${data.key_type} key pair generated! Log in to save it to your profile.`, 'info');
                     }
                 } else if (res.status === 503) {
                     showGenStatus(
@@ -1708,7 +1716,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         document.getElementById('encryptBtn').addEventListener('click', async () => {
             const publicKey = document.getElementById('encPublicKey').value.trim();
             const message = document.getElementById('encMessage').value;
-            const keySize = parseInt(document.getElementById('encKeySize').value);
+            const keyType = document.getElementById('encKeySize').value;
 
             if (!publicKey || !message) {
                 showResult('encResult', 'encResultLabel', 'Please provide both a public key and a message to encrypt.', 'error');
@@ -1723,7 +1731,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                 const res = await fetch('/api/encrypt', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ public_key: publicKey, message: message, key_size: keySize })
+                    body: JSON.stringify({ public_key: publicKey, message: message, key_type: keyType })
                 });
                 const data = await res.json();
 
@@ -2107,7 +2115,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
     </script>
 
     <script src="/intro.js"></script>
-    <div class="version-badge">V1.29</div>
+    <div class="version-badge">V1.30</div>
 <script src="/y2k-fun.js"></script>
 </body>
 </html>

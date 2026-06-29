@@ -493,6 +493,28 @@ def init_practice_keys():
         conn.commit()
         logger.info("%s bot keypair generated and stored", bot_id)
 
+    # Generate Tim (chat bot) keypairs for all supported key types so users can
+    # practice with RSA or ECC.
+    for kt in ('rsa-3072', 'ecc-256', 'ecc-384', 'ecc-521'):
+        pub_key_name = f'practice_public_key_{kt}'
+        priv_key_name = f'practice_private_key_{kt}'
+        db_execute(c, "SELECT value FROM server_config WHERE key = ?", (priv_key_name,))
+        if c.fetchone():
+            continue
+        spec = resolve_key_type(kt)
+        logger.info("Generating practice partner %s keypair...", spec['label'])
+        private_key, public_key, spec = generate_keypair(kt)
+        public_pem = serialize_public_key(public_key)
+        private_pem = serialize_private_key(private_key)
+        public_b64 = base64.b64encode(public_pem.encode()).decode()
+        private_b64 = base64.b64encode(private_pem.encode()).decode()
+        public_block = make_pgp_block('PUBLIC KEY BLOCK', public_b64, f'Practice Partner {spec["label"]}')
+        private_block = make_pgp_block('PRIVATE KEY BLOCK', private_b64, f'Practice Partner {spec["label"]}')
+        db_execute(c, "INSERT INTO server_config (key, value) VALUES (?, ?), (?, ?)",
+                   (priv_key_name, private_block, pub_key_name, public_block))
+        conn.commit()
+        logger.info("Practice partner %s keypair generated and stored", spec['label'])
+
     conn.close()
 
 
@@ -1034,13 +1056,47 @@ def practice_key():
     bot_id = request.args.get('bot', 'chat')
     if bot_id not in PRACTICE_BOTS:
         return jsonify({'error': f'Unknown bot: {bot_id}'}), 400
+
+    # For Tim (chat bot), allow selecting a specific key type
+    key_type_param = request.args.get('key_type', '').strip().lower()
+
+    if bot_id == 'chat' and key_type_param:
+        spec = resolve_key_type(key_type_param)
+        if not spec:
+            return jsonify({'error': f'Unsupported key type: {key_type_param}'}), 400
+        conn = db_connect()
+        c = conn.cursor()
+        pub_key_name = f'practice_public_key_{key_type_param}'
+        priv_key_name = f'practice_private_key_{key_type_param}'
+        db_execute(c, "SELECT value FROM server_config WHERE key = ?", (pub_key_name,))
+        pub_row = c.fetchone()
+        db_execute(c, "SELECT value FROM server_config WHERE key = ?", (priv_key_name,))
+        priv_row = c.fetchone()
+        conn.close()
+        if not pub_row:
+            return jsonify({'error': 'Keypair not initialized for this type'}), 500
+        bot = PRACTICE_BOTS[bot_id]
+        resp = jsonify({
+            'public_key': pub_row[0],
+            'key_size': spec.get('size'),
+            'key_type': spec['label'],
+            'bot': bot_id,
+            'bot_name': bot['name'],
+            'bot_description': bot['description']
+        })
+        resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        resp.headers['Pragma'] = 'no-cache'
+        return resp, 200
+
     pub, _priv, key_size = get_bot_keys(bot_id)
     if not pub:
         return jsonify({'error': 'Bot keypair not initialized'}), 500
     bot = PRACTICE_BOTS[bot_id]
+    key_type_label = f'RSA-{key_size}' if key_size in (2048, 3072, 4096) else str(key_size)
     resp = jsonify({
         'public_key': pub,
         'key_size': key_size,
+        'key_type': key_type_label,
         'bot': bot_id,
         'bot_name': bot['name'],
         'bot_description': bot['description']
@@ -1167,6 +1223,7 @@ def practice_send():
     data = request.get_json() or {}
     message_block = data.get('message', '').strip()
     bot_id = data.get('bot', 'chat')
+    key_type_param = data.get('key_type', '').strip().lower()
 
     if bot_id not in PRACTICE_BOTS:
         return jsonify({'error': f'Unknown bot: {bot_id}'}), 400
@@ -1176,7 +1233,25 @@ def practice_send():
     if not message_block:
         return jsonify({'error': 'Message is required'}), 400
 
-    # ---- CHALLENGE FAILED: plaintext detected ----
+    # ---- Get the bot's private key (Tim supports multiple key types) ----
+    if bot_id == 'chat' and key_type_param:
+        spec = resolve_key_type(key_type_param)
+        if not spec:
+            return jsonify({'error': f'Unsupported key type: {key_type_param}'}), 400
+        conn = db_connect()
+        c = conn.cursor()
+        priv_key_name = f'practice_private_key_{key_type_param}'
+        db_execute(c, "SELECT value FROM server_config WHERE key = ?", (priv_key_name,))
+        priv_row = c.fetchone()
+        conn.close()
+        if not priv_row:
+            return jsonify({'error': 'Bot keypair not initialized for this type'}), 500
+        priv_block = priv_row[0]
+        key_size = spec.get('size')
+    else:
+        _pub, priv_block, key_size = get_bot_keys(bot_id)
+    if not priv_block:
+        return jsonify({'error': 'Bot keypair not initialized'}), 500
     if '-----BEGIN PGP' not in message_block:
         return jsonify({
             'status': 'failed',

@@ -1386,6 +1386,83 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                 </a>
             </div>
         </div>
+
+        <!-- Key Size Comparison Visualizer -->
+        <style>
+            .ks-table { width:100%; border-collapse:collapse; margin:1rem 0; font-size:0.85rem; }
+            .ks-table th { background:#0066cc; color:#fff; padding:0.5rem; border:1px solid #99ccff; text-align:left; font-size:0.8rem; }
+            .ks-table td { padding:0.5rem; border:1px solid #b3d7ff; color:#003366; }
+            .ks-table tr:nth-child(even) { background:#e6f2ff; }
+            .ks-bar-container { width:100%; height:18px; background:#d9e6f5; border-radius:4px; overflow:hidden; }
+            .ks-bar { height:100%; border-radius:4px; transition:width 0.5s ease; }
+            .ks-bar.green { background:#4caf50; }
+            .ks-bar.yellow { background:#ffb74d; }
+            .ks-bar.orange { background:#ff9800; }
+            .ks-bar.red { background:#e07a7e; }
+            .ks-security { font-weight:bold; }
+            .ks-security.high { color:#1b5e20; }
+            .ks-security.medium { color:#cc6600; }
+            .ks-security.low { color:#c62828; }
+            .ks-note { font-size:0.78rem; color:#6699cc; margin-top:0.2rem; }
+        </style>
+        <div class="card">
+            <h2>Key Size Speed &amp; Security Comparison</h2>
+            <p style="font-size:0.88rem;margin-bottom:0.8rem;color:#003366;">Bigger keys are more secure but slower. ECC achieves the same security as RSA with much smaller keys. Hover over the bars to see relative speed.</p>
+            <table class="ks-table">
+                <thead>
+                    <tr>
+                        <th>Key Type</th>
+                        <th>Security Level</th>
+                        <th>Relative Speed</th>
+                        <th>Best For</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>RSA-2048</strong></td>
+                        <td class="ks-security low">112 bits<br><span style="font-weight:normal;font-size:0.75rem;">Minimum / learning</span></td>
+                        <td><div class="ks-bar-container"><div class="ks-bar green" style="width:90%;" title="Very fast"></div></div><div class="ks-note">Very fast</div></td>
+                        <td>Practice only</td>
+                    </tr>
+                    <tr>
+                        <td><strong>RSA-3072</strong></td>
+                        <td class="ks-security medium">128 bits<br><span style="font-weight:normal;font-size:0.75rem;">Standard</span></td>
+                        <td><div class="ks-bar-container"><div class="ks-bar yellow" style="width:65%;" title="Moderate"></div></div><div class="ks-note">Moderate</div></td>
+                        <td>Everyday use</td>
+                    </tr>
+                    <tr>
+                        <td><strong>RSA-4096</strong></td>
+                        <td class="ks-security high">150 bits<br><span style="font-weight:normal;font-size:0.75rem;">Strong</span></td>
+                        <td><div class="ks-bar-container"><div class="ks-bar orange" style="width:45%;" title="Slower"></div></div><div class="ks-note">Slower</div></td>
+                        <td>Sensitive data</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ECC-P256</strong></td>
+                        <td class="ks-security medium">128 bits<br><span style="font-weight:normal;font-size:0.75rem;">= RSA-3072</span></td>
+                        <td><div class="ks-bar-container"><div class="ks-bar green" style="width:95%;" title="Very fast"></div></div><div class="ks-note">Very fast (small key!)</div></td>
+                        <td>Recommended default</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ECC-P384</strong></td>
+                        <td class="ks-security high">192 bits<br><span style="font-weight:normal;font-size:0.75rem;">= RSA-7680</span></td>
+                        <td><div class="ks-bar-container"><div class="ks-bar yellow" style="width:80%;" title="Fast"></div></div><div class="ks-note">Fast</div></td>
+                        <td>Government / sensitive</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ECC-P521</strong></td>
+                        <td class="ks-security high">256 bits<br><span style="font-weight:normal;font-size:0.75rem;">= RSA-15360</span></td>
+                        <td><div class="ks-bar-container"><div class="ks-bar yellow" style="width:70%;" title="Fast"></div></div><div class="ks-note">Fast (overkill)</div></td>
+                        <td>Long-term archive</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="font-size:0.82rem;color:#003366;margin-top:0.5rem;line-height:1.5;">
+                <strong>Key takeaway:</strong> ECC-P256 offers the same security as RSA-3072 but with a 256-bit key instead of a 3072-bit key — making it 12x smaller and much faster. For beginners, RSA-4096 is the safest choice (most compatible). Once comfortable, switch to ECC-P256 for speed.
+            </p>
+            <p style="font-size:0.82rem;color:#003366;margin-top:0.3rem;">
+                Learn more in the <a href="/learn.html" style="color:#0000cc;">Key Sizes &amp; Algorithms</a> guide.
+            </p>
+        </div>
     </div>
 
         <!-- Right Sidebar Toggle -->
@@ -2017,7 +2094,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
 checkAuth();
     </script>
     <script src="/intro.js"></script>
-    <div class="version-badge">V1.29</div>
+    <div class="version-badge">V1.30</div>
 <script src="/y2k-fun.js"></script>
 </body>
 </html>
