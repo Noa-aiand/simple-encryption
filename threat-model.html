@@ -1158,22 +1158,38 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         <div class="user-info" id="userInfo" style="display: none;">
             <h3>Welcome!</h3>
             <p id="userName">User</p>
-                                    <nav class="sidebar-nav" id="sidebarNav">
-                <a href="/">Home</a>
-                <a href="/practice.html" class="active">Practice</a>
-                <a href="/learn.html">Learn</a>
-                <a href="/encrypt.html">Encrypt / Decrypt</a>
-                <a href="/saved-keys.html">Saved Keys</a>
+                                                <nav class="sidebar-nav" id="sidebarNav">
+                <div class="sidebar-nav-section">
+                    <div class="sidebar-nav-header">Menu</div>
+                    <a href="/">Home</a>
+                    <a href="/practice.html" class="active">Practice</a>
+                    <a href="/learn.html">Learn</a>
+                    <a href="/encrypt.html">Encrypt / Decrypt</a>
+                    <a href="/saved-keys.html">Saved Keys</a>
+                </div>
+                <div class="sidebar-nav-section">
+                    <div class="sidebar-nav-header">Practice Tools</div>
+                    <a href="/pgp-practice.html">PGP Bot Practice</a>
+                    <a href="/fingerprint.html">Fingerprint Validator</a>
+                    <a href="/password.html">Password Strength</a>
+                    <a href="/threat-model.html">Threat Modeling</a>
+                    <a href="/social-engineering.html">Social Engineering</a>
+                    <a href="/eavesdropper.html">Eavesdropper View</a>
+                </div>
+                <div class="sidebar-nav-section">
+                    <div class="sidebar-nav-header">Account</div>
+                    <a href="/profile.html">My Profile</a>
+                </div>
             </nav>
             <button class="logout-btn" id="logoutBtn">Logout</button>
         </div>
     </aside>
 
     <!-- Main Content -->
-    <div class="main-content">
     <!-- Early 2000s marquee banner -->
     <marquee class="top-marquee" scrollamount="6" behavior="scroll" direction="left">WELCOME TO SIMPLE ENCRYPTION -- Learn PGP the retro way -- Best viewed in 1024x768 -- Your keys are stored on the server for practice -- Do not use for real secrets -- Click around and have fun!</marquee>
 
+<div class="main-content">
         <div class="page-header">
             <h1>Threat Modeling Practice</h1>
             <div class="subtitle">Think Like an OPSEC Pro</div>
@@ -1248,6 +1264,64 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                 <p id="tmResultMessage" style="font-size:0.9rem;color:#003366;line-height:1.6;margin-bottom:1rem;"></p>
                 <button class="btn btn-primary" id="tmResultRestart">Try Again</button>
                 <a href="/learn.html" class="btn btn-secondary">Review the Guide</a>
+            </div>
+        </div>
+
+        <!-- Build Your Own Threat Model -->
+        <style>
+            .tm-build-card { }
+            .tm-build-input { width:100%; padding:0.7rem; border:2px inset #8faecf; border-radius:6px; font-family:'Verdana',sans-serif; font-size:0.9rem; color:#003366; background:#f8fbff; resize:vertical; min-height:60px; margin-top:0.3rem; }
+            .tm-build-input:focus { outline:none; border-color:#0066cc; background:#fff; }
+            .tm-build-field { margin-bottom:1rem; }
+            .tm-build-field label { font-weight:bold; color:#0066cc; font-size:0.9rem; }
+            .tm-build-field .tm-build-hint { font-size:0.78rem; color:#6699cc; margin-top:0.2rem; }
+            .tm-build-output { background:#e6f2ff; border:2px solid #99ccff; border-radius:10px; padding:1.2rem; margin-top:1rem; display:none; }
+            .tm-build-output.show { display:block; }
+            .tm-build-output h3 { color:#0066cc; font-size:1rem; margin:0 0 0.6rem; }
+            .tm-build-output .tm-summary-line { color:#003366; font-size:0.9rem; line-height:1.6; margin-bottom:0.4rem; }
+            .tm-build-output .tm-summary-label { font-weight:bold; color:#0066cc; }
+            .tm-build-guidance { background:#fff4e6; border-left:4px solid #ffb74d; padding:0.6rem 0.9rem; border-radius:0 6px 6px 0; margin-top:0.8rem; font-size:0.85rem; color:#8a4b00; line-height:1.5; }
+            .tm-build-actions { display:flex; gap:0.6rem; margin-top:1rem; flex-wrap:wrap; }
+        </style>
+
+        <div class="card tm-build-card">
+            <h2>Build Your Own Threat Model</h2>
+            <p style="font-size:0.88rem;margin-bottom:1rem;color:#003366;">The quiz above uses made-up scenarios. Now try it for your own real situation. Fill in each field below, then click "Generate Threat Model" to get a personalized summary with guidance.</p>
+
+            <div class="tm-build-field">
+                <label>1. What are you protecting?</label>
+                <div class="tm-build-hint">Think about your most sensitive digital asset — passwords, private messages, financial data, identity documents, a source's identity...</div>
+                <textarea class="tm-build-input" id="tmAsset" placeholder="e.g. My email account, which contains years of personal correspondence and password reset links for other services."></textarea>
+            </div>
+
+            <div class="tm-build-field">
+                <label>2. Who would want it?</label>
+                <div class="tm-build-hint">Who is your adversary? A random hacker? An ex-partner? An employer? A government? Consider their resources and motivation.</div>
+                <textarea class="tm-build-input" id="tmAdversary" placeholder="e.g. A hacker who could sell my email access on the dark web, or an ex who might try to guess my password."></textarea>
+            </div>
+
+            <div class="tm-build-field">
+                <label>3. What happens if you fail?</label>
+                <div class="tm-build-hint">Be honest about the worst realistic consequence — embarrassment, financial loss, identity theft, legal trouble, physical danger...</div>
+                <textarea class="tm-build-input" id="tmConsequence" placeholder="e.g. Identity theft, loss of other accounts that use the same email for password resets, exposure of private conversations."></textarea>
+            </div>
+
+            <div class="tm-build-field">
+                <label>4. What can you do today to reduce the risk?</label>
+                <div class="tm-build-hint">One concrete, achievable action. Not "be more careful" — something specific like "enable 2FA" or "switch to a password manager."</div>
+                <textarea class="tm-build-input" id="tmAction" placeholder="e.g. Enable two-factor authentication on my email account and switch to unique passwords using a password manager."></textarea>
+            </div>
+
+            <div class="tm-build-actions">
+                <button class="btn btn-primary" id="tmBuildBtn">Generate Threat Model</button>
+                <button class="btn btn-secondary" id="tmBuildCopyBtn" style="display:none;">Copy Summary</button>
+                <button class="btn btn-secondary" id="tmBuildClearBtn">Clear</button>
+            </div>
+
+            <div class="tm-build-output" id="tmBuildOutput">
+                <h3>Your Threat Model</h3>
+                <div id="tmBuildSummary"></div>
+                <div class="tm-build-guidance" id="tmBuildGuidance"></div>
             </div>
         </div>
 
@@ -1756,6 +1830,119 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
 
         tmRender();
 
+        // ==================== Build Your Own Threat Model ====================
+
+        function tmBuildGenerate() {
+            const asset = document.getElementById('tmAsset').value.trim();
+            const adversary = document.getElementById('tmAdversary').value.trim();
+            const consequence = document.getElementById('tmConsequence').value.trim();
+            const action = document.getElementById('tmAction').value.trim();
+
+            if (!asset && !adversary && !consequence && !action) {
+                showToast('Fill in at least one field to generate your threat model.', 'error');
+                return;
+            }
+
+            const summary = document.getElementById('tmBuildSummary');
+            let html = '';
+
+            if (asset) {
+                html += '<div class="tm-summary-line"><span class="tm-summary-label">Asset:</span> ' + escapeHtml(asset) + '</div>';
+            } else {
+                html += '<div class="tm-summary-line"><span class="tm-summary-label">Asset:</span> <em>(not specified)</em></div>';
+            }
+
+            if (adversary) {
+                html += '<div class="tm-summary-line"><span class="tm-summary-label">Adversary:</span> ' + escapeHtml(adversary) + '</div>';
+            } else {
+                html += '<div class="tm-summary-line"><span class="tm-summary-label">Adversary:</span> <em>(not specified)</em></div>';
+            }
+
+            if (consequence) {
+                html += '<div class="tm-summary-line"><span class="tm-summary-label">Consequence of failure:</span> ' + escapeHtml(consequence) + '</div>';
+            } else {
+                html += '<div class="tm-summary-line"><span class="tm-summary-label">Consequence of failure:</span> <em>(not specified)</em></div>';
+            }
+
+            if (action) {
+                html += '<div class="tm-summary-line"><span class="tm-summary-label">Action item:</span> ' + escapeHtml(action) + '</div>';
+            } else {
+                html += '<div class="tm-summary-line"><span class="tm-summary-label">Action item:</span> <em>(not specified — define one concrete step)</em></div>';
+            }
+
+            summary.innerHTML = html;
+
+            // Generate guidance based on what they wrote
+            const guidance = document.getElementById('tmBuildGuidance');
+            const all = (asset + ' ' + adversary + ' ' + consequence + ' ' + action).toLowerCase();
+            let tips = [];
+
+            if (!action) {
+                tips.push('You have not defined an action item. Threat modeling without action is just worry. Pick one specific, doable step and commit to it.');
+            }
+
+            if (all.includes('password') && !all.includes('2fa') && !all.includes('two-factor') && !all.includes('password manager')) {
+                tips.push('You mentioned passwords. Consider enabling two-factor authentication and using a password manager with unique passwords for each account.');
+            }
+
+            if (all.includes('email') && !all.includes('2fa') && !all.includes('two-factor')) {
+                tips.push('Your email account is a master key — anyone who controls it can reset passwords for other services. Protect it with 2FA and a strong, unique password.');
+            }
+
+            if (all.includes('pgp') || all.includes('encrypt') || all.includes('source') || all.includes('journalist') || all.includes('whistleblow')) {
+                tips.push('You are dealing with sensitive communications. PGP protects message content, but verify fingerprints in person. Consider using Signal for metadata minimization. Never discuss the channel itself over an unencrypted medium.');
+            }
+
+            if (all.includes('cloud') || all.includes('backup') || all.includes('google drive') || all.includes('dropbox')) {
+                tips.push('Cloud storage is convenient but the provider can see your files unless they are encrypted first. Encrypt sensitive files before uploading, or use a service with zero-knowledge encryption.');
+            }
+
+            if (all.includes('phone') || all.includes('sms') || all.includes('text')) {
+                tips.push('SMS and phone calls are not encrypted end-to-end by default. For sensitive conversations, use Signal or another end-to-end encrypted messaging app.');
+            }
+
+            if (all.includes('social media') || all.includes('facebook') || all.includes('instagram') || all.includes('twitter')) {
+                tips.push('Social media platforms are designed to share information broadly. Be aware that anything you post can be screenshotted and shared permanently. Review your privacy settings and assume posts are public.');
+            }
+
+            if (all.includes('identity') || all.includes('id') || all.includes('passport') || all.includes('license')) {
+                tips.push('Identity documents are high-value targets. Store them encrypted, never email them unencrypted, and be cautious about who you share them with. PGP is ideal for transmitting sensitive documents securely.');
+            }
+
+            if (all.includes('ex') || all.includes('partner') || all.includes('stalker') || all.includes('ex-partner')) {
+                tips.push('Personal adversaries often know your habits and security questions. Do not use information they might know as password recovery answers. Consider changing passwords and security questions they could guess.');
+            }
+
+            if (tips.length === 0) {
+                tips.push('Good start. Review your threat model regularly — threats change, adversaries evolve, and tools improve. The most important thing is that you have a concrete action item and you actually do it.');
+            }
+
+            guidance.innerHTML = '<strong>Guidance:</strong><br>' + tips.map(t => '&bull; ' + t).join('<br>');
+
+            const output = document.getElementById('tmBuildOutput');
+            output.classList.add('show');
+            document.getElementById('tmBuildCopyBtn').style.display = 'inline-block';
+            output.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            showToast('Threat model generated!', 'success');
+        }
+
+        document.getElementById('tmBuildBtn').addEventListener('click', tmBuildGenerate);
+
+        document.getElementById('tmBuildCopyBtn').addEventListener('click', () => {
+            const output = document.getElementById('tmBuildOutput');
+            const text = output.innerText;
+            copyToClipboard(text, 'Threat model copied to clipboard!');
+        });
+
+        document.getElementById('tmBuildClearBtn').addEventListener('click', () => {
+            document.getElementById('tmAsset').value = '';
+            document.getElementById('tmAdversary').value = '';
+            document.getElementById('tmConsequence').value = '';
+            document.getElementById('tmAction').value = '';
+            document.getElementById('tmBuildOutput').classList.remove('show');
+            document.getElementById('tmBuildCopyBtn').style.display = 'none';
+        });
+
         // Right Sidebar Toggle
         const rightToggle = document.getElementById('rightSidebarToggle');
         const rightSidebar = document.getElementById('rightSidebar');
@@ -2058,7 +2245,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
 
     </script>
     <script src="/intro.js"></script>
-    <div class="version-badge">V1.24</div>
+    <div class="version-badge">V1.27</div>
 <script src="/y2k-fun.js"></script>
 </body>
 </html>

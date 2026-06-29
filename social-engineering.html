@@ -1158,22 +1158,38 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
         <div class="user-info" id="userInfo" style="display: none;">
             <h3>Welcome!</h3>
             <p id="userName">User</p>
-                                    <nav class="sidebar-nav" id="sidebarNav">
-                <a href="/">Home</a>
-                <a href="/practice.html" class="active">Practice</a>
-                <a href="/learn.html">Learn</a>
-                <a href="/encrypt.html">Encrypt / Decrypt</a>
-                <a href="/saved-keys.html">Saved Keys</a>
+                                                <nav class="sidebar-nav" id="sidebarNav">
+                <div class="sidebar-nav-section">
+                    <div class="sidebar-nav-header">Menu</div>
+                    <a href="/">Home</a>
+                    <a href="/practice.html" class="active">Practice</a>
+                    <a href="/learn.html">Learn</a>
+                    <a href="/encrypt.html">Encrypt / Decrypt</a>
+                    <a href="/saved-keys.html">Saved Keys</a>
+                </div>
+                <div class="sidebar-nav-section">
+                    <div class="sidebar-nav-header">Practice Tools</div>
+                    <a href="/pgp-practice.html">PGP Bot Practice</a>
+                    <a href="/fingerprint.html">Fingerprint Validator</a>
+                    <a href="/password.html">Password Strength</a>
+                    <a href="/threat-model.html">Threat Modeling</a>
+                    <a href="/social-engineering.html">Social Engineering</a>
+                    <a href="/eavesdropper.html">Eavesdropper View</a>
+                </div>
+                <div class="sidebar-nav-section">
+                    <div class="sidebar-nav-header">Account</div>
+                    <a href="/profile.html">My Profile</a>
+                </div>
             </nav>
             <button class="logout-btn" id="logoutBtn">Logout</button>
         </div>
     </aside>
 
     <!-- Main Content -->
-    <div class="main-content">
     <!-- Early 2000s marquee banner -->
     <marquee class="top-marquee" scrollamount="6" behavior="scroll" direction="left">WELCOME TO SIMPLE ENCRYPTION -- Learn PGP the retro way -- Best viewed in 1024x768 -- Your keys are stored on the server for practice -- Do not use for real secrets -- Click around and have fun!</marquee>
 
+<div class="main-content">
         <div class="page-header">
             <h1>Social Engineering Red Flags</h1>
             <div class="subtitle">Spot the Con Before It Spots You</div>
@@ -1207,6 +1223,8 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             .se-flag-item { background:#f0f7ff; border:2px solid #b3d7ff; border-radius:8px; padding:0.6rem 0.9rem; cursor:pointer; font-size:0.88rem; color:#003366; transition:all 0.15s ease; display:flex; align-items:flex-start; gap:0.5rem; }
             .se-flag-item:hover { border-color:#0066cc; background:#e6f2ff; }
             .se-flag-item.selected { border-color:#0066cc; background:#d6eaff; }
+            .se-flag-item.selected .se-flag-box { background:#0066cc; border-color:#0066cc; }
+            .se-flag-item.selected .se-flag-box::after { content: '\u2713'; color:#fff; font-size:0.8rem; font-weight:bold; }
             .se-flag-item.correct { border-color:#4caf50; background:#e8f5e9; }
             .se-flag-item.wrong { border-color:#e07a7e; background:#fdeaea; }
             .se-flag-item .se-flag-box { width:18px; height:18px; border:2px solid #99ccff; border-radius:4px; flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:bold; }
@@ -1227,7 +1245,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
             <p style="font-size:0.88rem;margin-bottom:1rem;color:#003366;">Read each message or scenario. Then pick ALL the red flags you spot. Some messages have one, some have several. New to this? Read the <a href="/learn.html" style="color:#0000cc;">Threat Modeling 101</a> guide first.</p>
 
             <div class="se-score-bar">
-                <span class="se-score-text" id="seScoreText">Scenario 1 of 6</span>
+                <span class="se-score-text" id="seScoreText">Scenario 1 of 10</span>
                 <div class="se-progress"><div class="se-progress-fill" id="seProgressFill"></div></div>
                 <span class="se-score-text" id="seScoreCount">0 / 0</span>
             </div>
@@ -1618,79 +1636,131 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
                 from: 'From: IT Support <it-support@company-helpdesk.com>',
                 subject: 'Subject: URGENT: Password Expiry in 2 Hours',
                 body: 'Your corporate password will expire in 2 hours. Click here to renew now: http://company-helpdesk.com/renew?id=7Hx2K\n\nFailure to renew will result in account suspension.',
-                question: 'Which red flags do you see? Select ALL that apply.',
+                question: 'Select everything that concerns you about this message.',
                 flags: [
-                    { text: 'Urgency / time pressure ("2 hours", "account suspension")', correct: true },
-                    { text: 'Sender domain is not the real company domain', correct: true },
-                    { text: 'Suspicious link to an external site', correct: true },
-                    { text: 'The email is well-formatted with proper grammar', correct: false }
+                    { text: 'The message says the password expires in 2 hours', correct: true },
+                    { text: 'The sender domain is company-helpdesk.com', correct: true },
+                    { text: 'There is a link to click for renewal', correct: true },
+                    { text: 'The email is formatted with proper spacing and punctuation', correct: false }
                 ],
-                explanation: 'Three red flags: (1) artificial urgency to make you panic-click, (2) the domain "company-helpdesk.com" is not your real company domain, (3) the link goes to an external site rather than an internal portal. Good formatting means nothing — social engineers craft professional-looking emails. Always verify password expiry through your actual IT portal, not an email link.'
+                explanation: 'Three red flags: (1) Artificial urgency ("2 hours", "account suspension") is designed to make you panic-click without verifying. (2) "company-helpdesk.com" is not your real company domain — look closely. (3) The link goes to an external site rather than an internal portal. Good formatting means nothing — social engineers craft professional-looking emails. Always verify password expiry through your actual IT portal, not an email link.'
             },
             {
                 from: 'From: Amazon <orders@amazom.com>',
                 subject: 'Subject: Your order #88412 has shipped',
                 body: 'Thank you for your purchase! Your order has shipped.\n\nClick here to track your package: http://amazom.com/track/88412\n\nIf you did not place this order, click here to cancel: http://amazom.com/cancel\n\nAmazon Customer Service',
-                question: 'Which red flags do you see? Select ALL that apply.',
+                question: 'Select everything that concerns you about this message.',
                 flags: [
-                    { text: 'Misspelled domain ("amazom.com" instead of "amazon.com")', correct: true },
-                    { text: 'Creates curiosity/fear to make you click ("If you did not place this order")', correct: true },
-                    { text: 'The email has an order number, so it must be real', correct: false },
-                    { text: 'Links go to a lookalike domain', correct: true }
+                    { text: 'The sender domain is amazom.com', correct: true },
+                    { text: 'The message includes an order number (#88412)', correct: false },
+                    { text: 'There is a link to cancel the order', correct: true },
+                    { text: 'The email says "Amazon Customer Service" at the bottom', correct: false }
                 ],
-                explanation: 'Three red flags: (1) "amazom.com" is a typosquatted domain — one letter off from amazon.com, (2) the "if you did not place this order" line creates fear that drives clicking, (3) the links go to the fake domain. The order number is easy to fabricate. Always check the sender domain letter by letter, and navigate to Amazon directly instead of clicking email links.'
+                explanation: 'Two red flags: (1) "amazom.com" is a typosquatted domain — one letter off from amazon.com. Always check sender domains letter by letter. (2) The "if you did not place this order" line is bait designed to make you click the cancel link in panic. The order number and sign-off are easy to fabricate and mean nothing. Navigate to Amazon directly in your browser instead of clicking email links.'
             },
             {
                 from: 'Phone call — Caller claims to be from "Microsoft Security"',
                 subject: 'Caller ID: Unknown Number',
                 body: '"Hello, I am calling from Microsoft Security. We have detected a virus on your computer that is spreading to other devices on your network. I need you to open a website so I can run a remote scan. This is very urgent — the virus could corrupt your files within the hour."',
-                question: 'Which red flags do you see? Select ALL that apply.',
+                question: 'Select everything that concerns you about this call.',
                 flags: [
-                    { text: 'Authority impersonation ("Microsoft Security")', correct: true },
-                    { text: 'Urgency / time pressure ("within the hour")', correct: true },
-                    { text: 'Request to access your computer remotely', correct: true },
-                    { text: 'The caller sounds professional and confident', correct: false }
+                    { text: 'The caller says they are from Microsoft Security', correct: true },
+                    { text: 'The caller says the situation is very urgent', correct: true },
+                    { text: 'The caller asks you to open a website', correct: true },
+                    { text: 'The caller sounds calm and professional', correct: false }
                 ],
-                explanation: 'Three red flags: (1) Microsoft does not make unsolicited calls about viruses on your computer, (2) urgency to prevent you from thinking it through, (3) remote access is the goal — they want to install malware or steal data. Confidence and professionalism are tools of the trade, not proof of legitimacy. Hang up and call Microsoft through their official support number if you are concerned.'
+                explanation: 'Three red flags: (1) Microsoft does not make unsolicited calls about viruses on your computer — they have no way of knowing. (2) Urgency prevents you from thinking it through or verifying. (3) Opening a website for a "remote scan" gives them access to install malware or steal data. Calmness and professionalism are deliberate tools, not proof of legitimacy. Hang up and call Microsoft through their official support number.'
             },
             {
                 from: 'From: CEO <ceo@yourcompany.com>',
                 subject: 'Subject: Quick favor',
                 body: 'Hi, I am in a meeting and cannot talk. I need you to purchase $500 in gift cards for a client gift and send me the codes. This is urgent and confidential. Do not discuss with anyone. I will reimburse you. Thanks.',
-                question: 'Which red flags do you see? Select ALL that apply.',
+                question: 'Select everything that concerns you about this message.',
                 flags: [
-                    { text: 'Urgency and secrecy ("urgent", "do not discuss with anyone")', correct: true },
-                    { text: 'Unusual financial request (gift cards)', correct: true },
-                    { text: 'Cannot verify identity (cannot talk, in a meeting)', correct: true },
-                    { text: 'The email comes from the CEO\'s real address, so it is safe', correct: false }
+                    { text: 'The sender says they are in a meeting and cannot talk', correct: true },
+                    { text: 'The request involves purchasing gift cards', correct: true },
+                    { text: 'The email says "do not discuss with anyone"', correct: true },
+                    { text: 'The email says the sender will reimburse you', correct: false }
                 ],
-                explanation: 'Three red flags: (1) urgency + secrecy prevents you from verifying, (2) gift cards are the #1 payment method for BEC (Business Email Compromise) scams because they are untraceable, (3) the CEO cannot be reached for verification. Even if the email comes from the real address, it could be spoofed or compromised. ALWAYS verify unusual financial requests through a separate channel (call the CEO\'s assistant, walk to their office).'
+                explanation: 'Three red flags: (1) Being unavailable for verification is deliberate — it prevents you from confirming. (2) Gift cards are the #1 payment method for BEC (Business Email Compromise) scams because they are untraceable. (3) Secrecy ("do not discuss") isolates you from coworkers who might spot the scam. The reimbursement promise is bait. ALWAYS verify unusual financial requests through a separate channel — call the CEO directly, walk to their office, or ask their assistant.'
             },
             {
                 from: 'From: HR Department <hr@yourcompany.com>',
                 subject: 'Subject: Your salary review is ready',
                 body: 'Your Q3 salary review document is attached. Please download and review before Friday.\n\nAttachment: Salary_Review_Q3.docm\n\nNote: If the document asks you to "Enable Content" or "Enable Macros", please click yes to view the full document.',
-                question: 'Which red flags do you see? Select ALL that apply.',
+                question: 'Select everything that concerns you about this message.',
                 flags: [
-                    { text: 'Attachment is a macro-enabled document (.docm)', correct: true },
-                    { text: 'Asks you to "Enable Content" / "Enable Macros"', correct: true },
-                    { text: 'Uses salary curiosity to bait you into opening it', correct: true },
-                    { text: 'The email has an HR sender, so it is safe to open', correct: false }
+                    { text: 'The attachment has a .docm file extension', correct: true },
+                    { text: 'The email says to review before Friday', correct: false },
+                    { text: 'The email tells you to click "Enable Content" or "Enable Macros"', correct: true },
+                    { text: 'The subject mentions salary review', correct: true }
                 ],
-                explanation: 'Three red flags: (1) .docm files can contain macros — a primary vector for malware, (2) "Enable Content" runs embedded code that can take over your computer, (3) salary/bonus topics are chosen specifically because people cannot resist opening them. The sender address can be spoofed. Never enable macros in a document received via email. If HR needs to share salary info, they would use a secure internal portal, not an email attachment.'
+                explanation: 'Three red flags: (1) .docm files can contain macros — a primary vector for malware. (2) "Enable Content" runs embedded code that can take over your computer. (3) Salary/bonus topics are chosen specifically because people cannot resist opening them — it is bait. The deadline is not itself a red flag (HR does set deadlines), but the combination of salary bait + macro attachment + enable content is a textbook malware delivery. Never enable macros in documents received via email.'
             },
             {
                 from: 'Text message from: +1-555-0192',
                 subject: 'SMS (smishing)',
                 body: '[Bank Alert] We detected unusual activity on your debit card. Verify your identity now or your card will be locked: http://bank-secure-verify.com/alert',
-                question: 'Which red flags do you see? Select ALL that apply.',
+                question: 'Select everything that concerns you about this text.',
                 flags: [
-                    { text: 'Urgency / fear ("your card will be locked")', correct: true },
-                    { text: 'Link to a non-bank domain', correct: true },
-                    { text: 'Comes from an unknown phone number, not your bank', correct: true },
-                    { text: 'It says "Bank Alert" so it must be official', correct: false }
+                    { text: 'The text says your card will be locked', correct: true },
+                    { text: 'The message contains a link to click', correct: true },
+                    { text: 'The text starts with "[Bank Alert]"', correct: false },
+                    { text: 'The text comes from a phone number, not a saved contact', correct: true }
                 ],
-                explanation: 'Three red flags: (1) fear of losing card access makes you click fast, (2) "bank-secure-verify.com" is not your bank\'s real domain, (3) real bank alerts come from your bank\'s registered SMS number, not a random one. The "Bank Alert" label is trivially faked. If you get a suspicious bank text, call the number on the back of your card — never the one in the text, never the link.'
+                explanation: 'Three red flags: (1) Fear of losing card access makes you click fast without thinking. (2) The link goes to "bank-secure-verify.com" which is not your bank\'s real domain. (3) Real bank alerts come from your bank\'s registered SMS number, not a random +1-555 number. The "[Bank Alert]" label is trivially faked — anyone can type those words. If you get a suspicious bank text, call the number on the back of your card, never the one in the text.'
+            },
+            {
+                from: 'From: Package Delivery <noreply@post-notify.com>',
+                subject: 'Subject: Delivery failed — package held at warehouse',
+                body: 'We attempted to deliver your package but no one was home. Your package is being held at our warehouse and will be returned to sender in 24 hours.\n\nTo reschedule delivery, confirm your address here: http://post-notify.com/reschedule?ref=4XK9\n\nA $2.00 redelivery fee applies.',
+                question: 'Select everything that concerns you about this message.',
+                flags: [
+                    { text: 'The sender domain is post-notify.com', correct: true },
+                    { text: 'The message says the package will be returned in 24 hours', correct: true },
+                    { text: 'There is a link to confirm your address', correct: true },
+                    { text: 'A redelivery fee is mentioned', correct: true }
+                ],
+                explanation: 'Four red flags: (1) "post-notify.com" is not a real delivery service domain (USPS, UPS, FedEx all use their own domains). (2) The 24-hour deadline creates urgency. (3) The link asks you to "confirm your address" — a classic way to harvest personal information. (4) Legitimate delivery services do not charge redelivery fees via email links. Real delivery notices come through the carrier\'s official tracking system, not a random email. If you are expecting a package, track it directly on the carrier\'s website.'
+            },
+            {
+                from: 'From: IT Helpdesk <helpdesk@yourcompany.com>',
+                subject: 'Subject: Re: Your support ticket #4471',
+                body: 'Hi, following up on your support ticket. I have attached a diagnostic tool that will help us identify the issue. Please download and run it, then send me the results file. If Windows asks about running an unknown application, click "More info" then "Run anyway" — this is safe, it is just our internal tool.\n\nThanks,\nIT Helpdesk',
+                question: 'Select everything that concerns you about this message.',
+                flags: [
+                    { text: 'The email asks you to run an attached application', correct: true },
+                    { text: 'The email references a support ticket number', correct: false },
+                    { text: 'The email tells you to bypass the Windows security warning', correct: true },
+                    { text: 'The sender says the tool is "safe" and "internal"', correct: true }
+                ],
+                explanation: 'Three red flags: (1) Running an unknown attachment is a primary malware vector. (2) Telling you to bypass the Windows security warning ("More info" then "Run anyway") is a huge red flag — that warning exists specifically because the file is unrecognized. (3) Claiming it is "safe" and "internal" without any verification mechanism is social engineering. The ticket number is easy to guess or look up. Real IT teams use official software deployment tools, not email attachments. If in doubt, call IT using the number from your company directory.'
+            },
+            {
+                from: 'From: Netflix <billing@netfl1x.com>',
+                subject: 'Subject: Action required: Account suspended',
+                body: 'Your Netflix account has been suspended due to a billing issue. To restore your account, please update your payment information within 48 hours.\n\nClick here to update: http://netfl1x.com/account/verify\n\nIf you do not update within 48 hours, your account will be permanently deleted along with all your viewing history.',
+                question: 'Select everything that concerns you about this message.',
+                flags: [
+                    { text: 'The sender domain is netfl1x.com (with a number 1)', correct: true },
+                    { text: 'The message says the account will be permanently deleted', correct: true },
+                    { text: 'The email mentions a billing issue', correct: false },
+                    { text: 'The link goes to netfl1x.com, not netflix.com', correct: true }
+                ],
+                explanation: 'Three red flags: (1) "netfl1x.com" uses the number 1 instead of the letter i — a classic typosquatting trick. (2) Threat of permanent account deletion creates urgency and fear of losing your viewing history. (3) The link goes to the fake domain. Billing issues are a normal thing to mention, but real companies do not ask you to update payment info through an email link. Log in to Netflix directly through your browser or app to check your account status.'
+            },
+            {
+                from: 'From: Your Coworker <jessica.morrison@yourcompany.com>',
+                subject: 'Subject: Can you do me a favor?',
+                body: 'Hey! I know this is short notice, but I am in a bind. I need to buy some gift cards for my nephew\'s birthday party tonight and my card is not working. Could you buy $200 in Steam gift cards and send me the codes? I will pay you back Monday, I promise. Please keep this between us — I do not want everyone to know I am broke right now.',
+                question: 'Select everything that concerns you about this message.',
+                flags: [
+                    { text: 'The request is to buy gift cards', correct: true },
+                    { text: 'The message says "keep this between us"', correct: true },
+                    { text: 'The email comes from a coworker you know', correct: false },
+                    { text: 'The sender says they will pay you back Monday', correct: false }
+                ],
+                explanation: 'Two red flags: (1) Gift cards are untraceable and non-reversible — the #1 payment method for scams. (2) "Keep this between us" isolates you from people who might tell you it is a scam. Even though the email appears to come from a coworker, their account may have been compromised. The repayment promise and the fact that you know them are both used to lower your guard. ALWAYS verify unusual requests through a different channel — call Jessica directly or walk to her desk. If her email was compromised, she does not even know this was sent.'
             }
         ];
 
@@ -2101,7 +2171,7 @@ input::placeholder, textarea::placeholder { color: #6699cc !important; }
 
     </script>
     <script src="/intro.js"></script>
-    <div class="version-badge">V1.24</div>
+    <div class="version-badge">V1.27</div>
 <script src="/y2k-fun.js"></script>
 </body>
 </html>
